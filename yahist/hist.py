@@ -231,6 +231,18 @@ class Hist1D(object):
         a2s = np.array2string(self._counts+self._errors*1j,formatter=formatter, suppress_small=True, separator="   ")
         return a2s
 
+    def normalize(self):
+        """
+        return scaled histogram with sum(counts) = 1
+        """
+        hnew = self.__class__()
+        hnew._counts = self._counts / self._counts.sum()
+        hnew._errors = np.array(self._errors)
+        hnew._edges = np.array(self._edges)
+        hnew._metadata = self._metadata.copy()
+        return hnew
+
+
     def rebin(self, nrebin):
         """
         combine `nrebin` bins into 1 bin, so
