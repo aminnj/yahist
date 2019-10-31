@@ -7,7 +7,8 @@ Yet another (simple) histogram object
 ### Installation / Usage
 
 ```bash
-pip install yahist
+# until I put it on pypi
+pip install git+git://github.com/aminnj/yahist.git#egg=yahist -U
 ```
 
 ### Examples
