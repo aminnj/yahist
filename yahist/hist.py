@@ -41,7 +41,10 @@ class Hist1D(object):
 
     def _init_numpy(self, obj, **kwargs):
         if kwargs.pop("overflow",True) and ("bins" in kwargs) and not isinstance(kwargs["bins"],str):
-            obj = np.clip(obj,kwargs["bins"][0],kwargs["bins"][-1])
+            bins = kwargs["bins"]
+            clip_low = 0.5*(bins[0] + bins[1])
+            clip_high = 0.5*(bins[-2] + bins[-1])
+            obj = np.clip(obj,clip_low,clip_high)
         self._counts, self._edges = np.histogram(obj,**kwargs)
         self._counts = self._counts.astype(np.float64)
 
@@ -235,13 +238,7 @@ class Hist1D(object):
         """
         return scaled histogram with sum(counts) = 1
         """
-        hnew = self.__class__()
-        hnew._counts = self._counts / self._counts.sum()
-        hnew._errors = np.array(self._errors)
-        hnew._edges = np.array(self._edges)
-        hnew._metadata = self._metadata.copy()
-        return hnew
-
+        return self.divide(self._counts.sum())
 
     def rebin(self, nrebin):
         """
