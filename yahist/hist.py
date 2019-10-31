@@ -184,7 +184,7 @@ class Hist1D(object):
         return hnew
 
     def __div__(self, other):
-        if type(other) in [float,int]:
+        if type(other) in [float,int,np.float64]:
             return self.__mul__(1./other)
         elif is_listlike(other):
             # Divide histogram by array (counts) assuming errors are 0
@@ -203,7 +203,7 @@ class Hist1D(object):
 
 
     def __mul__(self, fact):
-        if type(fact) in [float,int]:
+        if type(fact) in [float,int,np.float64]:
             hnew = self._copy()
             hnew._counts *= fact
             hnew._errors *= fact
@@ -214,7 +214,7 @@ class Hist1D(object):
     __rmul__ = __mul__
 
     def __pow__(self, expo):
-        if type(expo) in [float,int]:
+        if type(expo) in [float,int,np.float64]:
             hnew = self._copy()
             hnew._counts = hnew._counts ** expo
             hnew._errors *= hnew._counts**(expo-1) * expo
@@ -238,7 +238,7 @@ class Hist1D(object):
         """
         return scaled histogram with sum(counts) = 1
         """
-        return self.divide(self._counts.sum())
+        return self / self._counts.sum()
 
     def rebin(self, nrebin):
         """
