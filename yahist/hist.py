@@ -247,6 +247,8 @@ class Hist1D(object):
         """
         if (len(self._edges)-1) % nrebin != 0:
             raise Exception("This histogram cannot be rebinned since {} is not divisible by {}".format(len(self.edges)-1,nrebin))
+        if nrebin == 1: 
+            return self
         errors2 = self._errors**2.
         # TODO can be more numpythonic, but I was lazy 
         new_counts = [sum(self._counts[i*nrebin:(i+1)*nrebin]) for i in range(0, len(self._edges)//nrebin)]
@@ -296,7 +298,7 @@ class Hist1D(object):
 
         pathstr = " ".join("{},{}".format(*p) for p in points)
 
-        template = """
+        source = """
         <svg width="{width}" height="{height}" version="1.1" xmlns="http://www.w3.org/2000/svg">
           <rect width="{width}" height="{height}" fill="transparent" stroke="#000" stroke-width="2" />
           <polyline points="{pathstr}" stroke="#000" fill="#5688C7" stroke-width="{strokewidth}"/>
@@ -305,7 +307,7 @@ class Hist1D(object):
            width=width,height=height,
            pathstr=pathstr,strokewidth=strokewidth,
         )
-        return template
+        return source
 
     def html_table(self):
         tablerows = []
@@ -324,21 +326,23 @@ class Hist1D(object):
                          ["<tr><td colspan='2'><center>[{} rows hidden]</center></td></tr>".format(nhidden)]+
                          tablerows[-ntohide:])
             tablestr = "\n".join(tablerows)
-        return tablestr
+        return """
+                <table style='border:1px solid black;'">
+                    <thead><tr><th>bin</th><th>content</th></tr></thead>
+                    {tablestr}
+                </table>
+            """.format(tablestr=tablestr)
 
     def _repr_html_(self):
         tablestr = self.html_table()
         svgsource = self.svg()
 
-        template = """
+        source = """
         <div style="max-height:1000px;max-width:1500px;overflow:auto">
         <b>total count</b>: {count}, <b>metadata</b>: {metadata}<br>
         <div style="display:flex;">
             <div style="display:inline;">
-                <table style='border:1px solid black;'">
-                    <thead><tr><th>bin</th><th>content</th></tr></thead>
-                    {tablestr}
-                </table>
+                {tablestr}
             </div>
             <div style="display:inline; margin: auto 2%;">
                 {svgsource}
@@ -350,7 +354,7 @@ class Hist1D(object):
                     svgsource=svgsource,
                    tablestr=tablestr,
         )
-        return template
+        return source
 
     def to_json(self):
         def default(obj):
@@ -403,7 +407,7 @@ class Hist1D(object):
                 ytodraw = ytexts
             for x,y,ytext in zip(xtodraw,ytodraw,ytexts):
                 ax.text(x,y,"{:g}".format(ytext), horizontalalignment="center",verticalalignment="bottom", fontsize=10, color=color)
-        ax.set_ylim(0,ax.get_ylim()[-1])
+        # ax.set_ylim(0,ax.get_ylim()[-1]) # NOTE, user should do this because it messes with logy
         return ax
 
 
@@ -413,7 +417,19 @@ class Hist2D(Hist1D):
         if len(obj) == 0:
             xs, ys = [],[]
         else:
+            # FIXME, should take a tuple of xs, ys since obj can be arbitrary
             xs, ys = obj[:,0], obj[:,1]
+
+        if kwargs.pop("overflow",True) and ("bins" in kwargs) and not isinstance(kwargs["bins"],str):
+            bins = kwargs["bins"]
+            if is_listlike(bins) and len(bins) == 2:
+                clip_low_x = 0.5*(bins[0][0] + bins[0][1])
+                clip_high_x = 0.5*(bins[0][-2] + bins[0][-1])
+                clip_low_y = 0.5*(bins[1][0] + bins[1][1])
+                clip_high_y = 0.5*(bins[1][-2] + bins[1][-1])
+                xs = np.clip(xs,clip_low_x,clip_high_x)
+                ys = np.clip(ys,clip_low_y,clip_high_y)
+
         counts, edgesx, edgesy = np.histogram2d(xs, ys, **kwargs)
         # each row = constant y, lowest y on top
         self._counts = counts.T
@@ -428,7 +444,7 @@ class Hist2D(Hist1D):
                 # if weighted entries, need to get sum of sq. weights per bin
                 # and sqrt of that is bin error
                 kwargs["weights"] = kwargs["weights"]**2.
-                counts, _, _ = np.histogram2d(obj[:,0],obj[:,1],**kwargs)
+                counts, _, _ = np.histogram2d(xs, ys, **kwargs)
                 self._errors = np.sqrt(counts.T)
         self._errors = self._errors.astype(np.float64)
 
@@ -495,4 +511,101 @@ class Hist2D(Hist1D):
     def y_profile(self):
         xedges, yedges = self._edges
         return self._calculate_profile(self._counts.T, self._errors.T, xedges, yedges)
+
+    def svg(self, height=250, aspectratio=1.4):
+        width = height*aspectratio
+
+        # Adding this to the top of the template, and then moving the rectangle frame before all the content will allow hovering
+        # <style>
+        # .bar:hover {{{{
+        #   fill: red;
+        # }}}}
+        # </style>
+
+        template = """
+        <svg width="{width}" height="{height}" version="1.1" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+
+        <defs>
+            <filter id="f1">
+            <feBlend mode="normal" in="SourceGraphic"/>
+            </filter>
+        </defs>
+
+          <g filter="url(#f1)">
+              {{content}}
+          </g>
+
+          <rect class="bar" width="{width}" height="{height}" fill="transparent" stroke="#000" stroke-width="2" />
+        </svg>
+        """.format(width=width,height=height)
+
+        ex = self.edges[0]
+        ey = self.edges[1]
+        counts = self.counts
+
+        # transform edges into svg coordinates
+        transformed_ex = width * (ex - ex.min()) / ex.ptp()
+        transformed_ey = height * (1. - (ey - ey.min()) / ey.ptp())
+
+        # if outer loop over y, and inner over x, this flattened version will hit the right elements
+        transformed_z_flat = (z for z in (counts.flatten() - counts.min()) / counts.ptp())
+
+        # shorter than transformed edges by 1, so zipping the two will give only left edges
+        diffs_x = np.abs(np.diff(transformed_ex))
+        diffs_y = np.abs(np.diff(transformed_ey))
+
+        content = []
+        for y,h in zip(transformed_ey[1:],diffs_y):
+            for x,w in zip(transformed_ex[:-1],diffs_x):
+                z = next(transformed_z_flat)
+                if z == 0.: continue
+                z = np.round(255*(1-z)*10)/10
+                rectstr = (
+                    """<rect width="{w:g}" height="{h:g}" x="{x:g}" y="{y:g}" fill="RGB({z},{z},{z})"/>""".format(
+                    w=w,h=h,x=x,y=y,z=z,
+                ))
+                content.append(rectstr)
+
+        source = template.format(content="\n".join(content))
+        return source
+
+    def html_table(self):
+        return ""
+
+    def _repr_html_(self):
+        tablestr = self.html_table()
+        svgsource = self.svg()
+
+        source = """
+        <div style="max-height:1000px;max-width:1500px;overflow:auto">
+        <b>total count</b>: {count}, <b>metadata</b>: {metadata}<br>
+        <div style="display:flex;">
+            <div style="display:inline;">
+                {tablestr}
+            </div>
+            <div style="display:inline; margin: auto 2%;">
+                {svgsource}
+            </div>
+            </div>
+        </div>
+        """.format(
+            count=self._counts.sum(),metadata=self._metadata,
+                    svgsource=svgsource,
+                   tablestr=tablestr,
+        )
+        return source
+
+
+    def plot(self,ax=None,**kwargs):
+        if ax is None:
+            import matplotlib.pyplot as plt
+            ax = plt.gca()
+
+        counts = self._counts
+        edges = self._edges
+
+        X, Y = np.meshgrid(*edges)
+        mappable = ax.pcolorfast(X, Y, counts, **kwargs)
+
+        return ax
 
