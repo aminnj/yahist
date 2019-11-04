@@ -242,22 +242,28 @@ class Hist1D(object):
 
     def rebin(self, nrebin):
         """
-        combine `nrebin` bins into 1 bin, so
+        combine `nrebin` bins into 1 bin by summing contents. total
+        number of bins for each axis must be divisible by these numbers.
         nbins must be divisible by `nrebin` exactly
         """
-        if (len(self._edges)-1) % nrebin != 0:
-            raise Exception("This histogram cannot be rebinned since {} is not divisible by {}".format(len(self.edges)-1,nrebin))
-        if nrebin == 1: 
-            return self
-        errors2 = self._errors**2.
-        # TODO can be more numpythonic, but I was lazy 
-        new_counts = [sum(self._counts[i*nrebin:(i+1)*nrebin]) for i in range(0, len(self._edges)//nrebin)]
-        new_errors2 = [sum(errors2[i*nrebin:(i+1)*nrebin]) for i in range(0, len(self._edges)//nrebin)]
-        new_edges = self._edges[::nrebin]
+        nx = self.counts.shape[0]
+        bx = nrebin
+
+        if (nx % bx != 0):
+            raise Exception("This histogram cannot be rebinned since {} is not divisible by {}".format(nx,bx))
+
+        counts = self.counts
+        edgesx = self.edges
+        errors = self.errors
+
+        new_counts = counts.reshape(nx//bx,bx).sum(axis=1)
+        new_errors = (errors**2).reshape(nx//bx,bx).sum(axis=1)**0.5
+        new_edgesx = np.append(edgesx[:-1].reshape(nx//bx,-1).T[0],edgesx[-1])
+
         hnew = self.__class__()
-        hnew._edges = np.array(new_edges)
-        hnew._errors = np.array(new_errors2)**0.5
-        hnew._counts = np.array(new_counts)
+        hnew._edges = new_edgesx
+        hnew._errors = new_errors
+        hnew._counts = new_counts
         hnew._metadata = self._metadata.copy()
         return hnew
 
@@ -514,9 +520,38 @@ class Hist2D(Hist1D):
 
     def rebin(self, nrebinx, nrebiny=None):
         """
-        TODO use clever trick from https://stackoverflow.com/questions/44527579/whats-the-best-way-to-downsample-a-numpy-array?rq=1
+        combine (`nrebinx`,`nrebiny`) bins into 1 bin by summing contents. total
+        number of bins for each axis must be divisible by these numbers.
+        if `nrebiny` is not specified, it is assumed to be the same as `nrebinx`
+        nbins must be divisible by `nrebin` exactly
+
+        expand the original arrays by 2 dimensions corresponding to rebin sizes, then sum over these dimensions
+        (method from https://stackoverflow.com/questions/44527579/whats-the-best-way-to-downsample-a-numpy-array?rq=1)
         """
-        raise NotImplementedError
+        ny,nx = self.counts.shape
+        by,bx = (nrebinx, nrebinx) if nrebiny is None else (nrebinx, nrebiny)
+
+        if (nx % bx != 0):
+            raise Exception("This histogram cannot be rebinned since {} is not divisible by {}".format(nx,bx))
+        if (ny % by != 0):
+            raise Exception("This histogram cannot be rebinned since {} is not divisible by {}".format(ny,by))
+
+        counts = self.counts
+        edgesx, edgesy = self.edges
+        errors = self.errors
+
+        new_counts = counts.reshape(ny//by,by,nx//bx,bx).sum(axis=(1,3))
+        new_errors = (errors**2).reshape(ny//by,by,nx//bx,bx).sum(axis=(1,3))**0.5
+        new_edgesx = np.append(edgesx[:-1].reshape(nx//bx,-1).T[0],edgesx[-1])
+        new_edgesy = np.append(edgesy[:-1].reshape(ny//by,-1).T[0],edgesy[-1])
+
+        hnew = self.__class__()
+        hnew._edges = [new_edgesx, new_edgesy]
+        hnew._errors = new_errors
+        hnew._counts = new_counts
+        hnew._metadata = self._metadata.copy()
+        return hnew
+
 
     def svg(self, height=250, aspectratio=1.4, interactive=True):
         width = height*aspectratio
