@@ -13,10 +13,6 @@ from .utils import (
         )
 
 
-PY2 = True
-if sys.version_info[0] >= 3:
-    PY2 = False
-
 class Hist1D(object):
 
     def __init__(self, obj=[], **kwargs):
@@ -224,7 +220,8 @@ class Hist1D(object):
 
     def __repr__(self):
         sep = u"\u00B1"
-        if PY2: sep = sep.encode("utf-8")
+        if sys.version_info[0] < 3:
+            sep = sep.encode("utf-8")
         # trick: want to use numpy's smart formatting (truncating,...) of arrays
         # so we convert value,error into a complex number and format that 1D array :)
         prec = np.get_printoptions()["precision"]
@@ -654,13 +651,16 @@ class Hist2D(Hist1D):
         counts = self._counts
         edges = self._edges
 
+        show_colorbar = kwargs.pop("colorbar", True)
+
         if kwargs.pop("logz",None):
             from matplotlib.colors import LogNorm
             kwargs["norm"] = LogNorm()
 
         c = ax.pcolorfast(edges[0], edges[1], counts, **kwargs)
 
-        fig.colorbar(c, ax=ax)
+        if show_colorbar:
+            fig.colorbar(c, ax=ax)
 
         return ax
 
