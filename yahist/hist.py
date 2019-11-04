@@ -300,7 +300,7 @@ class Hist1D(object):
 
         source = """
         <svg width="{width}" height="{height}" version="1.1" xmlns="http://www.w3.org/2000/svg">
-          <rect width="{width}" height="{height}" fill="transparent" stroke="#000" stroke-width="2" />
+          <rect width="{width}" height="{height}" fill="none" stroke="#000" stroke-width="2" />
           <polyline points="{pathstr}" stroke="#000" fill="#5688C7" stroke-width="{strokewidth}"/>
         </svg>
         """.format(
@@ -512,59 +512,70 @@ class Hist2D(Hist1D):
         xedges, yedges = self._edges
         return self._calculate_profile(self._counts.T, self._errors.T, xedges, yedges)
 
-    def svg(self, height=250, aspectratio=1.4):
+    def rebin(self, nrebinx, nrebiny=None):
+        """
+        TODO use clever trick from https://stackoverflow.com/questions/44527579/whats-the-best-way-to-downsample-a-numpy-array?rq=1
+        """
+        raise NotImplementedError
+
+    def svg(self, height=250, aspectratio=1.4, interactive=True):
         width = height*aspectratio
 
-        # Adding this to the top of the template, and then moving the rectangle frame before all the content will allow hovering
-        # <style>
-        # .bar:hover {{{{
-        #   fill: red;
-        # }}}}
-        # </style>
+        if self.counts.size > 50e3:
+            interactive=False
 
         template = """
-        <svg width="{width}" height="{height}" version="1.1" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <svg width="{svg_width}" height="{svg_height}" version="1.1" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
 
-        <defs>
-            <filter id="f1">
-            <feBlend mode="normal" in="SourceGraphic"/>
-            </filter>
-        </defs>
+          {{content}}
 
-          <g filter="url(#f1)">
-              {{content}}
-          </g>
-
-          <rect class="bar" width="{width}" height="{height}" fill="transparent" stroke="#000" stroke-width="2" />
+          <rect width="{plot_width}" height="{plot_height}" fill="none" stroke="#000" stroke-width="2" />
         </svg>
-        """.format(width=width,height=height)
+        """.format(plot_width=width,svg_width=width,plot_height=height,svg_height=height+(30 if interactive else 0))
+
+        if interactive:
+            template += """
+            <style>
+                svg rect.bar:hover {{ stroke: red; }}
+                svg text {{ display: none; }}
+                svg g:hover text {{ display: block; }}
+            </style>
+            """
 
         ex = self.edges[0]
         ey = self.edges[1]
         counts = self.counts
 
-        # transform edges into svg coordinates
-        transformed_ex = width * (ex - ex.min()) / ex.ptp()
-        transformed_ey = height * (1. - (ey - ey.min()) / ey.ptp())
+        # transform edges into svg coordinates, and counts into [0..255] for color
+        t_ex = width * (ex - ex.min()) / ex.ptp()
+        t_ey = height * (1. - (ey - ey.min()) / ey.ptp())
+        t_counts = counts
+        t_counts_norm = (counts-counts.min())/counts.ptp()
 
-        # if outer loop over y, and inner over x, this flattened version will hit the right elements
-        transformed_z_flat = (z for z in (counts.flatten() - counts.min()) / counts.ptp())
+        X, Y = np.meshgrid(t_ex, t_ey)
 
-        # shorter than transformed edges by 1, so zipping the two will give only left edges
-        diffs_x = np.abs(np.diff(transformed_ex))
-        diffs_y = np.abs(np.diff(transformed_ey))
+        mat = np.c_[
+            X[:-1,:-1].flatten(),
+            X[1:,1:].flatten(),
+            Y[1:,1:].flatten(),
+            Y[:-1,:-1].flatten(),
+            t_counts.flatten(),
+            t_counts_norm.flatten(),
+        ]
 
         content = []
-        for y,h in zip(transformed_ey[1:],diffs_y):
-            for x,w in zip(transformed_ex[:-1],diffs_x):
-                z = next(transformed_z_flat)
-                if z == 0.: continue
-                z = np.round(255*(1-z)*10)/10
-                rectstr = (
-                    """<rect width="{w:g}" height="{h:g}" x="{x:g}" y="{y:g}" fill="RGB({z},{z},{z})"/>""".format(
-                    w=w,h=h,x=x,y=y,z=z,
-                ))
-                content.append(rectstr)
+        if interactive:
+            rect_str = ("""<g><rect class="bar" width="{w:g}" height="{h:g}" x="{x:g}" y="{y:g}" fill="RGB({c:g},{c:g},{c:g})"/>"""
+                        """<text text-anchor="middle" x="%.0f" y="%.0f">x={xmid:g}, y={ymid:g}, z={z:g}</text></g>""") % (width/2, height+30/2)
+        else:
+            rect_str = """<rect width="{w:g}" height="{h:g}" x="{x:g}" y="{y:g}" fill="RGB({c:g},{c:g},{c:g})"/>"""
+        for x1,x2,y1,y2,z,znorm in mat[mat[:,-1] > 0]:
+            w = x2-x1
+            h = y2-y1
+            c = 255*(1-znorm)
+            xmid = 0.5*(x1+x2)
+            ymid = 0.5*(y1+y2)
+            content.append(rect_str.format(w=w,h=h,x=x1,y=y1,c=c,z=z,xmid=xmid,ymid=ymid))
 
         source = template.format(content="\n".join(content))
         return source
@@ -596,16 +607,25 @@ class Hist2D(Hist1D):
         return source
 
 
-    def plot(self,ax=None,**kwargs):
+    def plot(self,ax=None,fig=None,**kwargs):
         if ax is None:
             import matplotlib.pyplot as plt
             ax = plt.gca()
 
+        if fig is None:
+            import matplotlib.pyplot as plt
+            fig = plt.gcf()
+
         counts = self._counts
         edges = self._edges
 
-        X, Y = np.meshgrid(*edges)
-        mappable = ax.pcolorfast(X, Y, counts, **kwargs)
+        if kwargs.pop("logz",None):
+            from matplotlib.colors import LogNorm
+            kwargs["norm"] = LogNorm()
+
+        c = ax.pcolorfast(edges[0], edges[1], counts, **kwargs)
+
+        fig.colorbar(c, ax=ax)
 
         return ax
 
