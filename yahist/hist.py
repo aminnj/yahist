@@ -204,7 +204,7 @@ class Hist1D(object):
         return hnew
 
     def __div__(self, other):
-        if type(other) in [float, int, np.float64]:
+        if type(other) in [float, int, np.float64, np.int64]:
             return self.__mul__(1.0 / other)
         elif is_listlike(other):
             # Divide histogram by array (counts) assuming errors are 0
@@ -222,7 +222,7 @@ class Hist1D(object):
     __truediv__ = __div__
 
     def __mul__(self, fact):
-        if type(fact) in [float, int, np.float64]:
+        if type(other) in [float, int, np.float64, np.int64]:
             hnew = self._copy()
             hnew._counts *= fact
             hnew._errors *= fact
@@ -233,7 +233,7 @@ class Hist1D(object):
     __rmul__ = __mul__
 
     def __pow__(self, expo):
-        if type(expo) in [float, int, np.float64]:
+        if type(other) in [float, int, np.float64, np.int64]:
             hnew = self._copy()
             hnew._counts = hnew._counts ** expo
             hnew._errors *= hnew._counts ** (expo - 1) * expo
@@ -444,6 +444,18 @@ class Hist1D(object):
         hnew = cls()
         hnew.__dict__.update(obj)
         return hnew
+
+    @classmethod
+    def from_bincounts(cls, counts, bins, errors=None):
+        hnew = cls()
+        hnew._counts = counts
+        hnew._edges = bins
+        if errors is not None:
+            hnew._errors = errors
+        else:
+            hnew._errors = hnew._counts*0
+        return hnew
+
 
     def plot(self, ax=None, **kwargs):
         if ax is None:
