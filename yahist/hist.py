@@ -222,7 +222,7 @@ class Hist1D(object):
     __truediv__ = __div__
 
     def __mul__(self, fact):
-        if type(other) in [float, int, np.float64, np.int64]:
+        if type(fact) in [float, int, np.float64, np.int64]:
             hnew = self._copy()
             hnew._counts *= fact
             hnew._errors *= fact
@@ -233,7 +233,7 @@ class Hist1D(object):
     __rmul__ = __mul__
 
     def __pow__(self, expo):
-        if type(other) in [float, int, np.float64, np.int64]:
+        if type(expo) in [float, int, np.float64, np.int64]:
             hnew = self._copy()
             hnew._counts = hnew._counts ** expo
             hnew._errors *= hnew._counts ** (expo - 1) * expo
