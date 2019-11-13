@@ -448,7 +448,7 @@ class Hist1D(object):
     @classmethod
     def from_bincounts(cls, counts, bins, errors=None):
         hnew = cls()
-        hnew._counts = counts
+        hnew._counts = counts.astype(np.float64)
         hnew._edges = bins
         if errors is not None:
             hnew._errors = errors
