@@ -490,10 +490,10 @@ class Hist1D(object):
         if show_counts:
             patch = patches[0]
             color = None
-            if hasattr(patch, "get_color"):
-                color = patch.get_color()
-            elif hasattr(patch, "get_facecolor"):
+            if hasattr(patch, "get_facecolor"):
                 color = patch.get_facecolor()
+            elif hasattr(patch, "get_color"):
+                color = patch.get_color()
             xtodraw = centers[mask]
             ytexts = counts[mask]
             if show_errors:
@@ -620,6 +620,14 @@ class Hist2D(Hist1D):
     def y_profile(self):
         xedges, yedges = self._edges
         return self._calculate_profile(self._counts.T, self._errors.T, xedges, yedges)
+
+    def transpose(self):
+        hnew = self.__class__()
+        hnew._edges = [self.edges[1], self.edges[0]]
+        hnew._errors = self.errors.T
+        hnew._counts = self.counts.T
+        hnew._metadata = self._metadata.copy()
+        return hnew
 
     def rebin(self, nrebinx, nrebiny=None):
         """
