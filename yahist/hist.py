@@ -576,11 +576,13 @@ class Hist2D(Hist1D):
             and np.allclose(self._errors, other.errors)
         )
 
+    @property
     def bin_centers(self):
         xcenters = 0.5 * (self._edges[0][1:] + self._edges[0][:-1])
         ycenters = 0.5 * (self._edges[1][1:] + self._edges[1][:-1])
         return (xcenters, ycenters)
 
+    @property
     def bin_widths(self):
         xwidths = self._edges[0][1:] - self._edges[0][:-1]
         ywidths = self._edges[1][1:] - self._edges[1][:-1]
@@ -860,18 +862,35 @@ class Hist2D(Hist1D):
             fig = plt.gcf()
 
         counts = self._counts
-        edges = self._edges
+        xedges, yedges = self._edges
 
-        show_colorbar = kwargs.pop("colorbar", True)
+        show_counts = kwargs.pop("show_counts", False)
+        counts_fmt_func = kwargs.pop("counts_fmt_func", "{:g}".format)
+        counts_fontsize = kwargs.pop("counts_fontsize", 12)
+        logz = kwargs.pop("logz", False)
 
-        if kwargs.pop("logz", None):
+        if logz:
             from matplotlib.colors import LogNorm
-
             kwargs["norm"] = LogNorm()
 
-        c = ax.pcolorfast(edges[0], edges[1], counts, **kwargs)
+        c = ax.pcolorfast(xedges, yedges, counts, **kwargs)
+        cbar = fig.colorbar(c, ax=ax)
 
-        if show_colorbar:
-            fig.colorbar(c, ax=ax)
+        if show_counts:
+            xcenters, ycenters = self.bin_centers
+            xyz = np.c_[
+                np.tile(xcenters,len(ycenters)),
+                np.repeat(ycenters,len(xcenters)),
+                counts.flatten()
+            ][counts.flatten() > 0]
+
+            r,g,b,a = cbar.mappable.to_rgba(xyz[:,2]).T
+            colors = np.zeros((len(xyz),3))
+            darknesses = a*(1.0-(0.299*r+0.587*g+0.144*b))
+            colors[darknesses > 0.45] = 1
+
+
+            for (x,y,z),color in zip(xyz,colors):
+                ax.text(x,y,counts_fmt_func(z), color=color, ha="center", va="center", fontsize=counts_fontsize, wrap=True)
 
         return c, ax
