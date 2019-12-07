@@ -4,11 +4,10 @@ import numpy as np
 import copy
 import base64
 
-from .utils import (
-    is_listlike,
-)
+from .utils import is_listlike
 
 from .hist1d import Hist1D
+
 
 class Hist2D(Hist1D):
     def _init_numpy(self, obj, **kwargs):
@@ -241,8 +240,9 @@ class Hist2D(Hist1D):
     def svg_matplotlib(self, **kwargs):
         from io import BytesIO
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(figsize=(4,3))
-        fig.subplots_adjust(bottom=0.08,right=0.95,top=0.96)
+
+        fig, ax = plt.subplots(figsize=(4, 3))
+        fig.subplots_adjust(bottom=0.08, right=0.95, top=0.96)
         self.plot(ax=ax, **kwargs)
         buf = BytesIO()
         fig.savefig(buf, format="svg")
@@ -250,7 +250,6 @@ class Hist2D(Hist1D):
         data = base64.b64encode(buf.getbuffer()).decode("ascii")
         src = "<img src='data:image/svg+xml;base64,{}'/>".format(data)
         return src
-
 
     def canvas(self, height=250, aspectratio=1.4):
         width = height * aspectratio
@@ -367,6 +366,7 @@ class Hist2D(Hist1D):
 
         if logz:
             from matplotlib.colors import LogNorm
+
             kwargs["norm"] = LogNorm()
 
         c = ax.pcolorfast(xedges, yedges, counts, **kwargs)
@@ -375,16 +375,25 @@ class Hist2D(Hist1D):
         if show_counts:
             xcenters, ycenters = self.bin_centers
             xyz = np.c_[
-                np.tile(xcenters,len(ycenters)),
-                np.repeat(ycenters,len(xcenters)),
-                counts.flatten()
+                np.tile(xcenters, len(ycenters)),
+                np.repeat(ycenters, len(xcenters)),
+                counts.flatten(),
             ][counts.flatten() > 0]
 
-            r,g,b,a = cbar.mappable.to_rgba(xyz[:,2]).T
-            colors = np.zeros((len(xyz),3))
-            colors[compute_darkness(r,g,b,a) > 0.45] = 1
+            r, g, b, a = cbar.mappable.to_rgba(xyz[:, 2]).T
+            colors = np.zeros((len(xyz), 3))
+            colors[compute_darkness(r, g, b, a) > 0.45] = 1
 
-            for (x,y,z),color in zip(xyz,colors):
-                ax.text(x,y,counts_fmt_func(z), color=color, ha="center", va="center", fontsize=counts_fontsize, wrap=True)
+            for (x, y, z), color in zip(xyz, colors):
+                ax.text(
+                    x,
+                    y,
+                    counts_fmt_func(z),
+                    color=color,
+                    ha="center",
+                    va="center",
+                    fontsize=counts_fontsize,
+                    wrap=True,
+                )
 
         return c, ax

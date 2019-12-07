@@ -109,4 +109,3 @@ def ignore_division_errors(f):
             return f(*args, **kw)
 
     return g
-

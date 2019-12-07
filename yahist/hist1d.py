@@ -41,8 +41,8 @@ class Hist1D(object):
     def _init_numpy(self, obj, **kwargs):
         if isinstance(kwargs.get("bins"), str):
             if kwargs["bins"].count(",") == 2:
-                nbins,low,high = kwargs["bins"].split(",")
-                kwargs["bins"] = np.linspace(float(low), float(high), int(nbins)+1)
+                nbins, low, high = kwargs["bins"].split(",")
+                kwargs["bins"] = np.linspace(float(low), float(high), int(nbins) + 1)
         if (
             kwargs.pop("overflow", True)
             and ("bins" in kwargs)
@@ -360,8 +360,9 @@ class Hist1D(object):
     def svg_matplotlib(self, **kwargs):
         from io import BytesIO
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(figsize=(4,3))
-        fig.subplots_adjust(bottom=0.08,right=0.99,top=0.99)
+
+        fig, ax = plt.subplots(figsize=(4, 3))
+        fig.subplots_adjust(bottom=0.08, right=0.99, top=0.99)
         self.plot(ax=ax, histtype="step", **kwargs)
         # self.plot(ax=ax, **kwargs)
         buf = BytesIO()
@@ -458,9 +459,8 @@ class Hist1D(object):
         if errors is not None:
             hnew._errors = errors
         else:
-            hnew._errors = hnew._counts*0
+            hnew._errors = hnew._counts * 0
         return hnew
-
 
     def plot(self, ax=None, **kwargs):
         if ax is None:
@@ -482,7 +482,7 @@ class Hist1D(object):
 
         if show_errors:
             kwargs["fmt"] = kwargs.get("fmt", "o")
-            kwargs.pop("histtype",None)
+            kwargs.pop("histtype", None)
             patches = ax.errorbar(
                 centers[mask],
                 counts[mask],
@@ -500,10 +500,12 @@ class Hist1D(object):
             color = None
             if color is None and hasattr(patch, "get_facecolor"):
                 color = patch.get_facecolor()
-                if color[-1] == 0.: color = None
+                if color[-1] == 0.0:
+                    color = None
             if color is None and hasattr(patch, "get_color"):
                 color = patch.get_color()
-                if color[-1] == 0.: color = None
+                if color[-1] == 0.0:
+                    color = None
             if color is None and hasattr(patch, "get_edgecolor"):
                 color = patch.get_edgecolor()
             xtodraw = centers[mask]
