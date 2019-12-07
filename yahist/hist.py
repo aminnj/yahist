@@ -466,6 +466,8 @@ class Hist1D(object):
         kwargs["label"] = kwargs.get("label", self._metadata.get("label"))
         show_counts = kwargs.pop("show_counts", False)
         show_errors = kwargs.pop("show_errors", False)
+        counts_fmt_func = kwargs.pop("counts_fmt_func", "{:g}".format)
+        counts_fontsize = kwargs.pop("counts_fontsize", 10)
         counts = self._counts
         edges = self._edges
         yerrs = self._errors
@@ -490,10 +492,14 @@ class Hist1D(object):
         if show_counts:
             patch = patches[0]
             color = None
-            if hasattr(patch, "get_facecolor"):
+            if color is None and hasattr(patch, "get_facecolor"):
                 color = patch.get_facecolor()
-            elif hasattr(patch, "get_color"):
+                if color[-1] == 0.: color = None
+            if color is None and hasattr(patch, "get_color"):
                 color = patch.get_color()
+                if color[-1] == 0.: color = None
+            if color is None and hasattr(patch, "get_edgecolor"):
+                color = patch.get_edgecolor()
             xtodraw = centers[mask]
             ytexts = counts[mask]
             if show_errors:
@@ -504,10 +510,10 @@ class Hist1D(object):
                 ax.text(
                     x,
                     y,
-                    "{:g}".format(ytext),
+                    counts_fmt_func(ytext),
                     horizontalalignment="center",
                     verticalalignment="bottom",
-                    fontsize=10,
+                    fontsize=counts_fontsize,
                     color=color,
                 )
         # ax.set_ylim(0,ax.get_ylim()[-1]) # NOTE, user should do this because it messes with logy
