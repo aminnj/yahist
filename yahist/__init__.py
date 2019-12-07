@@ -1,1 +1,2 @@
-from .hist import Hist1D, Hist2D
+from .hist1d import Hist1D
+from .hist2d import Hist2D
