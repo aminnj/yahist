@@ -1,16 +1,11 @@
 from __future__ import print_function
 
-import sys
 import numpy as np
 import copy
-import json
 import base64
 
 from .utils import (
     is_listlike,
-    clopper_pearson_error,
-    poisson_errors,
-    ignore_division_errors,
 )
 
 from .hist1d import Hist1D
