@@ -378,7 +378,7 @@ class Hist2D(Hist1D):
                 np.tile(xcenters, len(ycenters)),
                 np.repeat(ycenters, len(xcenters)),
                 counts.flatten(),
-            ][counts.flatten() > 0]
+            ][counts.flatten() != 0]
 
             r, g, b, a = cbar.mappable.to_rgba(xyz[:, 2]).T
             colors = np.zeros((len(xyz), 3))
