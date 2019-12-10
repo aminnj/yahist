@@ -21,9 +21,7 @@ def set_default_style():
     ]
     rcParams["legend.fontsize"] = 11
     rcParams["legend.labelspacing"] = 0.2
-    rcParams[
-        "hatch.linewidth"
-    ] = 0.5  # https://stackoverflow.com/questions/29549530/how-to-change-the-linewidth-of-hatch-in-matplotlib
+    rcParams["hatch.linewidth"] = 0.5
     rcParams["axes.xmargin"] = 0.0  # rootlike, no extra padding within x axis
     rcParams["axes.labelsize"] = "x-large"
     rcParams["axes.formatter.use_mathtext"] = True
@@ -37,10 +35,7 @@ def set_default_style():
     rcParams["figure.subplot.right"] = 0.96
     rcParams["figure.max_open_warning"] = 0
     rcParams["figure.dpi"] = 100
-    rcParams["axes.formatter.limits"] = [
-        -5,
-        4,
-    ]  # scientific notation if log(y) outside this
+    rcParams["axes.formatter.limits"] = [-5, 4]
 
 
 def compute_darkness(r, g, b, a=1.0):

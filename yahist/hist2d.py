@@ -4,7 +4,7 @@ import numpy as np
 import copy
 import base64
 
-from .utils import is_listlike
+from .utils import is_listlike, compute_darkness
 
 from .hist1d import Hist1D
 
