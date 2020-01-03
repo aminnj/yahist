@@ -73,12 +73,28 @@ class Hist2D(Hist1D):
 
     @property
     def bin_centers(self):
+        """
+        Returns the centers of bins.
+
+        Returns
+        -------
+        array
+            Bin centers
+        """
         xcenters = 0.5 * (self._edges[0][1:] + self._edges[0][:-1])
         ycenters = 0.5 * (self._edges[1][1:] + self._edges[1][:-1])
         return (xcenters, ycenters)
 
     @property
     def bin_widths(self):
+        """
+        Returns the widths of bins.
+
+        Returns
+        -------
+        array
+            Bin widths
+        """
         xwidths = self._edges[0][1:] - self._edges[0][:-1]
         ywidths = self._edges[1][1:] - self._edges[1][:-1]
         return (xwidths, ywidths)
@@ -91,9 +107,25 @@ class Hist2D(Hist1D):
         return hnew
 
     def x_projection(self):
+        """
+        Returns the x-projection of the 2d histogram by
+        summing over the y-axis.
+
+        Returns
+        -------
+        Hist1D
+        """
         return self._calculate_projection(0, self._edges[0])
 
     def y_projection(self):
+        """
+        Returns the y-projection of the 2d histogram by
+        summing over the x-axis.
+
+        Returns
+        -------
+        Hist1D
+        """
         return self._calculate_projection(1, self._edges[1])
 
     def _calculate_profile(self, counts, errors, edges_to_sum, edges):
@@ -111,14 +143,37 @@ class Hist2D(Hist1D):
         return hnew
 
     def x_profile(self):
+        """
+        Returns the x-profile of the 2d histogram by
+        calculating the weighted mean over the y-axis.
+
+        Returns
+        -------
+        Hist1D
+        """
         xedges, yedges = self._edges
         return self._calculate_profile(self._counts, self._errors, yedges, xedges)
 
     def y_profile(self):
+        """
+        Returns the y-profile of the 2d histogram by
+        calculating the weighted mean over the x-axis.
+
+        Returns
+        -------
+        Hist1D
+        """
         xedges, yedges = self._edges
         return self._calculate_profile(self._counts.T, self._errors.T, xedges, yedges)
 
     def transpose(self):
+        """
+        Returns the transpose of the Hist2D
+
+        Returns
+        -------
+        Hist2D
+        """
         hnew = self.__class__()
         hnew._edges = [self.edges[1], self.edges[0]]
         hnew._errors = self.errors.T
@@ -128,13 +183,21 @@ class Hist2D(Hist1D):
 
     def rebin(self, nrebinx, nrebiny=None):
         """
-        combine (`nrebinx`,`nrebiny`) bins into 1 bin by summing contents. total
-        number of bins for each axis must be divisible by these numbers.
-        if `nrebiny` is not specified, it is assumed to be the same as `nrebinx`
-        nbins must be divisible by `nrebin` exactly
+        Combines adjacent bins by summing contents. The total number
+        of bins for the x-axis (y-axis) must be exactly divisible by 
+        `nrebinx` (`nrebiny`). Based on the method in
+        https://stackoverflow.com/questions/44527579/whats-the-best-way-to-downsample-a-numpy-array.
 
-        expand the original arrays by 2 dimensions corresponding to rebin sizes, then sum over these dimensions
-        (method from https://stackoverflow.com/questions/44527579/whats-the-best-way-to-downsample-a-numpy-array?rq=1)
+        Parameters
+        ----------
+        nrebinx : int
+            Number of adjacent x-axis bins to combine into one bin.
+        nrebiny : int
+            Number of adjacent y-axis bins to combine into one bin.
+
+        Returns
+        -------
+        Hist2D
         """
         ny, nx = self.counts.shape
         by, bx = (nrebinx, nrebinx) if nrebiny is None else (nrebinx, nrebiny)
@@ -171,6 +234,23 @@ class Hist2D(Hist1D):
         return hnew
 
     def svg(self, height=250, aspectratio=1.4, interactive=True):
+        """
+        Return HTML svg tag with bare-bones version of histogram
+        (no ticks, labels).
+
+        Parameters
+        ----------
+        height : int, default 250
+            Height of plot in pixels
+        aspectratio : float, default 1.4
+            Aspect ratio of plot
+        interactive : bool, default True
+            Whether to display bin contents on mouse hover.
+
+        Returns
+        -------
+        str
+        """
         width = height * aspectratio
 
         template = """
@@ -238,6 +318,18 @@ class Hist2D(Hist1D):
         return source
 
     def svg_matplotlib(self, **kwargs):
+        """
+        Return HTML svg tag with Matplotlib-rendered svg.
+
+        Parameters
+        ----------
+        **kwargs
+            Parameters to be passed to `self.plot()` function.
+
+        Returns
+        -------
+        str
+        """
         from io import BytesIO
         import matplotlib.pyplot as plt
 
@@ -252,6 +344,20 @@ class Hist2D(Hist1D):
         return src
 
     def canvas(self, height=250, aspectratio=1.4):
+        """
+        Return HTML5 canvas tag similar to `self.svg()`.
+
+        Parameters
+        ----------
+        height : int, default 250
+            Height of plot in pixels
+        aspectratio : float, default 1.4
+            Aspect ratio of plot
+
+        Returns
+        -------
+        str
+        """
         width = height * aspectratio
 
         # make sure the canvas id is unique to avoid clobbering old ones
@@ -320,15 +426,18 @@ class Hist2D(Hist1D):
         return source
 
     def html_table(self):
+        """
+        Return dummy HTML table tag.
+
+        Returns
+        -------
+        str
+        """
+        # TODO docstring
         return ""
 
     def _repr_html_(self):
         tablestr = self.html_table()
-
-        # if self.counts.size > 50e3:
-        #     imgsource = self.canvas()
-        # else:
-        #     imgsource = self.svg()
         imgsource = self.svg_matplotlib()
 
         source = """
@@ -346,6 +455,35 @@ class Hist2D(Hist1D):
         return source
 
     def plot(self, ax=None, fig=None, **kwargs):
+        """
+        Plot this histogram object using matplotlib's `hist`
+        function, or `errorbar`.
+
+        Parameters
+        ----------
+        ax : matplotlib AxesSubplot object, default None
+            matplotlib AxesSubplot object. Created if `None`.
+        ax : matplotlib Figure object, default None
+            matplotlib Figure object. Created if `None`.
+        counts_fmt_func : function, default "{:g}".format
+            Function used to format count labels
+        counts_fontsize
+            Font size of count labels
+        logz : bool, default False
+            Use logscale for z-axis
+        show_counts : bool, default False
+            Show count labels for each bin
+        show_errors : bool, default False
+            Show error bars
+        **kwargs
+            Parameters to be passed to matplotlib 
+            `pcolorfast` function.
+
+
+        Returns
+        -------
+        (pcolorfast output, matplotlib AxesSubplot object)
+        """
         if ax is None:
             import matplotlib.pyplot as plt
 

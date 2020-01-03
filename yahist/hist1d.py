@@ -95,18 +95,50 @@ class Hist1D(object):
 
     @property
     def bin_centers(self):
+        """
+        Returns the centers of bins.
+
+        Returns
+        -------
+        array
+            Bin centers
+        """
         return 0.5 * (self._edges[1:] + self._edges[:-1])
 
     @property
     def bin_widths(self):
+        """
+        Returns the widths of bins.
+
+        Returns
+        -------
+        array
+            Bin widths
+        """
         return self._edges[1:] - self._edges[:-1]
 
     @property
     def integral(self):
+        """
+        Returns the integral of the histogram (sum of counts).
+
+        Returns
+        -------
+        float
+            Sum of counts
+        """
         return self.counts.sum()
 
     @property
     def integral_error(self):
+        """
+        Returns the error of the integral of the histogram
+
+        Returns
+        -------
+        float
+            Error on integral
+        """
         return (self._errors ** 2.0).sum() ** 0.5
 
     def _fix_nan(self):
@@ -170,6 +202,22 @@ class Hist1D(object):
 
     @ignore_division_errors
     def divide(self, other, binomial=False):
+        """
+        Divides a histogram object by a scalar or another histogram object (bin-by-bin).
+
+        Parameters
+        ----------
+        other : float or Hist
+        binomial : bool, default False
+            Whether to use Clopper-Pearson confidence intervals for errors,
+            in which case, the object's `errors_up` and `errors_down` properties
+            are filled with asymmetric errors and the `errors` property is
+            filled with the average of the two.
+
+        Returns
+        -------
+        Hist
+        """
         self._check_consistency(other)
         hnew = self.__class__()
         hnew._edges = self._edges
@@ -269,15 +317,27 @@ class Hist1D(object):
 
     def normalize(self):
         """
-        return scaled histogram with sum(counts) = 1
+        Divides counts of each bin by the sum of the total counts.
+
+        Returns
+        -------
+        Hist
         """
         return self / self._counts.sum()
 
     def rebin(self, nrebin):
         """
-        combine `nrebin` bins into 1 bin by summing contents. total
-        number of bins for each axis must be divisible by these numbers.
-        nbins must be divisible by `nrebin` exactly
+        Combines adjacent bins by summing contents. The total number
+        of bins for each axis must be exactly divisible by `nrebin`.
+
+        Parameters
+        ----------
+        nrebin : int
+            Number of adjacent bins to combine into one bin.
+
+        Returns
+        -------
+        Hist1D
         """
         nx = self.counts.shape[0]
         bx = nrebin
@@ -306,7 +366,17 @@ class Hist1D(object):
 
     def to_poisson_errors(self, alpha=1 - 0.6827):
         """
-        set up and down errors to 1 sigma confidence intervals for poisson counts
+        Converts Hist object into one with asymmetric Poissonian errors, inside
+        the `errors_up` and `errors_down` properties.
+
+        Parameters
+        ----------
+        alpha : float, default 1-0.6827
+            Confidence interval for errors. 1-sigma by default.
+
+        Returns
+        -------
+        Hist1D
         """
         lows, highs = poisson_errors(self._counts, alpha=alpha)
         hnew = self.__class__()
@@ -318,7 +388,46 @@ class Hist1D(object):
         hnew._metadata = self._metadata.copy()
         return hnew
 
+    def cumulative(self, from_left=True):
+        """
+        Turns Hist object into one with cumulative counts.
+
+        Parameters
+        ----------
+        from_left : bool, default True
+            Whether to start the summing from the left or the right.
+
+        Returns
+        -------
+        Hist1D
+        """
+        hnew = self.__class__()
+        direction = 1 if from_left else -1
+        hnew._counts = (self._counts[::direction]).cumsum()[::direction]
+        hnew._errors = (self._errors[::direction]**2.0).cumsum()[::direction]**0.5
+        hnew._edges = np.array(self._edges)
+        hnew._metadata = self._metadata.copy()
+        return hnew
+
+
     def svg(self, height=250, aspectratio=1.4, strokewidth=1):
+        """
+        Return HTML svg tag with bare-bones version of histogram
+        (no ticks, labels).
+
+        Parameters
+        ----------
+        height : int, default 250
+            Height of plot in pixels
+        aspectratio : float, default 1.4
+            Aspect ratio of plot
+        strokewidth : float, default 1
+            Width of strokes
+
+        Returns
+        -------
+        str
+        """
         width = height * aspectratio
 
         padding = 0.02  # fraction of height or width to keep between edges of plot and svg view size
@@ -358,13 +467,24 @@ class Hist1D(object):
         return source
 
     def svg_matplotlib(self, **kwargs):
+        """
+        Return HTML svg tag with Matplotlib-rendered svg.
+
+        Parameters
+        ----------
+        **kwargs
+            Parameters to be passed to `self.plot()` function.
+
+        Returns
+        -------
+        str
+        """
         from io import BytesIO
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots(figsize=(4, 3))
         fig.subplots_adjust(bottom=0.08, right=0.99, top=0.99)
         self.plot(ax=ax, histtype="step", **kwargs)
-        # self.plot(ax=ax, **kwargs)
         buf = BytesIO()
         fig.savefig(buf, format="svg")
         plt.close(fig)
@@ -373,6 +493,15 @@ class Hist1D(object):
         return src
 
     def html_table(self):
+        """
+        Return HTML table tag with bin contents (counts and errors)
+        compactly formatted. Only the four leftmost and rightmost
+        bins are shown, while the rest are hidden.
+
+        Returns
+        -------
+        str
+        """
         tablerows = []
         nrows = len(self._counts)
         ntoshow = 4  # num of start and end rows to show
@@ -410,7 +539,6 @@ class Hist1D(object):
 
     def _repr_html_(self):
         tablestr = self.html_table()
-        # svgsource = self.svg()
         svgsource = self.svg_matplotlib()
 
         source = """
@@ -434,6 +562,13 @@ class Hist1D(object):
         return source
 
     def to_json(self):
+        """
+        Returns json-serialized version of this object.
+
+        Returns
+        -------
+        str
+        """
         def default(obj):
             if hasattr(obj, "__array__"):
                 return obj.tolist()
@@ -443,6 +578,18 @@ class Hist1D(object):
 
     @classmethod
     def from_json(cls, obj):
+        """
+        Converts serialized json to histogram object.
+
+        Parameters
+        ----------
+        obj : str
+            json-serialized object from `self.to_json()`
+
+        Returns
+        -------
+        Hist
+        """
         obj = json.loads(obj)
         for k in obj:
             if is_listlike(obj[k]):
@@ -453,16 +600,60 @@ class Hist1D(object):
 
     @classmethod
     def from_bincounts(cls, counts, bins, errors=None):
+        """
+        Creates histogram object from array of histogrammed counts, 
+        edges/bins, and optionally errors.
+
+        Parameters
+        ----------
+        counts : array
+            Array of bin counts
+        bins : array
+            Array of bin edges
+        errors : array, default None
+            Array of bin errors (optional)
+
+        Returns
+        -------
+        Hist
+        """
         hnew = cls()
         hnew._counts = counts.astype(np.float64)
         hnew._edges = bins
         if errors is not None:
             hnew._errors = errors
         else:
-            hnew._errors = hnew._counts * 0
+            hnew._errors = hnew._counts ** 0.5
         return hnew
 
     def plot(self, ax=None, **kwargs):
+        """
+        Plot this histogram object using matplotlib's `hist`
+        function, or `errorbar`.
+
+        Parameters
+        ----------
+        ax : matplotlib AxesSubplot object, default None
+            matplotlib AxesSubplot object. Created if `None`.
+        counts_fmt_func : function, default "{:g}".format
+            Function used to format count labels
+        counts_fontsize
+            Font size of count labels
+        fmt : str, default "o"
+            `fmt` kwarg used for maptlotlib plotting
+        show_counts : bool, default False
+            Show count labels for each bin
+        show_errors : bool, default False
+            Show error bars
+        **kwargs
+            Parameters to be passed to matplotlib 
+            `hist` or `errorbar` function.
+
+
+        Returns
+        -------
+        matplotlib AxesSubplot object
+        """
         if ax is None:
             import matplotlib.pyplot as plt
 
