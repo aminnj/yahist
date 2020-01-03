@@ -404,11 +404,10 @@ class Hist1D(object):
         hnew = self.__class__()
         direction = 1 if from_left else -1
         hnew._counts = (self._counts[::direction]).cumsum()[::direction]
-        hnew._errors = (self._errors[::direction]**2.0).cumsum()[::direction]**0.5
+        hnew._errors = (self._errors[::direction] ** 2.0).cumsum()[::direction] ** 0.5
         hnew._edges = np.array(self._edges)
         hnew._metadata = self._metadata.copy()
         return hnew
-
 
     def svg(self, height=250, aspectratio=1.4, strokewidth=1):
         """
@@ -569,6 +568,7 @@ class Hist1D(object):
         -------
         str
         """
+
         def default(obj):
             if hasattr(obj, "__array__"):
                 return obj.tolist()
