@@ -463,7 +463,7 @@ class Hist2D(Hist1D):
         ----------
         ax : matplotlib AxesSubplot object, default None
             matplotlib AxesSubplot object. Created if `None`.
-        ax : matplotlib Figure object, default None
+        fig : matplotlib Figure object, default None
             matplotlib Figure object. Created if `None`.
         counts_fmt_func : function, default "{:g}".format
             Function used to format count labels

@@ -11,6 +11,7 @@ from .utils import (
     clopper_pearson_error,
     poisson_errors,
     ignore_division_errors,
+    has_uniform_spacing
 )
 
 
@@ -42,16 +43,19 @@ class Hist1D(object):
         if isinstance(kwargs.get("bins"), str):
             if kwargs["bins"].count(",") == 2:
                 nbins, low, high = kwargs["bins"].split(",")
+                kwargs["range"] = (float(low), float(high))
                 kwargs["bins"] = np.linspace(float(low), float(high), int(nbins) + 1)
-        if (
-            kwargs.pop("overflow", True)
-            and ("bins" in kwargs)
-            and not isinstance(kwargs["bins"], str)
-        ):
+        if "bins" in kwargs:
             bins = kwargs["bins"]
-            clip_low = 0.5 * (bins[0] + bins[1])
-            clip_high = 0.5 * (bins[-2] + bins[-1])
-            obj = np.clip(obj, clip_low, clip_high)
+            if kwargs.pop("overflow", True):
+                clip_low = 0.5 * (bins[0] + bins[1])
+                clip_high = 0.5 * (bins[-2] + bins[-1])
+                obj = np.clip(obj, clip_low, clip_high)
+            if has_uniform_spacing(bins):
+                # if uniformly spaced, use O(N) algorithm instead of O(NlogN) (binary search/`np.searchsorted`)
+                # inside numpy by specifying number of bins and range
+                kwargs["range"] = (kwargs["bins"][0], kwargs["bins"][-1])
+                kwargs["bins"] = len(kwargs["bins"])
         self._counts, self._edges = np.histogram(obj, **kwargs)
         self._counts = self._counts.astype(np.float64)
 

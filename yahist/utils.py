@@ -7,6 +7,9 @@ import numpy as np
 def is_listlike(obj):
     return hasattr(obj, "__array__") or type(obj) in [list, tuple]
 
+def has_uniform_spacing(obj, epsilon=1e-6):
+    offsets = np.ediff1d(obj)
+    return np.all(offsets-offsets[0] < epsilon)
 
 def set_default_style():
     from matplotlib import rcParams
