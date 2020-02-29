@@ -55,7 +55,7 @@ class Hist1D(object):
                 # if uniformly spaced, use O(N) algorithm instead of O(NlogN) (binary search/`np.searchsorted`)
                 # inside numpy by specifying number of bins and range
                 kwargs["range"] = (kwargs["bins"][0], kwargs["bins"][-1])
-                kwargs["bins"] = len(kwargs["bins"])
+                kwargs["bins"] = len(kwargs["bins"]) - 1
         self._counts, self._edges = np.histogram(obj, **kwargs)
         self._counts = self._counts.astype(np.float64)
 
