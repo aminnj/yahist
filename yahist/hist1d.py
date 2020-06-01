@@ -678,13 +678,19 @@ class Hist1D(object):
         if show_errors:
             kwargs["fmt"] = kwargs.get("fmt", "o")
             kwargs.pop("histtype", None)
+            yerr = yerrs[mask]
+            if self.errors_up is not None:
+                yerr = self.errors_down[mask], self.errors_up[mask]
             patches = ax.errorbar(
                 centers[mask],
                 counts[mask],
                 xerr=xerrs[mask],
-                yerr=yerrs[mask],
+                yerr=yerr,
                 **kwargs
             )
+            # If there are points with values of 0, they are not drawn 
+            # and the xlims will be compressed, so we force the bounds
+            ax.set_xlim(self._edges[0], self._edges[-1])
         else:
             _, _, patches = ax.hist(
                 centers[mask], edges, weights=counts[mask], **kwargs
