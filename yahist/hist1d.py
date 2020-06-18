@@ -11,7 +11,8 @@ from .utils import (
     clopper_pearson_error,
     poisson_errors,
     ignore_division_errors,
-    has_uniform_spacing
+    has_uniform_spacing,
+    fit_hist,
 )
 
 
@@ -282,6 +283,9 @@ class Hist1D(object):
             hnew = self._copy()
             hnew._counts *= fact
             hnew._errors *= fact
+            if hnew._errors_up is not None:
+                hnew._errors_up *= fact
+                hnew._errors_down *= fact
             return hnew
         else:
             raise Exception("Can't multiply histogram by non-scalar")
@@ -727,3 +731,7 @@ class Hist1D(object):
                 )
         # ax.set_ylim(0,ax.get_ylim()[-1]) # NOTE, user should do this because it messes with logy
         return ax
+
+    def fit(self, func, **kwargs):
+        return fit_hist(func, self, **kwargs)
+    fit.__doc__ = fit_hist.__doc__

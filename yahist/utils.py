@@ -136,6 +136,7 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
         - x data, y data, y errors, fit y values, fit y errors
         - parameter names/values and covariances as returned by `scipy.optimize.curve_fit`
         - parameter errors (sqrt of diagonal elements of the covariance matrix)
+        - a Hist1D object containing the fit
 
     Example
     -------
@@ -145,6 +146,7 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
     >>> print(res["parnames"],res["parvalues"],res["parerrors"])
     """
     from scipy.optimize import curve_fit
+    from . import Hist1D
 
     if draw and not ax:
         import matplotlib.pyplot as plt
@@ -180,6 +182,8 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
             label=r"fit $\pm$1$\sigma$",
         )
 
+    hfit = Hist1D.from_bincounts(fit_ydata, hist.edges, errors=sampled_stds)
+
     return dict(
         xdata=xdataraw,
         ydata=ydataraw,
@@ -190,4 +194,5 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
         parvalues=popt,
         parerrors=np.diag(pcov) ** 0.5,
         pcov=pcov,
+        hfit=hfit,
     )

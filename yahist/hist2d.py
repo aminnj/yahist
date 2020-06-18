@@ -433,7 +433,6 @@ class Hist2D(Hist1D):
         -------
         str
         """
-        # TODO docstring
         return ""
 
     def _repr_html_(self):
