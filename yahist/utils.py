@@ -7,9 +7,11 @@ import numpy as np
 def is_listlike(obj):
     return hasattr(obj, "__array__") or type(obj) in [list, tuple]
 
+
 def has_uniform_spacing(obj, epsilon=1e-6):
     offsets = np.ediff1d(obj)
-    return np.all(offsets-offsets[0] < epsilon)
+    return np.all(offsets - offsets[0] < epsilon)
+
 
 def set_default_style():
     from matplotlib import rcParams
@@ -107,3 +109,85 @@ def ignore_division_errors(f):
             return f(*args, **kw)
 
     return g
+
+
+def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
+    """
+    Fits a function to a histogram via `scipy.optimize.curve_fit`,
+    calculating a 1-sigma band, and optionally plotting it.
+    Note that this does not support asymmetric errors. It will
+    symmetrize such errors prior to fitting. Empty bins are excluded
+    from the fit.
+
+    Parameters
+    ----------
+    func : function taking x data as the first argument, followed by parameters
+    hist : Hist1D
+    nsamples : number of samples/bootstraps for calculating error bands
+    ax : matplotlib AxesSubplot object, default None
+    draw : bool, default True
+       draw to a specified or pre-existing AxesSubplot object
+    color : str, default "red"
+       color of fit line and error band
+
+    Returns
+    -------
+    dict of
+        - x data, y data, y errors, fit y values, fit y errors
+        - parameter names/values and covariances as returned by `scipy.optimize.curve_fit`
+        - parameter errors (sqrt of diagonal elements of the covariance matrix)
+
+    Example
+    -------
+    >>> h = Hist1D(np.random.random(1000), bins="30,0,1.5")
+    >>> h.plot(show_errors=True, color="k")
+    >>> res = fit_hist(lambda x,a,b: a+b*x, h)
+    >>> print(res["parnames"],res["parvalues"],res["parerrors"])
+    """
+    from scipy.optimize import curve_fit
+
+    if draw and not ax:
+        import matplotlib.pyplot as plt
+
+        ax = plt.gca()
+
+    xdataraw = hist.bin_centers
+    ydataraw = hist.counts
+    yerrsraw = hist.errors
+
+    tomask = (ydataraw == 0.0) & (yerrsraw == 0.0)
+    xdata = xdataraw[~tomask]
+    ydata = ydataraw[~tomask]
+    yerrs = yerrsraw[~tomask]
+
+    popt, pcov = curve_fit(func, xdata, ydata, sigma=yerrs, absolute_sigma=True)
+
+    vopts = np.random.multivariate_normal(popt, pcov, nsamples)
+    sampled_ydata = np.vstack([func(xdataraw, *vopt).T for vopt in vopts])
+    sampled_means = sampled_ydata.mean(axis=0)
+    sampled_stds = sampled_ydata.std(axis=0)
+
+    fit_ydata = func(xdataraw, *popt)
+
+    if draw:
+        ax.plot(xdataraw, fit_ydata, color=color)
+        ax.fill_between(
+            xdataraw,
+            fit_ydata - sampled_stds,
+            fit_ydata + sampled_stds,
+            facecolor=color,
+            alpha=0.15,
+            label=r"fit $\pm$1$\sigma$",
+        )
+
+    return dict(
+        xdata=xdataraw,
+        ydata=ydataraw,
+        yerrs=yerrsraw,
+        yfit=fit_ydata,
+        yfiterrs=sampled_stds,
+        parnames=func.__code__.co_varnames[1:],
+        parvalues=popt,
+        parerrors=np.diag(pcov) ** 0.5,
+        pcov=pcov,
+    )
