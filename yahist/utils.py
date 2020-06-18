@@ -110,6 +110,30 @@ def ignore_division_errors(f):
 
     return g
 
+def expr_to_lambda(expr):
+    """
+    Converts a string expression like
+        "a+b*np.exp(-c*x+math.pi)"
+    into a lambda function with 1 variable and N parameters,
+        lambda x,a,b,c: "a+b*np.exp(-c*x+math.pi)"
+    `x` is assumed to be the main variable.
+    Very simple logic that ignores things like `foo.bar`
+    or `foo(` from being considered a parameter.
+    """
+    from io import BytesIO
+    from tokenize import tokenize, NAME
+    varnames = []
+    g = list(tokenize(BytesIO(expr.encode("utf-8")).readline))
+    for ix,x in enumerate(g):
+        toknum = x[0]
+        tokval = x[1]
+        if toknum != NAME: continue
+        if ix > 0 and g[ix-1][1] in ["."]: continue
+        if ix < len(g)-1 and g[ix+1][1] in [".", "("]: continue
+        varnames.append(tokval)
+    varnames = [name for name in varnames if name != "x"]
+    lambdastr = f"lambda x,{','.join(varnames)}: {expr}"
+    return eval(lambdastr)
 
 def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
     """
@@ -121,7 +145,7 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
 
     Parameters
     ----------
-    func : function taking x data as the first argument, followed by parameters
+    func : function taking x data as the first argument, followed by parameters, or a string
     hist : Hist1D
     nsamples : number of samples/bootstraps for calculating error bands
     ax : matplotlib AxesSubplot object, default None
@@ -142,7 +166,7 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
     -------
     >>> h = Hist1D(np.random.random(1000), bins="30,0,1.5")
     >>> h.plot(show_errors=True, color="k")
-    >>> res = fit_hist(lambda x,a,b: a+b*x, h)
+    >>> res = fit_hist(lambda x,a,b: a+b*x, h) # or fit_hist("a+b*x", h)
     >>> print(res["parnames"],res["parvalues"],res["parerrors"])
     """
     from scipy.optimize import curve_fit
@@ -161,6 +185,9 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
     xdata = xdataraw[~tomask]
     ydata = ydataraw[~tomask]
     yerrs = yerrsraw[~tomask]
+
+    if type(func) in [str]:
+        func = expr_to_lambda(func)
 
     popt, pcov = curve_fit(func, xdata, ydata, sigma=yerrs, absolute_sigma=True)
 
