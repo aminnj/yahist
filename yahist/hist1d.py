@@ -146,6 +146,33 @@ class Hist1D(object):
         """
         return (self._errors ** 2.0).sum() ** 0.5
 
+    @property
+    def mean(self):
+        """
+        Returns the mean of the histogram
+
+        Returns
+        -------
+        float
+            Mean of histogram
+        """
+        return (self.counts * self.bin_centers).sum() / self.integral
+
+    @property
+    def std(self):
+        """
+        Returns the standard deviation of the histogram
+
+        Returns
+        -------
+        float
+             standard deviation of histogram (or, RMS)
+        """
+        variance = (
+            self.counts * (self.bin_centers - self.mean) ** 2.0
+        ).sum() / self.integral
+        return variance ** 0.5
+
     def _fix_nan(self):
         for x in [self._counts, self._errors, self._errors_up, self._errors_down]:
             if x is not None:
@@ -686,13 +713,9 @@ class Hist1D(object):
             if self.errors_up is not None:
                 yerr = self.errors_down[mask], self.errors_up[mask]
             patches = ax.errorbar(
-                centers[mask],
-                counts[mask],
-                xerr=xerrs[mask],
-                yerr=yerr,
-                **kwargs
+                centers[mask], counts[mask], xerr=xerrs[mask], yerr=yerr, **kwargs
             )
-            # If there are points with values of 0, they are not drawn 
+            # If there are points with values of 0, they are not drawn
             # and the xlims will be compressed, so we force the bounds
             ax.set_xlim(self._edges[0], self._edges[-1])
         else:
@@ -734,4 +757,5 @@ class Hist1D(object):
 
     def fit(self, func, **kwargs):
         return fit_hist(func, self, **kwargs)
+
     fit.__doc__ = fit_hist.__doc__
