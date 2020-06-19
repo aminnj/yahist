@@ -198,20 +198,9 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
 
     fit_ydata = func(xdataraw, *popt)
 
-    if draw:
-        ax.plot(xdataraw, fit_ydata, color=color)
-        ax.fill_between(
-            xdataraw,
-            fit_ydata - sampled_stds,
-            fit_ydata + sampled_stds,
-            facecolor=color,
-            alpha=0.15,
-            label=r"fit $\pm$1$\sigma$",
-        )
-
     hfit = Hist1D.from_bincounts(fit_ydata, hist.edges, errors=sampled_stds)
 
-    return dict(
+    res = dict(
         xdata=xdataraw,
         ydata=ydataraw,
         yerrs=yerrsraw,
@@ -223,3 +212,20 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
         pcov=pcov,
         hfit=hfit,
     )
+
+    if draw:
+        label = r"fit $\pm$1$\sigma$"
+        for e in zip(res["parnames"], res["parvalues"], res["parerrors"]):
+            label += "\n    "
+            label += r"{} = {:.3g} $\pm$ {:.3g}".format(*e)
+        ax.plot(xdataraw, fit_ydata, color=color)
+        ax.fill_between(
+            xdataraw,
+            fit_ydata - sampled_stds,
+            fit_ydata + sampled_stds,
+            facecolor=color,
+            alpha=0.15,
+            label=label,
+        )
+
+    return res
