@@ -181,7 +181,7 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
     ydataraw = hist.counts
     yerrsraw = hist.errors
 
-    tomask = (ydataraw == 0.0) & (yerrsraw == 0.0)
+    tomask = (ydataraw == 0.0) & (yerrsraw == 0.0) & np.isnan(ydataraw)
     xdata = xdataraw[~tomask]
     ydata = ydataraw[~tomask]
     yerrs = yerrsraw[~tomask]
