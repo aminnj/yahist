@@ -110,6 +110,7 @@ def ignore_division_errors(f):
 
     return g
 
+
 def expr_to_lambda(expr):
     """
     Converts a string expression like
@@ -122,20 +123,27 @@ def expr_to_lambda(expr):
     """
     from io import BytesIO
     from tokenize import tokenize, NAME
+
     varnames = []
     g = list(tokenize(BytesIO(expr.encode("utf-8")).readline))
-    for ix,x in enumerate(g):
+    for ix, x in enumerate(g):
         toknum = x[0]
         tokval = x[1]
-        if toknum != NAME: continue
-        if ix > 0 and g[ix-1][1] in ["."]: continue
-        if ix < len(g)-1 and g[ix+1][1] in [".", "("]: continue
+        if toknum != NAME:
+            continue
+        if ix > 0 and g[ix - 1][1] in ["."]:
+            continue
+        if ix < len(g) - 1 and g[ix + 1][1] in [".", "("]:
+            continue
         varnames.append(tokval)
     varnames = [name for name in varnames if name != "x"]
     lambdastr = f"lambda x,{','.join(varnames)}: {expr}"
     return eval(lambdastr)
 
-def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
+
+def fit_hist(
+    func, hist, nsamples=500, ax=None, draw=True, color="red", curve_fit_opts=dict()
+):
     """
     Fits a function to a histogram via `scipy.optimize.curve_fit`,
     calculating a 1-sigma band, and optionally plotting it.
@@ -153,13 +161,13 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
        draw to a specified or pre-existing AxesSubplot object
     color : str, default "red"
        color of fit line and error band
+    curve_fit_opts : dict
+       dict of extra kwargs to pass to `scipy.optimize.curve_fit`
 
     Returns
     -------
     dict of
-        - x data, y data, y errors, fit y values, fit y errors
-        - parameter names/values and covariances as returned by `scipy.optimize.curve_fit`
-        - parameter errors (sqrt of diagonal elements of the covariance matrix)
+        - parameter names, values, errors (sqrt of diagonal of the cov. matrix)
         - a Hist1D object containing the fit
 
     Example
@@ -189,7 +197,9 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
     if type(func) in [str]:
         func = expr_to_lambda(func)
 
-    popt, pcov = curve_fit(func, xdata, ydata, sigma=yerrs, absolute_sigma=True)
+    popt, pcov = curve_fit(
+        func, xdata, ydata, sigma=yerrs, absolute_sigma=True, **curve_fit_opts
+    )
 
     vopts = np.random.multivariate_normal(popt, pcov, nsamples)
     sampled_ydata = np.vstack([func(xdataraw, *vopt).T for vopt in vopts])
@@ -200,16 +210,20 @@ def fit_hist(func, hist, nsamples=500, ax=None, draw=True, color="red"):
 
     hfit = Hist1D.from_bincounts(fit_ydata, hist.edges, errors=sampled_stds)
 
-    res = dict(
-        xdata=xdataraw,
-        ydata=ydataraw,
-        yerrs=yerrsraw,
-        yfit=fit_ydata,
-        yfiterrs=sampled_stds,
+    class wrapper(dict):
+        def _repr_html_(self):
+            s = "<table><tr><th>parameter</th><th>value</th></tr>"
+            for name, v, e in zip(
+                self["parnames"], self["parvalues"], self["parerrors"]
+            ):
+                s += f"<tr><td>{name}</td><td>{v:.4g} &plusmn; {e:.4g}</td></tr>"
+            s += "</table>"
+            return s
+
+    res = wrapper(
         parnames=func.__code__.co_varnames[1:],
         parvalues=popt,
         parerrors=np.diag(pcov) ** 0.5,
-        pcov=pcov,
         hfit=hfit,
     )
 
