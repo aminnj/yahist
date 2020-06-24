@@ -123,6 +123,18 @@ class Hist1D(object):
         return self._edges[1:] - self._edges[:-1]
 
     @property
+    def nbins(self):
+        """
+        Returns the number of bins
+
+        Returns
+        -------
+        int
+            Number of bins
+        """
+        return len(self._edges) - 1
+
+    @property
     def integral(self):
         """
         Returns the integral of the histogram (sum of counts).
@@ -146,7 +158,6 @@ class Hist1D(object):
         """
         return (self._errors ** 2.0).sum() ** 0.5
 
-    @property
     def mean(self):
         """
         Returns the mean of the histogram
@@ -158,7 +169,6 @@ class Hist1D(object):
         """
         return (self.counts * self.bin_centers).sum() / self.integral
 
-    @property
     def std(self):
         """
         Returns the standard deviation of the histogram
@@ -169,7 +179,7 @@ class Hist1D(object):
              standard deviation of histogram (or, RMS)
         """
         variance = (
-            self.counts * (self.bin_centers - self.mean) ** 2.0
+            self.counts * (self.bin_centers - self.mean()) ** 2.0
         ).sum() / self.integral
         return variance ** 0.5
 
@@ -752,7 +762,6 @@ class Hist1D(object):
                     fontsize=counts_fontsize,
                     color=color,
                 )
-        # ax.set_ylim(0,ax.get_ylim()[-1]) # NOTE, user should do this because it messes with logy
         return ax
 
     def fit(self, func, **kwargs):
