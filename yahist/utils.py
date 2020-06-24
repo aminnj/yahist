@@ -142,7 +142,7 @@ def expr_to_lambda(expr):
 
 
 def fit_hist(
-    func, hist, nsamples=500, ax=None, draw=True, color="red", curve_fit_opts=dict()
+    func, hist, nsamples=500, ax=None, draw=True, color="red", curve_fit_kwargs=dict()
 ):
     """
     Fits a function to a histogram via `scipy.optimize.curve_fit`,
@@ -161,13 +161,14 @@ def fit_hist(
        draw to a specified or pre-existing AxesSubplot object
     color : str, default "red"
        color of fit line and error band
-    curve_fit_opts : dict
+    curve_fit_kwargs : dict
        dict of extra kwargs to pass to `scipy.optimize.curve_fit`
 
     Returns
     -------
     dict of
         - parameter names, values, errors (sqrt of diagonal of the cov. matrix)
+        - chi2, ndof of fit
         - a Hist1D object containing the fit
 
     Example
@@ -185,30 +186,46 @@ def fit_hist(
 
         ax = plt.gca()
 
-    xdataraw = hist.bin_centers
-    ydataraw = hist.counts
-    yerrsraw = hist.errors
+    xdata_raw = hist.bin_centers
+    ydata_raw = hist.counts
+    yerrs_raw = hist.errors
 
-    tomask = ((ydataraw == 0.0) & (yerrsraw == 0.0)) | np.isnan(ydataraw)
-    xdata = xdataraw[~tomask]
-    ydata = ydataraw[~tomask]
-    yerrs = yerrsraw[~tomask]
+    # interlace bin edges with bin centers for smoother fit evaluations
+    # `xdata_fine[1::2]` recovers `xdata_raw`
+    xdata_fine = np.vstack(
+        [hist.edges, np.concatenate([hist.bin_centers, [-1]]),]
+    ).T.flatten()[:-1]
+
+    tomask = ((ydata_raw == 0.0) & (yerrs_raw == 0.0)) | np.isnan(ydata_raw)
+    xdata = xdata_raw[~tomask]
+    ydata = ydata_raw[~tomask]
+    yerrs = yerrs_raw[~tomask]
 
     if type(func) in [str]:
         func = expr_to_lambda(func)
 
     popt, pcov = curve_fit(
-        func, xdata, ydata, sigma=yerrs, absolute_sigma=True, **curve_fit_opts
+        func, xdata, ydata, sigma=yerrs, absolute_sigma=True, **curve_fit_kwargs
     )
 
-    vopts = np.random.multivariate_normal(popt, pcov, nsamples)
-    sampled_ydata = np.vstack([func(xdataraw, *vopt).T for vopt in vopts])
-    sampled_means = sampled_ydata.mean(axis=0)
-    sampled_stds = sampled_ydata.std(axis=0)
+    if np.isfinite(pcov).all():
+        vopts = np.random.multivariate_normal(popt, pcov, nsamples)
+        sampled_ydata_fine = np.vstack([func(xdata_fine, *vopt).T for vopt in vopts])
+        sampled_stds_fine = np.nanstd(sampled_ydata_fine, axis=0)
+    else:
+        import warnings
 
-    fit_ydata = func(xdataraw, *popt)
+        warnings.warn("Covariance matrix contains nan/inf")
+        sampled_stds_fine = np.ones(len(xdata_fine)) * np.nan
 
-    hfit = Hist1D.from_bincounts(fit_ydata, hist.edges, errors=sampled_stds)
+    fit_ydata_fine = func(xdata_fine, *popt)
+
+    hfit = Hist1D.from_bincounts(
+        fit_ydata_fine[1::2], hist.edges, errors=sampled_stds_fine[1::2]
+    )
+
+    chi2 = ((func(xdata, *popt) - ydata)**2. / yerrs**2.).sum()
+    ndof = len(xdata) - len(popt)
 
     class wrapper(dict):
         def _repr_html_(self):
@@ -224,6 +241,8 @@ def fit_hist(
         parnames=func.__code__.co_varnames[1:],
         parvalues=popt,
         parerrors=np.diag(pcov) ** 0.5,
+        chi2=chi2,
+        ndof=ndof,
         hfit=hfit,
     )
 
@@ -232,14 +251,15 @@ def fit_hist(
         for e in zip(res["parnames"], res["parvalues"], res["parerrors"]):
             label += "\n    "
             label += r"{} = {:.3g} $\pm$ {:.3g}".format(*e)
-        ax.plot(xdataraw, fit_ydata, color=color)
+        ax.plot(xdata_fine, fit_ydata_fine, color=color, zorder=10)
         ax.fill_between(
-            xdataraw,
-            fit_ydata - sampled_stds,
-            fit_ydata + sampled_stds,
+            xdata_fine,
+            fit_ydata_fine - sampled_stds_fine,
+            fit_ydata_fine + sampled_stds_fine,
             facecolor=color,
             alpha=0.15,
             label=label,
+            zorder=10,
         )
 
     return res
