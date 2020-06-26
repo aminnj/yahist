@@ -346,7 +346,7 @@ class Hist1D(object):
         # so we convert value,error into a complex number and format that 1D array :)
         prec = np.get_printoptions()["precision"]
         if prec == 8:
-            prec = 3
+            prec = 2
         formatter = {
             "complex_kind": lambda x: "%5.{}f {} %4.{}f".format(prec, sep, prec)
             % (np.real(x), np.imag(x))
@@ -680,7 +680,7 @@ class Hist1D(object):
         ----------
         ax : matplotlib AxesSubplot object, default None
             matplotlib AxesSubplot object. Created if `None`.
-        counts_fmt_func : function, default "{:g}".format
+        counts_fmt_func : function, default "{:3g}".format
             Function used to format count labels
         counts_fontsize
             Font size of count labels
@@ -690,6 +690,8 @@ class Hist1D(object):
             Show count labels for each bin
         show_errors : bool, default False
             Show error bars
+        legend : bool, default True
+            if True and the histogram has a label, draw the legend
         **kwargs
             Parameters to be passed to matplotlib 
             `hist` or `errorbar` function.
@@ -699,15 +701,17 @@ class Hist1D(object):
         -------
         matplotlib AxesSubplot object
         """
-        if ax is None:
-            import matplotlib.pyplot as plt
+        import matplotlib.pyplot as plt
 
+        if ax is None:
             ax = plt.gca()
+
         kwargs["color"] = kwargs.get("color", self._metadata.get("color"))
         kwargs["label"] = kwargs.get("label", self._metadata.get("label"))
+        legend = kwargs.pop("legend", True)
         show_counts = kwargs.pop("show_counts", False)
         show_errors = kwargs.pop("show_errors", False)
-        counts_fmt_func = kwargs.pop("counts_fmt_func", "{:g}".format)
+        counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
         counts_fontsize = kwargs.pop("counts_fontsize", 10)
         counts = self._counts
         edges = self._edges
@@ -732,6 +736,9 @@ class Hist1D(object):
             _, _, patches = ax.hist(
                 centers[mask], edges, weights=counts[mask], **kwargs
             )
+
+        if kwargs["label"] and legend:
+            ax.legend()
 
         if show_counts:
             patch = patches[0]

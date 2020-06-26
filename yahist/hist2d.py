@@ -464,7 +464,7 @@ class Hist2D(Hist1D):
             matplotlib AxesSubplot object. Created if `None`.
         fig : matplotlib Figure object, default None
             matplotlib Figure object. Created if `None`.
-        counts_fmt_func : function, default "{:g}".format
+        counts_fmt_func : function, default "{:3g}".format
             Function used to format count labels
         counts_fontsize
             Font size of count labels
@@ -483,27 +483,23 @@ class Hist2D(Hist1D):
         -------
         (pcolorfast output, matplotlib AxesSubplot object)
         """
-        if ax is None:
-            import matplotlib.pyplot as plt
+        import matplotlib.pyplot as plt
+        from matplotlib.colors import LogNorm
 
+        if ax is None: 
             ax = plt.gca()
-
         if fig is None:
-            import matplotlib.pyplot as plt
-
             fig = plt.gcf()
 
         counts = self._counts
         xedges, yedges = self._edges
 
         show_counts = kwargs.pop("show_counts", False)
-        counts_fmt_func = kwargs.pop("counts_fmt_func", "{:g}".format)
+        counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
         counts_fontsize = kwargs.pop("counts_fontsize", 12)
         logz = kwargs.pop("logz", False)
 
         if logz:
-            from matplotlib.colors import LogNorm
-
             kwargs["norm"] = LogNorm()
 
         c = ax.pcolorfast(xedges, yedges, counts, **kwargs)
