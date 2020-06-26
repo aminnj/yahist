@@ -142,7 +142,7 @@ def expr_to_lambda(expr):
 
 
 def fit_hist(
-    func, hist, nsamples=500, ax=None, draw=True, color="red", curve_fit_kwargs=dict()
+    func, hist, nsamples=500, ax=None, draw=True, color="red", legend=True, label=r"fit $\pm$1$\sigma$", curve_fit_kwargs=dict()
 ):
     """
     Fits a function to a histogram via `scipy.optimize.curve_fit`,
@@ -161,8 +161,15 @@ def fit_hist(
        draw to a specified or pre-existing AxesSubplot object
     color : str, default "red"
        color of fit line and error band
+    color : bool, default True
+       draw the legend
     curve_fit_kwargs : dict
        dict of extra kwargs to pass to `scipy.optimize.curve_fit`
+    label : str, default r"fit $\pm$1$\sigma$"
+       legend entry label. Parameters will be appended unless this
+       is empty.
+    legend : bool, default True
+        if True and the histogram has a label, draw the legend
 
     Returns
     -------
@@ -247,19 +254,20 @@ def fit_hist(
     )
 
     if draw:
-        label = r"fit $\pm$1$\sigma$"
-        for e in zip(res["parnames"], res["parvalues"], res["parerrors"]):
-            label += "\n    "
-            label += r"{} = {:.3g} $\pm$ {:.3g}".format(*e)
-        ax.plot(xdata_fine, fit_ydata_fine, color=color, zorder=10)
+        if label:
+            for e in zip(res["parnames"], res["parvalues"], res["parerrors"]):
+                label += "\n    "
+                label += r"{} = {:.3g} $\pm$ {:.3g}".format(*e)
+        ax.plot(xdata_fine, fit_ydata_fine, color=color, zorder=3, label=label)
         ax.fill_between(
             xdata_fine,
             fit_ydata_fine - sampled_stds_fine,
             fit_ydata_fine + sampled_stds_fine,
             facecolor=color,
-            alpha=0.15,
-            label=label,
-            zorder=10,
+            alpha=0.20,
+            zorder=3,
         )
+        if legend:
+            ax.legend()
 
     return res
