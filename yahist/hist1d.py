@@ -13,6 +13,7 @@ from .utils import (
     ignore_division_errors,
     has_uniform_spacing,
     fit_hist,
+    draw_gradient,
 )
 
 
@@ -686,6 +687,8 @@ class Hist1D(object):
             Font size of count labels
         fmt : str, default "o"
             `fmt` kwarg used for maptlotlib plotting
+        gradient : bool, default False
+            fill a light gradient under histogram if `histtype="step"`
         show_counts : bool, default False
             Show count labels for each bin
         show_errors : bool, default False
@@ -713,6 +716,7 @@ class Hist1D(object):
         show_errors = kwargs.pop("show_errors", False)
         counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
         counts_fontsize = kwargs.pop("counts_fontsize", 10)
+        gradient = kwargs.pop("gradient", False)
         counts = self._counts
         edges = self._edges
         yerrs = self._errors
@@ -736,6 +740,10 @@ class Hist1D(object):
             _, _, patches = ax.hist(
                 centers[mask], edges, weights=counts[mask], **kwargs
             )
+
+            if gradient:
+                draw_gradient(ax, patches)
+
 
         if kwargs["label"] and legend:
             ax.legend()

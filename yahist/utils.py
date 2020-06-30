@@ -140,9 +140,22 @@ def expr_to_lambda(expr):
     lambdastr = f"lambda x,{','.join(varnames)}: {expr}"
     return eval(lambdastr)
 
+def curve_fit_wrapper(func, xdata, ydata, sigma=None, absolute_sigma=True, **kwargs):
+    """
+    Wrapper around `scipy.optimize.curve_fit`. Initial parameters (`p0`)
+    can be set in the function definition with defaults for kwargs
+    (e.g., `func = lambda x,a=1.,b=2.: x+a+b`, will feed `p0 = [1.,2.]` to `curve_fit`)
+    """
+    from scipy.optimize import curve_fit
+    if func.__defaults__ and len(func.__defaults__)+1 == func.__code__.co_argcount:
+        if "p0" not in kwargs:
+            kwargs["p0"] = func.__defaults__
+    return curve_fit(func, xdata, ydata, sigma=sigma, absolute_sigma=absolute_sigma, **kwargs)
+
 
 def fit_hist(
-    func, hist, nsamples=500, ax=None, draw=True, color="red", legend=True, label=r"fit $\pm$1$\sigma$", curve_fit_kwargs=dict()
+    func, hist, nsamples=500, ax=None, draw=True, color="red", legend=True, label=r"fit $\pm$1$\sigma$", 
+    band=True, curve_fit_kwargs=dict()
 ):
     """
     Fits a function to a histogram via `scipy.optimize.curve_fit`,
@@ -157,6 +170,8 @@ def fit_hist(
     hist : Hist1D
     nsamples : number of samples/bootstraps for calculating error bands
     ax : matplotlib AxesSubplot object, default None
+    band : bool, default True
+        compute and display uncertainty band
     draw : bool, default True
        draw to a specified or pre-existing AxesSubplot object
     color : str, default "red"
@@ -185,7 +200,6 @@ def fit_hist(
     >>> res = fit_hist(lambda x,a,b: a+b*x, h) # or fit_hist("a+b*x", h)
     >>> print(res["parnames"],res["parvalues"],res["parerrors"])
     """
-    from scipy.optimize import curve_fit
     from . import Hist1D
 
     if draw and not ax:
@@ -211,21 +225,22 @@ def fit_hist(
     if type(func) in [str]:
         func = expr_to_lambda(func)
 
-    popt, pcov = curve_fit(
-        func, xdata, ydata, sigma=yerrs, absolute_sigma=True, **curve_fit_kwargs
-    )
-
-    if np.isfinite(pcov).all():
-        vopts = np.random.multivariate_normal(popt, pcov, nsamples)
-        sampled_ydata_fine = np.vstack([func(xdata_fine, *vopt).T for vopt in vopts])
-        sampled_stds_fine = np.nanstd(sampled_ydata_fine, axis=0)
-    else:
-        import warnings
-
-        warnings.warn("Covariance matrix contains nan/inf")
-        sampled_stds_fine = np.ones(len(xdata_fine)) * np.nan
+    popt, pcov = curve_fit_wrapper(func, xdata, ydata, sigma=yerrs, absolute_sigma=True, **curve_fit_kwargs)
 
     fit_ydata_fine = func(xdata_fine, *popt)
+
+    if band:
+        if np.isfinite(pcov).all():
+            vopts = np.random.multivariate_normal(popt, pcov, nsamples)
+            sampled_ydata_fine = np.vstack([func(xdata_fine, *vopt).T for vopt in vopts])
+            sampled_stds_fine = np.nanstd(sampled_ydata_fine, axis=0)
+        else:
+            import warnings
+
+            warnings.warn("Covariance matrix contains nan/inf")
+            sampled_stds_fine = np.ones(len(xdata_fine)) * np.nan
+    else:
+        sampled_stds_fine = 0.0*fit_ydata_fine
 
     hfit = Hist1D.from_bincounts(
         fit_ydata_fine[1::2], hist.edges, errors=sampled_stds_fine[1::2]
@@ -271,3 +286,44 @@ def fit_hist(
             ax.legend()
 
     return res
+
+def draw_gradient(ax, patches):
+    """
+    Draws gradient under a step patch (from `histtype="step"`)
+    onto specified `ax`.
+
+    Parameters
+    ----------
+    ax : matplotlib AxesSubplot object
+    patches : matplotlib Patch objects
+    """
+    import matplotlib.colors as mcolors
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+    patch = patches[0]
+
+    color = patch.get_edgecolor()
+    zorder = patch.get_zorder()
+    alpha = patch.get_alpha() or 1.0
+
+    z = np.empty((100, 1, 4), dtype=float)
+    rgb = mcolors.colorConverter.to_rgb(color)
+    z[:,:,:3] = rgb
+    z[:,:,-1] = np.linspace(0.20*alpha, alpha, 100)[:,None]
+    im = ax.imshow(z, aspect='auto', extent=[xmin, xmax, ymin, ymax], origin='lower', zorder=zorder)
+    ax.add_patch(patch)
+    im.set_clip_path(patch)
+
+def plot_stack(hists, **kwargs):
+    """
+    Plots a list of `Hist1D` objects as a stack
+
+    Parameters
+    ----------
+    hists : list of `Hist1D` objects
+    kwargs : passed to `Hist1D.plot()`
+    """
+    bottom = 0.
+    for h in hists:
+        h.plot(bottom=bottom, **kwargs)
+        bottom += h.counts
