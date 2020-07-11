@@ -155,7 +155,7 @@ def curve_fit_wrapper(func, xdata, ydata, sigma=None, absolute_sigma=True, **kwa
 
 def fit_hist(
     func, hist, nsamples=500, ax=None, draw=True, color="red", legend=True, label=r"fit $\pm$1$\sigma$", 
-    band=True, curve_fit_kwargs=dict()
+    band_style="filled", curve_fit_kwargs=dict()
 ):
     """
     Fits a function to a histogram via `scipy.optimize.curve_fit`,
@@ -168,16 +168,16 @@ def fit_hist(
     ----------
     func : function taking x data as the first argument, followed by parameters, or a string
     hist : Hist1D
-    nsamples : number of samples/bootstraps for calculating error bands
+    nsamples : int, default 500
+        number of samples/bootstraps for calculating error bands
     ax : matplotlib AxesSubplot object, default None
-    band : bool, default True
-        compute and display uncertainty band
+    band_style : None/str, default None
+        if not None, compute and display uncertainty band. Possible strings are
+        "filled", "dashed", "dotted", "dashdot", "solid"
     draw : bool, default True
        draw to a specified or pre-existing AxesSubplot object
     color : str, default "red"
        color of fit line and error band
-    color : bool, default True
-       draw the legend
     curve_fit_kwargs : dict
        dict of extra kwargs to pass to `scipy.optimize.curve_fit`
     label : str, default r"fit $\pm$1$\sigma$"
@@ -229,7 +229,7 @@ def fit_hist(
 
     fit_ydata_fine = func(xdata_fine, *popt)
 
-    if band:
+    if band_style is not None:
         if np.isfinite(pcov).all():
             vopts = np.random.multivariate_normal(popt, pcov, nsamples)
             sampled_ydata_fine = np.vstack([func(xdata_fine, *vopt).T for vopt in vopts])
@@ -270,24 +270,30 @@ def fit_hist(
 
     if draw:
         if label:
+            label += rf" ($\chi^2$/ndof = {chi2:.3g}/{ndof})"
             for e in zip(res["parnames"], res["parvalues"], res["parerrors"]):
                 label += "\n    "
                 label += r"{} = {:.3g} $\pm$ {:.3g}".format(*e)
         ax.plot(xdata_fine, fit_ydata_fine, color=color, zorder=3, label=label)
-        ax.fill_between(
-            xdata_fine,
-            fit_ydata_fine - sampled_stds_fine,
-            fit_ydata_fine + sampled_stds_fine,
-            facecolor=color,
-            alpha=0.20,
-            zorder=3,
-        )
+        if band_style == "filled":
+            ax.fill_between(
+                xdata_fine,
+                fit_ydata_fine - sampled_stds_fine,
+                fit_ydata_fine + sampled_stds_fine,
+                facecolor=color,
+                alpha=0.25,
+                zorder=3,
+            )
+        elif band_style in ["dashed", "dashdot", "dotted", "solid"]:
+            for mult in [-1, 1]:
+                ys = fit_ydata_fine + mult*sampled_stds_fine
+                ax.plot(xdata_fine, ys, color=color, zorder=3, linestyle=band_style)
         if legend:
             ax.legend()
 
     return res
 
-def draw_gradient(ax, patches):
+def draw_gradient(ax, patches, reverse=False):
     """
     Draws gradient under a step patch (from `histtype="step"`)
     onto specified `ax`.
@@ -296,6 +302,8 @@ def draw_gradient(ax, patches):
     ----------
     ax : matplotlib AxesSubplot object
     patches : matplotlib Patch objects
+    reverse : bool, default False
+        flip the gradient
     """
     import matplotlib.colors as mcolors
     xmin, xmax = ax.get_xlim()
@@ -310,8 +318,9 @@ def draw_gradient(ax, patches):
     rgb = mcolors.colorConverter.to_rgb(color)
     z[:,:,:3] = rgb
     z[:,:,-1] = np.linspace(0.20*alpha, alpha, 100)[:,None]
+    if reverse:
+        z[:,:,-1] = z[:,:,-1][::-1]
     im = ax.imshow(z, aspect='auto', extent=[xmin, xmax, ymin, ymax], origin='lower', zorder=zorder)
-    ax.add_patch(patch)
     im.set_clip_path(patch)
 
 def plot_stack(hists, **kwargs):

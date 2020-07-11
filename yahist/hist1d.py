@@ -711,6 +711,7 @@ class Hist1D(object):
 
         kwargs["color"] = kwargs.get("color", self._metadata.get("color"))
         kwargs["label"] = kwargs.get("label", self._metadata.get("label"))
+        kwargs["histtype"] = kwargs.get("histtype", "stepfilled")
         legend = kwargs.pop("legend", True)
         show_counts = kwargs.pop("show_counts", False)
         show_errors = kwargs.pop("show_errors", False)
@@ -742,7 +743,7 @@ class Hist1D(object):
             )
 
             if gradient:
-                draw_gradient(ax, patches)
+                draw_gradient(ax, patches,reverse=(kwargs.get("histtype","")=="stepfilled"))
 
 
         if kwargs["label"] and legend:
