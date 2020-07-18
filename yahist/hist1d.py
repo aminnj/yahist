@@ -36,18 +36,19 @@ class Hist1D(object):
         else:
             raise Exception("empty constructor?")
 
-    def _copy(self):
+    def copy(self):
         hnew = self.__class__()
         hnew.__dict__.update(copy.deepcopy(self.__dict__))
         return hnew
 
     def _init_numpy(self, obj, **kwargs):
-        if isinstance(kwargs.get("bins"), str):
-            if kwargs["bins"].count(",") == 2:
-                nbins, low, high = kwargs["bins"].split(",")
-                kwargs["range"] = (float(low), float(high))
-                kwargs["bins"] = np.linspace(float(low), float(high), int(nbins) + 1)
-        if "bins" in kwargs:
+        kwargs["bins"] = kwargs.get("bins", "auto")
+        # convert ROOT-like "50,0,10" to np.linspace(0,10,51)
+        if isinstance(kwargs.get("bins"), str) and (kwargs["bins"].count(",") == 2):
+            nbins, low, high = kwargs["bins"].split(",")
+            kwargs["range"] = (float(low), float(high))
+            kwargs["bins"] = np.linspace(float(low), float(high), int(nbins) + 1)
+        if is_listlike(kwargs.get("bins")):
             bins = kwargs["bins"]
             if kwargs.pop("overflow", True):
                 clip_low = 0.5 * (bins[0] + bins[1])
@@ -318,7 +319,7 @@ class Hist1D(object):
 
     def __mul__(self, fact):
         if type(fact) in [float, int, np.float64, np.int64]:
-            hnew = self._copy()
+            hnew = self.copy()
             hnew._counts *= fact
             hnew._errors *= fact
             if hnew._errors_up is not None:
@@ -332,7 +333,7 @@ class Hist1D(object):
 
     def __pow__(self, expo):
         if type(expo) in [float, int, np.float64, np.int64]:
-            hnew = self._copy()
+            hnew = self.copy()
             hnew._counts = hnew._counts ** expo
             hnew._errors *= hnew._counts ** (expo - 1) * expo
             return hnew
@@ -743,8 +744,9 @@ class Hist1D(object):
             )
 
             if gradient:
-                draw_gradient(ax, patches,reverse=(kwargs.get("histtype","")=="stepfilled"))
-
+                draw_gradient(
+                    ax, patches, reverse=(kwargs.get("histtype", "") == "stepfilled")
+                )
 
         if kwargs["label"] and legend:
             ax.legend()
