@@ -486,7 +486,7 @@ class Hist2D(Hist1D):
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
 
-        if ax is None: 
+        if ax is None:
             ax = plt.gca()
         if fig is None:
             fig = plt.gcf()
