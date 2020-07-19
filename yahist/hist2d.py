@@ -49,6 +49,29 @@ class Hist2D(Hist1D):
                 self._errors = np.sqrt(counts.T)
         self._errors = self._errors.astype(np.float64)
 
+    def _init_root(self, obj, **kwargs):
+        xaxis = obj.GetXaxis()
+        yaxis = obj.GetYaxis()
+        edges_x = np.array(
+            [1.0 * xaxis.GetBinLowEdge(i) for i in range(1, xaxis.GetNbins() + 2)]
+        )
+        edges_y = np.array(
+            [1.0 * yaxis.GetBinLowEdge(i) for i in range(1, yaxis.GetNbins() + 2)]
+        )
+        counts, errors = [], []
+        for iy in range(1, obj.GetNbinsY() + 1):
+            counts_y, errors_y = [], []
+            for ix in range(1, obj.GetNbinsX() + 1):
+                cnt = obj.GetBinContent(ix, iy)
+                err = obj.GetBinError(ix, iy)
+                counts_y.append(cnt)
+                errors_y.append(err)
+            counts.append(counts_y[:])
+            errors.append(errors_y[:])
+        self._counts = np.array(counts, dtype=np.float64)
+        self._errors = np.array(errors, dtype=np.float64)
+        self._edges = edges_x, edges_y
+
     def _check_consistency(self, other, raise_exception=True):
         if (len(self._edges[0]) != len(other._edges[0])) or (
             len(self._edges[1]) != len(other._edges[1])
@@ -104,29 +127,29 @@ class Hist2D(Hist1D):
         hnew._counts = self._counts.sum(axis=axis)
         hnew._errors = np.sqrt((self._errors ** 2).sum(axis=axis))
         hnew._edges = edges
-        return hnew
 
-    def x_projection(self):
+    def projection(self, axis):
         """
         Returns the x-projection of the 2d histogram by
         summing over the y-axis.
 
-        Returns
-        -------
-        Hist1D
-        """
-        return self._calculate_projection(0, self._edges[0])
-
-    def y_projection(self):
-        """
-        Returns the y-projection of the 2d histogram by
-        summing over the x-axis.
+        Parameters
+        ----------
+        axis : str
+            if "x", return the x-projection (summing over y-axis)
+            if "y", return the y-projection (summing over x-axis)
 
         Returns
         -------
         Hist1D
         """
-        return self._calculate_projection(1, self._edges[1])
+        if axis == "x":
+            iaxis = 0
+        elif axis == "y":
+            iaxis = 1
+        else:
+            raise Exception("axis parameter must be 'x' or 'y'")
+        return self._calculate_projection(iaxis, self._edges[iaxis])
 
     def _calculate_profile(self, counts, errors, edges_to_sum, edges):
         centers = 0.5 * (edges_to_sum[:-1] + edges_to_sum[1:])
@@ -142,29 +165,30 @@ class Hist2D(Hist1D):
         hnew._edges = edges
         return hnew
 
-    def x_profile(self):
+    def profile(self, axis):
         """
         Returns the x-profile of the 2d histogram by
         calculating the weighted mean over the y-axis.
 
-        Returns
-        -------
-        Hist1D
-        """
-        xedges, yedges = self._edges
-        return self._calculate_profile(self._counts, self._errors, yedges, xedges)
-
-    def y_profile(self):
-        """
-        Returns the y-profile of the 2d histogram by
-        calculating the weighted mean over the x-axis.
+        Parameters
+        ----------
+        axis : str
+            if "x", return the x-profile (mean over y-axis)
+            if "y", return the y-profile (mean over x-axis)
 
         Returns
         -------
         Hist1D
         """
         xedges, yedges = self._edges
-        return self._calculate_profile(self._counts.T, self._errors.T, xedges, yedges)
+        if axis == "x":
+            return self._calculate_profile(self._counts, self._errors, yedges, xedges)
+        elif axis == "y":
+            return self._calculate_profile(
+                self._counts.T, self._errors.T, xedges, yedges
+            )
+        else:
+            raise Exception("axis parameter must be 'x' or 'y'")
 
     def transpose(self):
         """
