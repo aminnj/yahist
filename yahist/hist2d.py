@@ -127,6 +127,7 @@ class Hist2D(Hist1D):
         hnew._counts = self._counts.sum(axis=axis)
         hnew._errors = np.sqrt((self._errors ** 2).sum(axis=axis))
         hnew._edges = edges
+        return hnew
 
     def projection(self, axis):
         """
