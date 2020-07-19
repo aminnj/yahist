@@ -37,6 +37,9 @@ setup(
     include_package_data=True,
     author='Nick Amin',
     install_requires=install_requires,
+    # extras_require={
+    #     "autograd": [],
+    #     },
     dependency_links=dependency_links,
     author_email='amin.nj@gmail.com'
 )
