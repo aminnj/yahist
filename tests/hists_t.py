@@ -1,179 +1,168 @@
 import unittest
 
 import numpy as np
-from yahist.utils import Hist1D, Hist2D
+from yahist import Hist1D, Hist2D, utils
 import os
 
 np.set_printoptions(linewidth=120)
 
-class HistTest(unittest.TestCase):
 
-    def test_1d(self):
-        bins = 1.0*np.array([0,3,6,9,12,15])
-        vals = 1.0*np.array([1,2,3,4,5,10,13])
-        weights = 1.0*np.array([1,1,1,2,2,1,1])
-        hr_ = r.TH1F("hr","hr", len(bins)-1, bins)
-        fill_fast(hr_, vals, weights=weights)
-        hr = Hist1D(hr_)
-        hn = Hist1D(vals,bins=bins, weights=weights)
+class UtilsTest(unittest.TestCase):
+    def test_is_listlike(self):
+        self.assertTrue(utils.is_listlike([1, 2, 3]))
+        self.assertTrue(utils.is_listlike((1, 2, 3)))
+        self.assertTrue(utils.is_listlike(np.arange(3)))
+        self.assertFalse(utils.is_listlike(3.0))
 
-        self.assertEqual(hn, hr)
+    def test_has_uniform_spacing(self):
+        self.assertTrue(utils.has_uniform_spacing([1, 2, 3, 4]))
+        self.assertFalse(utils.has_uniform_spacing([1, 2, 3, 5]))
 
-        self.assertEqual(hn.get_integral(), np.sum(weights))
-        self.assertEqual(hr.get_integral(), np.sum(weights))
+    def test_clopper_pearson_error(self):
+        passed = np.array([0, 2, 4, 2])
+        total = np.array([4, 4, 4, 4])
+        level = np.array([0.68, 0.68, 0.68, 0.95])
+        lows, highs = utils.clopper_pearson_error(passed, total, level=level)
+        self.assertTrue(
+            np.allclose(
+                lows,
+                np.array([np.nan, 0.18621103, 0.63245553, 0.06758599]),
+                equal_nan=True,
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                highs,
+                np.array([0.36754447, 0.81378897, np.nan, 0.93241401]),
+                equal_nan=True,
+            )
+        )
 
-        self.assertEqual(np.all(hn.edges == bins), True)
-        self.assertEqual(np.all(hr.edges == bins), True)
+    def test_poisson_errors(self):
+        lows, highs = utils.poisson_errors(np.array([0, 1, 5, 100]))
+        self.assertTrue(
+            np.allclose(lows, np.array([0.0, 0.17274753, 2.84027568, 90.01654275]))
+        )
+        self.assertTrue(
+            np.allclose(
+                highs, np.array([1.84105476, 3.29956971, 8.38253922, 111.03359339])
+            )
+        )
 
-        check = np.histogram(vals,bins=bins,weights=weights)[0]
-        self.assertEqual(np.all(hn.counts == check), True)
-        self.assertEqual(np.all(hr.counts == check), True)
+    def test_binomial_obs_z(self):
+        data = np.array([5, 10])
+        bkg = np.array([2.0, 15.0])
+        bkgerr = np.array([1.0, 1.0])
+        z = utils.binomial_obs_z(data, bkg, bkgerr)
+        self.assertTrue(np.allclose(z, np.array([1.05879838, -1.44619545])))
 
-        self.assertEqual(Hist1D(hr_*2), hn*2)
-        self.assertEqual(Hist1D(hr_+hr_), hn+hn)
+    def test_nan_to_num(self):
+        @utils.ignore_division_errors
+        def f(x):
+            return (x * 0) / 0.0
 
-        self.assertEqual(Hist1D(hr_+0.5*hr_), hn+0.5*hn)
+        g = utils.nan_to_num(f)
+        self.assertTrue(
+            np.allclose(f(np.array([1])), np.array([np.nan]), equal_nan=True)
+        )
+        self.assertTrue(np.allclose(g(np.array([1])), np.array([0.0]), equal_nan=True))
 
-    def test_1d_summing(self):
-        np.random.seed(42)
+    def test_expr_to_lambda(self):
+        f = utils.expr_to_lambda("x+a+a+b+np.pi")
+        g = lambda x, a, b: x + a + a + b + np.pi
+        self.assertEqual(f(1, 2, 3), g(1, 2, 3))
 
-        vals = np.random.normal(0,1,1000)
-        bins = np.linspace(-3,3,10)
-        h1 = Hist1D(vals,bins=bins)
+        f = utils.expr_to_lambda("m*x+b")
+        g = lambda x, m, b: m * x + b
+        self.assertEqual(f(1, 2, 3), g(1, 2, 3))
 
-        vals = np.random.normal(0,1,1000)
-        h2 = Hist1D(vals,bins=bins)
+        f = utils.expr_to_lambda("1+np.poly1d([a,b,c])(x)")
+        g = lambda x, a, b, c: 1 + np.poly1d([a, b, c])(x)
+        self.assertEqual(f(1, 2, 3, 4), g(1, 2, 3, 4))
 
-        vals = np.random.normal(0,1,1000)
-        h3 = Hist1D(vals,bins=bins)
+        f = utils.expr_to_lambda("const + norm*np.exp(-(x-mu)**2/(2*sigma**2))")
+        g = lambda x, const, norm, mu, sigma: const + norm * np.exp(
+            -((x - mu) ** 2) / (2 * sigma ** 2)
+        )
+        self.assertEqual(f(1, 2, 3, 4, 5), g(1, 2, 3, 4, 5))
 
-        self.assertNotEqual(h1,h2)
-        self.assertNotEqual(h2,h3)
-        self.assertEqual(h1+h2+h3, sum([h1,h2,h3]))
 
-    def test_1d_summing_weights(self):
-        bins = 1.0*np.array([0,3,6,9,12,15])
-        vals1 = 1.0*np.array([4,1,2,3,4,5,10,13])
-        weights1 = 1.0*np.array([-1,1,1,1,2,2,1,1])
-        vals2 = 1.0*np.array([4,0,2,3,4,-5,100,13])
-        weights2 = 1.0*np.array([-1,2,-1,1,2,2,-1,1])
-        hr1_ = r.TH1F("hr1","hr1", len(bins)-1, bins)
-        hr2_ = r.TH1F("hr2","hr2", len(bins)-1, bins)
-        fill_fast(hr1_, vals1, weights=weights1)
-        fill_fast(hr2_, vals2, weights=weights2)
-        for no_overflow in [True,False]:
-            hr1 = Hist1D(hr1_, no_overflow=no_overflow)
-            hr2 = Hist1D(hr2_, no_overflow=no_overflow)
-            hn1 = Hist1D(vals1,bins=bins, weights=weights1, no_overflow=no_overflow)
-            hn2 = Hist1D(vals2,bins=bins, weights=weights2, no_overflow=no_overflow)
-            self.assertEqual(hr1+hr2, hn1+hn2)
+class FitTest(unittest.TestCase):
+    def test_linear_fit(self):
+        # fit a line to 2,2,2,2,2
+        h = Hist1D(np.arange(10) + 0.5, bins="5,0,10")
+        result = h.fit("a+b*x", draw=False)
 
-    def test_copy(self):
-        np.random.seed(42)
-        h1 = Hist1D(np.random.normal(0,5,100), bins=np.linspace(-3,3,10))
-        h2 = h1.copy()
-        # Contents are the same, but memory location/hash is different
-        self.assertEqual(h1,h2)
-        self.assertNotEqual(h1.__hash__(),h2.__hash__())
+        dpv = dict(zip(result["parnames"], result["parvalues"]))
+        dpe = dict(zip(result["parnames"], result["parerrors"]))
 
-    def test_idempotent(self):
-        np.random.seed(42)
-        h1 = Hist1D(np.random.normal(0,5,100), bins=np.linspace(-3,3,10))
-        h2 = Hist1D(h1)
-        self.assertEqual(h1,h2)
+        self.assertTrue(np.abs(dpv["a"] - 2) < 1e-3)
+        self.assertTrue(np.abs(dpv["b"] - 0) < 1e-3)
+        self.assertTrue(dpe["a"] > 0.5)
 
-    def test_extra(self):
-        np.random.seed(42)
-        h1 = Hist1D(np.random.normal(0,5,100), bins=np.linspace(-3,3,10),label="h1",color="k")
-        self.assertEqual(h1.get_attr("label"),"h1")
-        self.assertEqual(h1.get_attr("color"),"k")
-        h1.set_attr("label","h2")
-        self.assertEqual(h1.get_attr("label"),"h2")
-        h2 = Hist1D(h1,color="r")
-        self.assertEqual(h2.get_attr("label"),"h2")
-        self.assertEqual(h2.get_attr("color"),"r")
+        self.assertTrue(result["chi2"] < 1e-3)
+        self.assertEqual(result["ndof"], 3)
 
-    def test_overflow_integral(self):
-        # by default, overflow gets put into first and last bins, unless no_overflow is True
-        N = 100
-        h1 = Hist1D(np.random.normal(0,5,N), bins=[-5,0,5])
-        self.assertEqual(h1.get_integral(),N)
-        h1 = Hist1D(np.random.normal(0,5,N), bins=[-5,0,5],no_overflow=False)
-        self.assertEqual(h1.get_integral(),N)
-        h1 = Hist1D(np.random.normal(0,5,N), bins=[-5,0,5],no_overflow=True)
-        self.assertEqual(h1.get_integral()<N,True)
+    @utils.ignore_division_errors
+    def test_likelihood(self):
+        h = Hist1D(np.arange(5) * 2, bins="10,0,10")
+        f = "p0+0*x"
+        ret_chi2 = h.fit(f, draw=False, likelihood=False)
+        ret_like = h.fit(f, draw=False, likelihood=True)
+        self.assertTrue(np.isclose(ret_chi2["parvalues"][0], 1.0))
+        self.assertTrue(np.isclose(ret_like["parvalues"][0], 0.5))
 
-    def test_1d_rebinning(self):
-        np.random.seed(42)
-        nrebin = 5
-        h1 = Hist1D(np.random.normal(0,5,1000), bins=np.linspace(-10,10,21))
-        nbins_before = len(h1.edges) - 1
-        int_before = h1.get_integral()
-        h1.rebin(nrebin)
-        nbins_after = len(h1.edges) - 1
-        int_after = h1.get_integral()
-        self.assertEqual(int_before, int_after)
-        self.assertEqual(nbins_after, nbins_before // nrebin)
 
-    def test_1d_divide_hist(self):
-        bins = 1.0*np.array([0,3,6,9,12,15])
-        vals = 1.0*np.array([1,2,3,4,5,10,13])
-        weights = 1.0*np.array([1,1,1,2,2,1,1])
-        hr_ = r.TH1F("hr","hr", len(bins)-1, bins)
-        fill_fast(hr_, vals, weights=weights)
-        hr_.Divide(hr_)
-        hn = Hist1D(vals,bins=bins, weights=weights)
-        hn /= hn
-        hn._fix_nan()
-        self.assertEqual(Hist1D(hr_),hn)
+class Hist1DTest(unittest.TestCase):
+    pass
 
-    def test_2d_nonuniform_binning(self):
+    # def __init__(self, obj=[], **kwargs):
+    # def _copy(self):
+    # def _init_numpy(self, obj, **kwargs):
+    # def _extract_metadata(self, **kwargs):
+    # def errors(self):
+    # def errors_up(self):
+    # def errors_down(self):
+    # def counts(self):
+    # def edges(self):
+    # def bin_centers(self):
+    # def bin_widths(self):
+    # def nbins(self):
+    # def integral(self):
+    # def integral_error(self):
+    # def mean(self):
+    # def std(self):
+    # def _fix_nan(self):
+    # def __eq__(self, other):
+    # def __ne__(self, other):
+    # def __add__(self, other):
+    # def __sub__(self, other):
+    # def divide(self, other, binomial=False):
+    # def __div__(self, other):
+    # def __mul__(self, fact):
+    # def __pow__(self, expo):
+    # def normalize(self):
+    # def rebin(self, nrebin):
+    # def cumulative(self, from_left=True):
+    #     from_left : bool, default True
+    # def to_json(self):
+    # def from_json(cls, obj):
+    # def from_bincounts(cls, counts, bins, errors=None):
 
-        xbins = np.array([10.,15.,25.,35.,50.0,70,90])
-        ybins = np.array([0.,0.8,1.479,2.5])
-        h2 = r.TH2F("2d_nonuniform","",len(xbins)-1,xbins,len(ybins)-1,ybins)
-        h2m = Hist2D(h2)
 
-        self.assertEqual(tuple(xbins), tuple(h2m.edges[0]))
-        self.assertEqual(tuple(ybins), tuple(h2m.edges[1]))
+class Hist2DTest(unittest.TestCase):
+    pass
 
-    def test_2d(self):
-        vals2d = 1.0*np.array([
-                [1,1],
-                [1,3],
-                [1,4],
-                [1,4],
-                [3,1],
-                [3,4],
-                ])
-        bins = [
-                np.linspace(0.,4.,3),  # edges 0.0,2.0,4.0
-                np.linspace(0.,5.,3),  # edges 0.0,2.5,5.0
-                ]
-        weights = 1.0*np.array([1,1,2,3,1,4])
+    # def _init_numpy(self, obj, **kwargs):
+    # def _check_consistency(self, other, raise_exception=True):
+    # def __eq__(self, other):
+    # def bin_centers(self):
+    # def bin_widths(self):
+    # def projection(self, axis):
+    # def profile(self, axis):
+    # def transpose(self):
+    # def rebin(self, nrebinx, nrebiny=None):
 
-        hr_ = r.TH2F("hr2d","hr2d", len(bins[0])-1, bins[0], len(bins[1])-1, bins[1])
-        fill_fast(hr_, vals2d[:,0], vals2d[:,1], weights=weights)
-        hr = Hist2D(hr_)
-
-        hn = Hist2D(vals2d,bins=bins,weights=weights)
-
-        self.assertEqual(hn, hr)
-
-        self.assertEqual(hn.get_integral(), hr.get_integral())
-
-        self.assertEqual(np.all(hr.edges[0] == bins[0]), True)
-        self.assertEqual(np.all(hr.edges[1] == bins[1]), True)
-        self.assertEqual(np.all(hn.edges[0] == bins[0]), True)
-        self.assertEqual(np.all(hn.edges[1] == bins[1]), True)
-
-        hr2x_ = hr_.Clone("hr2x")
-        hr2x_.Scale(2.0)
-        self.assertEqual(Hist2D(hr2x_), hn*2)
-
-        hr2p_ = hr_.Clone("hr2p")
-        hr2p_.Add(hr_)
-        self.assertEqual(Hist2D(hr2p_), hn+hn)
 
 if __name__ == "__main__":
     unittest.main()
