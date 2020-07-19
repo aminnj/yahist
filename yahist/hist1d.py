@@ -26,7 +26,9 @@ class Hist1D(object):
         )  # used when dividing with binomial errors
         self._metadata = {}
         kwargs = self._extract_metadata(**kwargs)
-        if is_listlike(obj):
+        if "ROOT." in str(type(obj)):
+            self._init_root(obj, **kwargs)
+        elif is_listlike(obj):
             self._init_numpy(obj, **kwargs)
         elif type(obj) is self.__class__:
             # allows Hist1D constructed with another Hist1D to introduce new metadata
@@ -73,6 +75,36 @@ class Hist1D(object):
                 counts, _ = np.histogram(obj, **kwargs)
                 self._errors = np.sqrt(counts)
         self._errors = self._errors.astype(np.float64)
+
+    def _init_root(self, obj, **kwargs):
+        nbins = obj.GetNbinsX()
+        if not kwargs.pop("no_overflow", False):
+            # move under and overflow into first and last visible bins
+            # set bin error before content because setting the content updates the error?
+            obj.SetBinError(
+                1, (obj.GetBinError(1) ** 2.0 + obj.GetBinError(0) ** 2.0) ** 0.5
+            )
+            obj.SetBinError(
+                nbins,
+                (obj.GetBinError(nbins) ** 2.0 + obj.GetBinError(nbins + 1) ** 2.0)
+                ** 0.5,
+            )
+            obj.SetBinContent(1, obj.GetBinContent(1) + obj.GetBinContent(0))
+            obj.SetBinContent(
+                nbins, obj.GetBinContent(nbins) + obj.GetBinContent(nbins + 1)
+            )
+        edges = np.array(
+            [1.0 * obj.GetBinLowEdge(ibin) for ibin in range(1, nbins + 2)]
+        )
+        self._counts = np.array(
+            [1.0 * obj.GetBinContent(ibin) for ibin in range(1, nbins + 1)],
+            dtype=np.float64,
+        )
+        self._errors = np.array(
+            [1.0 * obj.GetBinError(ibin) for ibin in range(1, nbins + 1)],
+            dtype=np.float64,
+        )
+        self._edges = edges
 
     def _extract_metadata(self, **kwargs):
         for k in ["color", "label"]:
@@ -435,21 +467,21 @@ class Hist1D(object):
         hnew._metadata = self._metadata.copy()
         return hnew
 
-    def cumulative(self, from_left=True):
+    def cumulative(self, forward=True):
         """
         Turns Hist object into one with cumulative counts.
 
         Parameters
         ----------
-        from_left : bool, default True
-            Whether to start the summing from the left or the right.
+        forward : bool, default True
+            If true, sum from the left, otherwise from the right.
 
         Returns
         -------
         Hist1D
         """
         hnew = self.__class__()
-        direction = 1 if from_left else -1
+        direction = 1 if forward else -1
         hnew._counts = (self._counts[::direction]).cumsum()[::direction]
         hnew._errors = (self._errors[::direction] ** 2.0).cumsum()[::direction] ** 0.5
         hnew._edges = np.array(self._edges)
@@ -607,9 +639,14 @@ class Hist1D(object):
         )
         return source
 
-    def to_json(self):
+    def to_json(self, obj=None):
         """
         Returns json-serialized version of this object.
+
+        Parameters
+        ----------
+        obj : str, default None
+            if specified, writes json to path instead of returning string 
 
         Returns
         -------
@@ -621,7 +658,12 @@ class Hist1D(object):
                 return obj.tolist()
             raise TypeError("Don't know how to serialize object of type", type(obj))
 
-        return json.dumps(self.__dict__, default=default)
+        s = json.dumps(self.__dict__, default=default)
+        if obj is None:
+            return s
+        else:
+            with open(obj, "w") as fh:
+                fh.write(s)
 
     @classmethod
     def from_json(cls, obj):
@@ -631,13 +673,17 @@ class Hist1D(object):
         Parameters
         ----------
         obj : str
-            json-serialized object from `self.to_json()`
+            json-serialized object from `self.to_json()` or file path
 
         Returns
         -------
         Hist
         """
-        obj = json.loads(obj)
+        if obj.startswith("{"):
+            obj = json.loads(obj)
+        else:
+            with open(obj, "r") as fh:
+                obj = json.load(fh)
         for k in obj:
             if is_listlike(obj[k]):
                 obj[k] = np.array(obj[k])
@@ -723,8 +769,11 @@ class Hist1D(object):
         edges = self._edges
         yerrs = self._errors
         xerrs = 0.5 * self.bin_widths
-        mask = (counts != 0.0) & np.isfinite(counts)
+        mask = ((counts != 0.0) | (yerrs != 0.0)) & np.isfinite(counts)
         centers = self.bin_centers
+
+        if gradient:
+            kwargs["histtype"] = "step"
 
         if show_errors:
             kwargs["fmt"] = kwargs.get("fmt", "o")
