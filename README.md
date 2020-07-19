@@ -1,5 +1,7 @@
 ## Yet another histogram
 
+![Python application](https://github.com/aminnj/yahist/workflows/Python%20application/badge.svg)
+
 ### Overview
 
 Yet another (simple) histogram (object)
