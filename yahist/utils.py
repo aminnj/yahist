@@ -144,20 +144,56 @@ def expr_to_lambda(expr):
     return eval(lambdastr)
 
 
-def curve_fit_wrapper(func, xdata, ydata, sigma=None, absolute_sigma=True, **kwargs):
+def curve_fit_wrapper(
+    func, xdata, ydata, sigma=None, absolute_sigma=True, likelihood=False, **kwargs
+):
     """
     Wrapper around `scipy.optimize.curve_fit`. Initial parameters (`p0`)
     can be set in the function definition with defaults for kwargs
     (e.g., `func = lambda x,a=1.,b=2.: x+a+b`, will feed `p0 = [1.,2.]` to `curve_fit`)
     """
-    from scipy.optimize import curve_fit
+    from scipy.optimize import minimize, curve_fit
 
     if func.__defaults__ and len(func.__defaults__) + 1 == func.__code__.co_argcount:
         if "p0" not in kwargs:
             kwargs["p0"] = func.__defaults__
-    return curve_fit(
-        func, xdata, ydata, sigma=sigma, absolute_sigma=absolute_sigma, **kwargs
+    tomask = (ydata == 0.0) | np.isnan(ydata)
+    if sigma is not None:
+        tomask |= sigma == 0.0
+    popt, pcov = curve_fit(
+        func,
+        xdata[~tomask],
+        ydata[~tomask],
+        sigma=sigma[~tomask],
+        absolute_sigma=absolute_sigma,
+        **kwargs,
     )
+    if likelihood:
+        try:
+            from autograd import hessian
+            from autograd.scipy.special import gammaln as gammalna
+            from autograd.scipy.stats import poisson
+            import autograd.numpy as npa
+        except ImportError:
+            raise Exception(
+                "For likelihood minimization, the 'autograd' module must be installed (`pip install --user autograd`)."
+            )
+
+        def fnll(v):
+            ypred = func(xdata, *v)
+            if (ypred < 0.0).any():
+                return 1e6
+            # both are equivalent
+            return (
+                ypred.sum() - (ydata * npa.log(ypred)).sum() + gammalna(ydata + 1).sum()
+            )
+            # return (ypred.sum() - poisson.logpmf(ydata,ypred).sum()) * 2**-2.
+
+        res = minimize(fnll, popt, method="BFGS")
+        popt = res.x
+        hess = hessian(fnll)(popt)
+        pcov = np.linalg.inv(hess.T)
+    return popt, pcov
 
 
 def fit_hist(
@@ -170,6 +206,7 @@ def fit_hist(
     legend=True,
     label=r"fit $\pm$1$\sigma$",
     band_style="filled",
+    likelihood=False,
     curve_fit_kwargs=dict(),
 ):
     """
@@ -232,7 +269,9 @@ def fit_hist(
         [hist.edges, np.concatenate([hist.bin_centers, [-1]]),]
     ).T.flatten()[:-1]
 
-    tomask = ((ydata_raw == 0.0) & (yerrs_raw == 0.0)) | np.isnan(ydata_raw)
+    tomask = ((ydata_raw == 0.0) & (yerrs_raw == 0.0) & (not likelihood)) | np.isnan(
+        ydata_raw
+    )
     xdata = xdata_raw[~tomask]
     ydata = ydata_raw[~tomask]
     yerrs = yerrs_raw[~tomask]
@@ -241,7 +280,13 @@ def fit_hist(
         func = expr_to_lambda(func)
 
     popt, pcov = curve_fit_wrapper(
-        func, xdata, ydata, sigma=yerrs, absolute_sigma=True, **curve_fit_kwargs
+        func,
+        xdata,
+        ydata,
+        sigma=yerrs,
+        absolute_sigma=True,
+        likelihood=likelihood,
+        **curve_fit_kwargs,
     )
 
     fit_ydata_fine = func(xdata_fine, *popt)
