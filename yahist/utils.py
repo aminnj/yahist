@@ -143,25 +143,28 @@ def expr_to_lambda(expr):
     lambdastr = f"lambda x,{','.join(varnames)}: {expr}"
     return eval(lambdastr)
 
-def calculate_hessian(func, x0, epsilon=1.e-5):
+
+def calculate_hessian(func, x0, epsilon=1.0e-5):
     """
     # Taken almost verbatim from https://gist.github.com/jgomezdans/3144636
     A numerical approximation to the Hessian matrix of cost function at
     location x0
     """
     from scipy.optimize import approx_fprime
+
     f1 = approx_fprime(x0, func, epsilon)
     n = len(x0)
-    hess = np.zeros((n,n))
+    hess = np.zeros((n, n))
     xx = x0
-    for j in range( n ):
-        xx0 = xx[j] # Store old value
-        xx[j] = xx0 + epsilon # Perturb with finite difference
+    for j in range(n):
+        xx0 = xx[j]  # Store old value
+        xx[j] = xx0 + epsilon  # Perturb with finite difference
         # Recalculate the partial derivatives for this new point
         f2 = approx_fprime(x0, func, epsilon)
-        hess[:, j] = (f2 - f1)/epsilon # scale...
-        xx[j] = xx0 # Restore initial value of x0
+        hess[:, j] = (f2 - f1) / epsilon  # scale...
+        xx[j] = xx0  # Restore initial value of x0
     return hess
+
 
 def curve_fit_wrapper(
     func, xdata, ydata, sigma=None, absolute_sigma=True, likelihood=False, **kwargs
@@ -189,12 +192,15 @@ def curve_fit_wrapper(
     )
     if likelihood:
         from scipy.special import gammaln
+
         def fnll(v):
             ypred = func(xdata, *v)
             if (ypred < 0.0).any():
                 return 1e6
             # both are equivalent
-            return ypred.sum() - (ydata * np.log(ypred)).sum() + gammaln(ydata + 1).sum()
+            return (
+                ypred.sum() - (ydata * np.log(ypred)).sum() + gammaln(ydata + 1).sum()
+            )
             # return (ypred.sum() - poisson.logpmf(ydata,ypred).sum()) * 2**-2.
 
         res = minimize(fnll, popt, method="BFGS")

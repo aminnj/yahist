@@ -122,6 +122,18 @@ class Hist2D(Hist1D):
         ywidths = self._edges[1][1:] - self._edges[1][:-1]
         return (xwidths, ywidths)
 
+    @property
+    def nbins(self):
+        """
+        Returns the number of bins
+
+        Returns
+        -------
+        int
+            Number of bins
+        """
+        return (len(self._edges[0]) - 1, len(self._edges[1]) -1)
+
     def _calculate_projection(self, axis, edges):
         hnew = Hist1D()
         hnew._counts = self._counts.sum(axis=axis)

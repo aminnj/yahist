@@ -107,10 +107,17 @@ class Hist1D(object):
         self._edges = edges
 
     def _extract_metadata(self, **kwargs):
+        # color and label are special and for convenience, can be specified as top level kwargs
+        # e.g., Hist1D(..., color="C0", label="blah", metadata={"foo": "bar"})
         for k in ["color", "label"]:
             if k in kwargs:
                 self._metadata[k] = kwargs.pop(k)
+        self._metadata.update(kwargs.pop("metadata",dict()))
         return kwargs
+
+    @property
+    def metadata(self):
+        return self._metadata
 
     @property
     def errors(self):
@@ -235,19 +242,16 @@ class Hist1D(object):
     def __eq__(self, other):
         if not self._check_consistency(other, raise_exception=False):
             return False
-        return (
+        same = (
             np.allclose(self._counts, other.counts)
             and np.allclose(self._edges, other.edges)
             and np.allclose(self._errors, other.errors)
-            and (
-                (self._errors_up is not None)
-                or np.allclose(self._errors_up, other.errors_up)
             )
-            and (
-                (self._errors_down is not None)
-                or np.allclose(self._errors_down, other.errors_down)
-            )
-        )
+        if self._errors_up is not None:
+            same = same and np.allclose(self._errors_up, other.errors_up)
+        if self._errors_down is not None:
+            same = same and np.allclose(self._errors_down, other.errors_down)
+        return same
 
     def __ne__(self, other):
         return not self.__eq__(other)

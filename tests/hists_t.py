@@ -114,54 +114,177 @@ class FitTest(unittest.TestCase):
 
 
 class Hist1DTest(unittest.TestCase):
-    pass
+    def test_integral(self):
+        N = 100
+        v = np.random.random(N)
+        h = Hist1D(v, bins="10,0,1")
+        self.assertEqual(h.integral, 100.0)
+        self.assertEqual(h.integral_error, 100.0 ** 0.5)
 
-    # def __init__(self, obj=[], **kwargs):
-    # def _copy(self):
-    # def _init_numpy(self, obj, **kwargs):
-    # def _extract_metadata(self, **kwargs):
-    # def errors(self):
-    # def errors_up(self):
-    # def errors_down(self):
-    # def counts(self):
-    # def edges(self):
-    # def bin_centers(self):
-    # def bin_widths(self):
-    # def nbins(self):
-    # def integral(self):
-    # def integral_error(self):
-    # def mean(self):
-    # def std(self):
-    # def _fix_nan(self):
-    # def __eq__(self, other):
-    # def __ne__(self, other):
-    # def __add__(self, other):
-    # def __sub__(self, other):
-    # def divide(self, other, binomial=False):
-    # def __div__(self, other):
-    # def __mul__(self, fact):
-    # def __pow__(self, expo):
-    # def normalize(self):
-    # def rebin(self, nrebin):
-    # def cumulative(self, from_left=True):
-    #     from_left : bool, default True
-    # def to_json(self):
-    # def from_json(cls, obj):
-    # def from_bincounts(cls, counts, bins, errors=None):
+    def test_basic(self):
+        v = np.array([0.5, 0.5, 1.5, 1.5])
+        bins = np.array([0.0, 1.0, 2.0])
+        h = Hist1D(v, bins=bins)
+        a = np.array([2.0, 2.0])
+        self.assertTrue(np.allclose(h.counts, a))
+        self.assertTrue(np.allclose(h.errors, a ** 0.5))
+        self.assertTrue(np.allclose(h.edges, bins))
+        self.assertEqual(h.nbins, len(bins) - 1)
+        self.assertTrue(np.allclose(h.bin_widths, np.array([1.0, 1.0])))
+        self.assertTrue(np.allclose(h.bin_centers, np.array([0.5, 1.5])))
+
+    def test_weighted(self):
+        v = np.array([0.5, 0.5, 1.5, 1.5])
+        w = np.array([1.0, 1.0, 2.0, 2.0])
+        bins = np.array([0.0, 1.0, 2.0])
+        h = Hist1D(v, bins=bins, weights=w)
+        self.assertTrue(np.allclose(h.counts, np.array([2.0, 4.0])))
+        self.assertTrue(np.allclose(h.errors, np.array([2.0 ** 0.5, 8 ** 0.5])))
+
+    def test_statistics(self):
+        v = [0.5, 0.5, 1.5, 1.5]
+        bins = np.array([0.0, 1.0, 2.0])
+        h = Hist1D(v, bins=bins)
+        self.assertEqual(h.mean(), 1.0)
+        self.assertEqual(h.std(), 0.5)
+
+    def test_binning(self):
+        v = np.arange(10)
+        h1 = Hist1D(v, bins=np.linspace(0, 10, 11))
+        h2 = Hist1D(v, bins="10,0,10")
+        h3 = Hist1D(v, bins=10, range=[0, 10])
+        self.assertEqual(h1, h2)
+        self.assertEqual(h2, h3)
+
+    def test_overflow(self):
+        v = np.arange(10)
+        bins = "8,0.5,8.5"
+        h = Hist1D(v, bins=bins, overflow=True)
+        self.assertEqual(h.counts[0], 2)
+        self.assertEqual(h.counts[-1], 2)
+        self.assertEqual(h.integral, 10)
+
+        h = Hist1D(v, bins=bins, overflow=False)
+        self.assertEqual(h.counts[0], 1)
+        self.assertEqual(h.counts[-1], 1)
+        self.assertEqual(h.integral, 8)
+
+    def test_idempotence(self):
+        h1 = Hist1D([0.5], bins=[0.0, 1])
+        h2 = Hist1D(h1, label="test")
+        self.assertEqual(h1, h2)
+
+    def test_metadata(self):
+        self.assertEqual(Hist1D().metadata, {})
+        self.assertEqual(Hist1D(label="test").metadata, {"label": "test"})
+        self.assertEqual(Hist1D(color="C0").metadata, {"color": "C0"})
+        self.assertEqual(
+            Hist1D(color="C0", metadata={"foo": "bar"}).metadata,
+            {"color": "C0", "foo": "bar"},
+        )
+        self.assertEqual(
+            Hist1D(metadata={"color": "C0", "foo": "bar"}).metadata,
+            {"color": "C0", "foo": "bar"},
+        )
+
+    def test_copy(self):
+        h1 = Hist1D([0.5], bins=[0.0, 1])
+        h2 = h1.copy()
+        self.assertEqual(h1, h2)
+        h2._counts[0] *= 2.0
+        self.assertNotEqual(h1, h2)
+
+    def test_arithmetic(self):
+        def check_count_error(h, count, error):
+            self.assertEqual(h.counts[0], count)
+            self.assertEqual(h.errors[0], error)
+
+        h = Hist1D([0.5], bins=[0.0, 1])
+
+        check_count_error(h + h, 2.0, 2.0 ** 0.5)
+        check_count_error(2.0 * h, 2.0, 2.0)
+        check_count_error(h / 2.0, 0.5, 0.5)
+        check_count_error(h - h, 0.0, 2.0 ** 0.5)
+        check_count_error(h / h, 1.0, 2.0 ** 0.5)
+
+    def test_normalize(self):
+        h1 = Hist1D([0.5, 1.5], bins=[0, 1, 2])
+        h2 = h1.normalize()
+        self.assertEqual(h2.integral, 1.0)
+        self.assertEqual(h2.integral_error, 0.5 ** 0.5)
+
+    def test_rebin(self):
+        h1 = Hist1D([0.5, 1.5, 2.5, 3.5], bins=[0, 1, 2, 3, 4])
+        h2 = h1.rebin(2)
+        self.assertEqual(h1.integral, h2.integral)
+        self.assertEqual(h1.integral_error, h2.integral_error)
+        self.assertTrue(np.allclose(h2.edges, np.array([0.0, 2.0, 4.0])))
+
+    def test_cumulative(self):
+        h1 = Hist1D([0.5, 1.5, 2.5, 3.5], bins=[0, 1, 2, 3, 4])
+        self.assertTrue(
+            np.allclose(h1.cumulative(forward=True).counts, np.array([1, 2, 3, 4]))
+        )
+        self.assertTrue(
+            np.allclose(h1.cumulative(forward=False).counts, np.array([4, 3, 2, 1]))
+        )
+
+    def test_json(self):
+        h1 = Hist1D([0.5], bins=[0.0, 1], label="foo")
+
+        h2 = h1.from_json(h1.to_json())
+        self.assertEqual(h1, h2)
+        self.assertEqual(h1.metadata, h2.metadata)
+
+        h1.to_json(".tmphist.json")
+        h2 = h1.from_json(".tmphist.json")
+        self.assertEqual(h1, h2)
+        self.assertEqual(h1.metadata, h2.metadata)
+
+    def test_frombincounts(self):
+        np.random.seed(42)
+        v = np.random.random(100)
+        bins = np.linspace(0, 1, 11)
+        h1 = Hist1D(v, bins=bins)
+        counts, _ = np.histogram(v, bins=bins)
+        h2 = Hist1D.from_bincounts(counts=counts, bins=bins)
+        self.assertEqual(h1, h2)
 
 
 class Hist2DTest(unittest.TestCase):
-    pass
+    def test_basic(self):
+        xs = np.array([0.5, 1.5])
+        ys = np.array([1.5, 0.5])
+        bins = np.array([0, 1, 2])
+        h1 = Hist2D(np.c_[xs, ys], bins=bins)
+        counts, edgesx, edgesy = np.histogram2d(xs, ys, bins)
+        h2 = Hist2D.from_bincounts(counts, (edgesx, edgesy))
+        self.assertEqual(h1, h2)
+        self.assertEqual(h1.nbins, (2, 2))
+        self.assertEqual(h1.integral, 2.0)
+        self.assertEqual(h1.integral_error, 2.0 ** 0.5)
 
-    # def _init_numpy(self, obj, **kwargs):
-    # def _check_consistency(self, other, raise_exception=True):
-    # def __eq__(self, other):
-    # def bin_centers(self):
-    # def bin_widths(self):
-    # def projection(self, axis):
-    # def profile(self, axis):
-    # def transpose(self):
-    # def rebin(self, nrebinx, nrebiny=None):
+        self.assertTrue(np.allclose(h1.edges[0], edgesx))
+        self.assertTrue(np.allclose(h1.edges[1], edgesy))
+
+        self.assertEqual(h1, h1.transpose())
+
+    def test_reductions(self):
+        xs = np.array([0.5, 1.5])
+        ys = np.array([1.5, 0.5])
+        bins = np.array([0, 1, 2])
+        h1 = Hist2D(np.c_[xs, ys], bins=bins)
+        self.assertEqual(h1, h1.rebin(1))
+        self.assertEqual(h1, h1.rebin(1, 1))
+
+        h2 = h1.rebin(2)
+        self.assertEqual(h2.nbins, (1, 1))
+
+        self.assertEqual(h1.projection("x"), h1.projection("y"))
+        self.assertEqual(h1.profile("x"), h1.profile("y"))
+
+        self.assertTrue(np.allclose(h1.projection("x").counts, np.array([1.0, 1.0])))
+        self.assertTrue(np.allclose(h1.profile("x").counts, np.array([1.5, 0.5])))
 
 
 if __name__ == "__main__":
