@@ -10,7 +10,7 @@ Yet another (simple) histogram (object)
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aminnj/yahist/master?filepath=examples%2Fbasic.ipynb)
 
-### Installation / Usage
+### Installation
 
 ```bash
 pip install yahist

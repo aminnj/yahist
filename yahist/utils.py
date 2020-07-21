@@ -419,3 +419,29 @@ def plot_stack(hists, **kwargs):
     for h in hists:
         h.plot(bottom=bottom, **kwargs)
         bottom += h.counts
+
+def darken_color(color, amount=0.2):
+    import matplotlib.colors as mc
+    import colorsys
+    try:
+        c = mc.cnames[color]
+    except:
+        c = color
+    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+    return colorsys.hls_to_rgb(c[0], (1. - amount) * c[1], c[2])
+
+def draw_error_band(h, ax=None, **kwargs):
+    opts = dict(zorder=3, alpha=0.25, step="post")
+    if h.metadata.get("color"): opts["facecolor"] = h.metadata["color"]
+    if kwargs.get("color"): opts["facecolor"] = kwargs["color"]
+    if "facecolor" in opts: opts["facecolor"] = darken_color(opts["facecolor"], 0.2)
+    if ax is None:
+        import matplotlib.pyplot as plt
+        ax = plt.gca()
+    if h.errors_up is not None:
+        ylow = np.concatenate([h.counts-h.errors_down,h.counts[-1:]])
+        yhigh = np.concatenate([h.counts+h.errors_up,h.counts[-1:]])
+    else:
+        ylow = np.concatenate([h.counts-h.errors,h.counts[-1:]])
+        yhigh = np.concatenate([h.counts+h.errors,h.counts[-1:]])
+    ax.fill_between(h.edges, ylow, yhigh, **opts)
