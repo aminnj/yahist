@@ -141,6 +141,13 @@ class Hist1DTest(unittest.TestCase):
         self.assertTrue(np.allclose(h.counts, np.array([2.0, 4.0])))
         self.assertTrue(np.allclose(h.errors, np.array([2.0 ** 0.5, 8 ** 0.5])))
 
+    def test_nonuniform_binning(self):
+        bins = np.array([0, 1, 10, 100, 1000])
+        centers = np.array([0.5, 5.5, 55, 550])
+        h = Hist1D(centers, bins=bins)
+        self.assertTrue(np.allclose(h.counts, np.ones(len(centers))))
+        self.assertTrue(np.allclose(h.bin_centers, centers))
+
     def test_statistics(self):
         v = [0.5, 0.5, 1.5, 1.5]
         bins = np.array([0.0, 1.0, 2.0])
@@ -250,6 +257,11 @@ class Hist1DTest(unittest.TestCase):
         h2 = Hist1D.from_bincounts(counts=counts, bins=bins)
         self.assertEqual(h1, h2)
 
+    def test_fromrandom(self):
+        h = Hist1D.from_random("norm", params=[0, 1], size=1e3, random_state=42)
+        self.assertTrue(abs(h.mean()) < 0.1)
+        self.assertTrue(0.9 < h.std() < 1.1)
+
 
 class Hist2DTest(unittest.TestCase):
     def test_basic(self):
@@ -285,6 +297,16 @@ class Hist2DTest(unittest.TestCase):
 
         self.assertTrue(np.allclose(h1.projection("x").counts, np.array([1.0, 1.0])))
         self.assertTrue(np.allclose(h1.profile("x").counts, np.array([1.5, 0.5])))
+
+    def test_fromrandom(self):
+        mus = [0, 0]
+        cov = [[1, 0], [0, 1]]
+        h = Hist2D.from_random(
+            "multivariate_normal", params=[mus, cov], size=1e4, random_state=42
+        )
+        for axis in ["x", "y"]:
+            self.assertTrue(abs(h.projection(axis).mean()) < 0.1)
+            self.assertTrue(0.9 < h.projection(axis).std() < 1.1)
 
 
 if __name__ == "__main__":

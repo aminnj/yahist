@@ -71,7 +71,7 @@ def poisson_errors(obs, alpha=1 - 0.6827):
     return lows, highs
 
 
-def binomial_obs_z(data, bkg, bkgerr, gaussian_fallback=True):
+def binomial_obs_z(data, bkg, bkgerr):
     """
     Calculate pull values according to
     https://root.cern.ch/doc/v606/NumberCountingUtils_8cxx_source.html#l00137

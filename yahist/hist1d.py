@@ -112,7 +112,7 @@ class Hist1D(object):
         for k in ["color", "label"]:
             if k in kwargs:
                 self._metadata[k] = kwargs.pop(k)
-        self._metadata.update(kwargs.pop("metadata",dict()))
+        self._metadata.update(kwargs.pop("metadata", dict()))
         return kwargs
 
     @property
@@ -142,7 +142,7 @@ class Hist1D(object):
     @property
     def bin_centers(self):
         """
-        Returns the centers of bins.
+        Returns the midpoints of bin edges.
 
         Returns
         -------
@@ -246,7 +246,7 @@ class Hist1D(object):
             np.allclose(self._counts, other.counts)
             and np.allclose(self._edges, other.edges)
             and np.allclose(self._errors, other.errors)
-            )
+        )
         if self._errors_up is not None:
             same = same and np.allclose(self._errors_up, other.errors_up)
         if self._errors_down is not None:
@@ -389,7 +389,6 @@ class Hist1D(object):
             "complex_kind": lambda x: "%5.{}f {} %4.{}f".format(prec, sep, prec)
             % (np.real(x), np.imag(x))
         }
-        # formatter = {"complex_kind": lambda x:("{:g} %s {:g}" % (sep)).format(np.real(x),np.imag(x))}
         a2s = np.array2string(
             self._counts + self._errors * 1j,
             formatter=formatter,
@@ -723,6 +722,35 @@ class Hist1D(object):
             hnew._errors = hnew._counts ** 0.5
         return hnew
 
+    @classmethod
+    def from_random(
+        cls, which="norm", params=[0.0, 1.0], size=1e5, random_state=None, **kwargs
+    ):
+        """
+        Creates histogram object from random values of
+        a given distribution within `scipy.stats`
+
+        Parameters
+        ----------
+        which : str, default "norm"
+            Distribution within `scipy.stats`
+        params : list/array, default [0, 1]
+            Parameters to distribution
+        size : int/float, 1e5
+            Number of random values to sample/fill histogram
+        random_state : int, default None
+
+        Returns
+        -------
+        Hist
+        """
+        import scipy.stats
+
+        func = getattr(scipy.stats, which)
+        v = func(*params).rvs(size=int(size), random_state=random_state)
+        h = cls(v, **kwargs)
+        return h
+
     def plot(self, ax=None, **kwargs):
         """
         Plot this histogram object using matplotlib's `hist`
@@ -737,7 +765,7 @@ class Hist1D(object):
         counts_fontsize
             Font size of count labels
         fmt : str, default "o"
-            `fmt` kwarg used for maptlotlib plotting
+            `fmt` kwarg used for matplotlib plotting
         gradient : bool, default False
             fill a light gradient under histogram if `histtype="step"`
         show_counts : bool, default False
@@ -747,7 +775,7 @@ class Hist1D(object):
         legend : bool, default True
             if True and the histogram has a label, draw the legend
         **kwargs
-            Parameters to be passed to matplotlib 
+            Parameters to be passed to matplotlib
             `hist` or `errorbar` function.
 
 
