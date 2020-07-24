@@ -112,6 +112,13 @@ class FitTest(unittest.TestCase):
         self.assertTrue(np.isclose(ret_chi2["parvalues"][0], 1.0))
         self.assertTrue(np.isclose(ret_like["parvalues"][0], 0.5))
 
+        # all relative errors within <1% when counts are large
+        h = Hist1D.from_random("norm",params=[0,1], size=2000, random_state=42, bins="20,-3,3")
+        ret_chi2 = h.fit("a*np.exp(-(x-mu)**2./(2*sigma**2.))", draw=False, likelihood=False)
+        ret_like = h.fit("a*np.exp(-(x-mu)**2./(2*sigma**2.))", draw=False, likelihood=True)
+        v = (ret_chi2["parerrors"] - ret_like["parerrors"])/ret_chi2["parvalues"]
+        self.assertEqual((np.abs(v) < 0.01).mean(), 1.)
+
 
 class Hist1DTest(unittest.TestCase):
     def test_integral(self):
