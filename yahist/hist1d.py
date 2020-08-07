@@ -491,6 +491,26 @@ class Hist1D(object):
         hnew._metadata = self._metadata.copy()
         return hnew
 
+    def lookup(self, x):
+        """
+        Convert a specified list of x-values into corresponding
+        bin counts via `np.digitize`
+
+        Parameters
+        ----------
+        x : array of x-values, or single x-value
+
+        Returns
+        -------
+        array
+        """
+        low = self.edges[0] + self.bin_widths[0] * 0.5
+        low = 0.5 * (self.edges[0] + self.edges[1])
+        high = 0.5 * (self.edges[-1] + self.edges[-2])
+        x = np.clip(x, low, high)
+        ibins = np.digitize(x, bins=self.edges) - 1
+        return self.counts[ibins]
+
     def svg(self, height=250, aspectratio=1.4, strokewidth=1):
         """
         Return HTML svg tag with bare-bones version of histogram
@@ -747,7 +767,11 @@ class Hist1D(object):
         import scipy.stats
 
         func = getattr(scipy.stats, which)
-        v = func(*params).rvs(size=int(size), random_state=random_state)
+        if type(size) == float:
+            size = int(size)
+        if cls.__name__ == "Hist2D" and not is_listlike(size):
+            size = (size, 2)
+        v = func(*params).rvs(size=size, random_state=random_state)
         h = cls(v, **kwargs)
         return h
 
