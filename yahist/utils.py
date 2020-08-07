@@ -176,7 +176,7 @@ def curve_fit_wrapper(
     """
     from scipy.optimize import minimize, curve_fit
 
-    xdata = xdata.astype(np.float64) # need this for minuit hesse to converge
+    xdata = xdata.astype(np.float64)  # need this for minuit hesse to converge
     if func.__defaults__ and len(func.__defaults__) + 1 == func.__code__.co_argcount:
         if "p0" not in kwargs:
             kwargs["p0"] = func.__defaults__
@@ -193,6 +193,7 @@ def curve_fit_wrapper(
     )
     if likelihood:
         from scipy.special import gammaln
+
         use_autograd = False
         use_minuit = True
         if use_autograd:
@@ -202,15 +203,15 @@ def curve_fit_wrapper(
                 import autograd.numpy as npa
             except ImportError:
                 raise Exception(
-                        "For likelihood minimization, the 'autograd' module must be installed (`pip install --user autograd`)."
-                        )
+                    "For likelihood minimization, the 'autograd' module must be installed (`pip install --user autograd`)."
+                )
         if use_minuit:
             try:
                 from iminuit import Minuit
             except ImportError:
                 raise Exception(
-                        "For likelihood minimization, the 'iminuit' module must be installed (`pip install --user iminuit`)."
-                        )
+                    "For likelihood minimization, the 'iminuit' module must be installed (`pip install --user iminuit`)."
+                )
 
         def fnll(v):
             ypred = func(xdata, *v)
@@ -219,11 +220,15 @@ def curve_fit_wrapper(
             # both are equivalent
             if use_autograd:
                 return (
-                    ypred.sum() - (ydata * npa.log(ypred)).sum() + gammalna(ydata + 1).sum()
+                    ypred.sum()
+                    - (ydata * npa.log(ypred)).sum()
+                    + gammalna(ydata + 1).sum()
                 )
             else:
                 return (
-                    ypred.sum() - (ydata * np.log(ypred)).sum() + gammaln(ydata + 1).sum()
+                    ypred.sum()
+                    - (ydata * np.log(ypred)).sum()
+                    + gammaln(ydata + 1).sum()
                 )
             # return (ypred.sum() - poisson.logpmf(ydata,ypred).sum()) * 2**-2.
 
@@ -452,28 +457,35 @@ def plot_stack(hists, **kwargs):
         h.plot(bottom=bottom, **kwargs)
         bottom += h.counts
 
+
 def darken_color(color, amount=0.2):
     import matplotlib.colors as mc
     import colorsys
+
     try:
         c = mc.cnames[color]
     except:
         c = color
     c = colorsys.rgb_to_hls(*mc.to_rgb(c))
-    return colorsys.hls_to_rgb(c[0], (1. - amount) * c[1], c[2])
+    return colorsys.hls_to_rgb(c[0], (1.0 - amount) * c[1], c[2])
+
 
 def draw_error_band(h, ax=None, **kwargs):
     opts = dict(zorder=3, alpha=0.25, step="post")
-    if h.metadata.get("color"): opts["facecolor"] = h.metadata["color"]
-    if kwargs.get("color"): opts["facecolor"] = kwargs["color"]
-    if "facecolor" in opts: opts["facecolor"] = darken_color(opts["facecolor"], 0.2)
+    if h.metadata.get("color"):
+        opts["facecolor"] = h.metadata["color"]
+    if kwargs.get("color"):
+        opts["facecolor"] = kwargs["color"]
+    if "facecolor" in opts:
+        opts["facecolor"] = darken_color(opts["facecolor"], 0.2)
     if ax is None:
         import matplotlib.pyplot as plt
+
         ax = plt.gca()
     if h.errors_up is not None:
-        ylow = np.concatenate([h.counts-h.errors_down,h.counts[-1:]])
-        yhigh = np.concatenate([h.counts+h.errors_up,h.counts[-1:]])
+        ylow = np.concatenate([h.counts - h.errors_down, h.counts[-1:]])
+        yhigh = np.concatenate([h.counts + h.errors_up, h.counts[-1:]])
     else:
-        ylow = np.concatenate([h.counts-h.errors,h.counts[-1:]])
-        yhigh = np.concatenate([h.counts+h.errors,h.counts[-1:]])
+        ylow = np.concatenate([h.counts - h.errors, h.counts[-1:]])
+        yhigh = np.concatenate([h.counts + h.errors, h.counts[-1:]])
     ax.fill_between(h.edges, ylow, yhigh, **opts)

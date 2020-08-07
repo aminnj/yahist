@@ -132,7 +132,7 @@ class Hist2D(Hist1D):
         int
             Number of bins
         """
-        return (len(self._edges[0]) - 1, len(self._edges[1]) -1)
+        return (len(self._edges[0]) - 1, len(self._edges[1]) - 1)
 
     def _calculate_projection(self, axis, edges):
         hnew = Hist1D()
@@ -511,6 +511,8 @@ class Hist2D(Hist1D):
             Show count labels for each bin
         show_errors : bool, default False
             Show error bars
+        return_self : bool, default False
+            If true, return self (Hist2D object)
         **kwargs
             Parameters to be passed to matplotlib 
             `pcolorfast` function.
@@ -518,6 +520,7 @@ class Hist2D(Hist1D):
 
         Returns
         -------
+        Hist2D (self) if `return_self` is True, otherwise
         (pcolorfast output, matplotlib AxesSubplot object)
         """
         import matplotlib.pyplot as plt
@@ -535,6 +538,7 @@ class Hist2D(Hist1D):
         counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
         counts_fontsize = kwargs.pop("counts_fontsize", 12)
         logz = kwargs.pop("logz", False)
+        return_self = kwargs.pop("return_self", False)
 
         if logz:
             kwargs["norm"] = LogNorm()
@@ -566,4 +570,7 @@ class Hist2D(Hist1D):
                     wrap=True,
                 )
 
-        return c, ax
+        if return_self:
+            return self
+        else:
+            return c, ax

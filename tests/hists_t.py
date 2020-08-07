@@ -113,11 +113,17 @@ class FitTest(unittest.TestCase):
         self.assertTrue(np.isclose(ret_like["parvalues"][0], 0.5))
 
         # all relative errors within <1% when counts are large
-        h = Hist1D.from_random("norm",params=[0,1], size=2000, random_state=42, bins="20,-3,3")
-        ret_chi2 = h.fit("a*np.exp(-(x-mu)**2./(2*sigma**2.))", draw=False, likelihood=False)
-        ret_like = h.fit("a*np.exp(-(x-mu)**2./(2*sigma**2.))", draw=False, likelihood=True)
-        v = (ret_chi2["parerrors"] - ret_like["parerrors"])/ret_chi2["parvalues"]
-        self.assertEqual((np.abs(v) < 0.01).mean(), 1.)
+        h = Hist1D.from_random(
+            "norm", params=[0, 1], size=2000, random_state=42, bins="20,-3,3"
+        )
+        ret_chi2 = h.fit(
+            "a*np.exp(-(x-mu)**2./(2*sigma**2.))", draw=False, likelihood=False
+        )
+        ret_like = h.fit(
+            "a*np.exp(-(x-mu)**2./(2*sigma**2.))", draw=False, likelihood=True
+        )
+        v = (ret_chi2["parerrors"] - ret_like["parerrors"]) / ret_chi2["parvalues"]
+        self.assertEqual((np.abs(v) < 0.01).mean(), 1.0)
 
 
 class Hist1DTest(unittest.TestCase):
@@ -243,6 +249,14 @@ class Hist1DTest(unittest.TestCase):
             np.allclose(h1.cumulative(forward=False).counts, np.array([4, 3, 2, 1]))
         )
 
+    def test_lookup(self):
+        h = Hist1D.from_random(size=50, bins="7,-3,3", random_state=42)
+        self.assertTrue(np.allclose(h.lookup(h.bin_centers), h.counts))
+        self.assertEqual(h.lookup([-10.0]), h.counts[0])
+        self.assertEqual(h.lookup([10.0]), h.counts[-1])
+        self.assertEqual(h.lookup(-10.0), h.counts[0])
+        self.assertEqual(h.lookup(10.0), h.counts[-1])
+
     def test_json(self):
         h1 = Hist1D([0.5], bins=[0.0, 1], label="foo")
 
@@ -314,6 +328,9 @@ class Hist2DTest(unittest.TestCase):
         for axis in ["x", "y"]:
             self.assertTrue(abs(h.projection(axis).mean()) < 0.1)
             self.assertTrue(0.9 < h.projection(axis).std() < 1.1)
+
+        h = Hist2D.from_random("norm", params=[(2, 2)], bins=50)
+        self.assertEqual(h.rebin(5).projection("x"), h.projection("x").rebin(5))
 
 
 if __name__ == "__main__":

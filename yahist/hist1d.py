@@ -377,7 +377,7 @@ class Hist1D(object):
             raise Exception("Can't exponentiate histogram by non-scalar")
 
     def __repr__(self):
-        sep = u"\u00B1"
+        sep = "\u00B1"
         if sys.version_info[0] < 3:
             sep = sep.encode("utf-8")
         # trick: want to use numpy's smart formatting (truncating,...) of arrays
@@ -406,6 +406,16 @@ class Hist1D(object):
         Hist
         """
         return self / self._counts.sum()
+
+    def scale(self, factor):
+        """
+        Alias for multiplication
+
+        Returns
+        -------
+        Hist
+        """
+        return self.__mul__(factor)
 
     def rebin(self, nrebin):
         """
@@ -766,10 +776,22 @@ class Hist1D(object):
         """
         import scipy.stats
 
-        func = getattr(scipy.stats, which)
+        try:
+            func = getattr(scipy.stats, which)
+        except AttributeError:
+            valid = sorted(
+                [x for x in dir(scipy.stats) if hasattr(getattr(scipy.stats, x), "rvs")]
+            )
+            raise Exception(
+                f"{which} is not a valid distribution in `scipy.stats`. Valid distributions are: {valid}"
+            )
         if type(size) == float:
             size = int(size)
-        if cls.__name__ == "Hist2D" and not is_listlike(size):
+        if (
+            "multivariate" not in which
+            and cls.__name__ == "Hist2D"
+            and not is_listlike(size)
+        ):
             size = (size, 2)
         v = func(*params).rvs(size=size, random_state=random_state)
         h = cls(v, **kwargs)
@@ -798,6 +820,8 @@ class Hist1D(object):
             Show error bars
         legend : bool, default True
             if True and the histogram has a label, draw the legend
+        return_self : bool, default False
+            If true, return self (Hist1D object)
         **kwargs
             Parameters to be passed to matplotlib
             `hist` or `errorbar` function.
@@ -805,6 +829,7 @@ class Hist1D(object):
 
         Returns
         -------
+        Hist1D (self) if `return_self` is True, otherwise
         matplotlib AxesSubplot object
         """
         import matplotlib.pyplot as plt
@@ -821,6 +846,7 @@ class Hist1D(object):
         counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
         counts_fontsize = kwargs.pop("counts_fontsize", 10)
         gradient = kwargs.pop("gradient", False)
+        return_self = kwargs.pop("return_self", False)
         counts = self._counts
         edges = self._edges
         yerrs = self._errors
@@ -885,7 +911,10 @@ class Hist1D(object):
                     fontsize=counts_fontsize,
                     color=color,
                 )
-        return ax
+        if return_self:
+            return self
+        else:
+            return ax
 
     def fit(self, func, **kwargs):
         return fit_hist(func, self, **kwargs)
