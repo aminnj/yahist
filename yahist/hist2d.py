@@ -14,6 +14,9 @@ class Hist2D(Hist1D):
         if len(obj) == 0:
             xs, ys = [], []
         else:
+            if "DataFrame" in str(type(obj)):
+                self._metadata["pandas_labels"] = obj.columns.tolist()[:2]
+                obj = obj.__array__()
             # FIXME, should take a tuple of xs, ys since obj can be arbitrary
             xs, ys = obj[:, 0], obj[:, 1]
 
@@ -371,7 +374,7 @@ class Hist2D(Hist1D):
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots(figsize=(4, 3))
-        fig.subplots_adjust(bottom=0.08, right=0.95, top=0.96)
+        fig.subplots_adjust(left=0.15, bottom=0.15, right=0.96, top=0.96)
         self.plot(ax=ax, **kwargs)
         buf = BytesIO()
         fig.savefig(buf, format="svg")
@@ -545,6 +548,11 @@ class Hist2D(Hist1D):
 
         c = ax.pcolorfast(xedges, yedges, counts, **kwargs)
         cbar = fig.colorbar(c, ax=ax)
+
+        if "pandas_labels" in self.metadata:
+            xlabel, ylabel = self.metadata["pandas_labels"]
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
 
         if show_counts:
             xcenters, ycenters = self.bin_centers
