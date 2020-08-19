@@ -508,6 +508,10 @@ class Hist2D(Hist1D):
             Function used to format count labels
         counts_fontsize
             Font size of count labels
+        colorbar : bool, default True
+            Show colorbar
+        hide_empty : bool, default True
+            Don't draw empty bins (content==0)
         logz : bool, default False
             Use logscale for z-axis
         show_counts : bool, default False
@@ -538,6 +542,8 @@ class Hist2D(Hist1D):
         xedges, yedges = self._edges
 
         show_counts = kwargs.pop("show_counts", False)
+        colorbar = kwargs.pop("colorbar", True)
+        hide_empty = kwargs.pop("hide_empty", True)
         counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
         counts_fontsize = kwargs.pop("counts_fontsize", 12)
         logz = kwargs.pop("logz", False)
@@ -546,8 +552,14 @@ class Hist2D(Hist1D):
         if logz:
             kwargs["norm"] = LogNorm()
 
-        c = ax.pcolorfast(xedges, yedges, counts, **kwargs)
-        cbar = fig.colorbar(c, ax=ax)
+        countsdraw = counts
+        if hide_empty:
+            countsdraw = np.array(counts)
+            countsdraw[countsdraw == 0] = np.nan
+
+        c = ax.pcolorfast(xedges, yedges, countsdraw, **kwargs)
+        if colorbar:
+            cbar = fig.colorbar(c, ax=ax)
 
         if "pandas_labels" in self.metadata:
             xlabel, ylabel = self.metadata["pandas_labels"]

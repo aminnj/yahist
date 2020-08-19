@@ -240,6 +240,12 @@ class Hist1DTest(unittest.TestCase):
         self.assertEqual(h1.integral_error, h2.integral_error)
         self.assertTrue(np.allclose(h2.edges, np.array([0.0, 2.0, 4.0])))
 
+    def test_restrict(self):
+        h = Hist1D(np.arange(10), bins="10,0,10")
+        self.assertEqual(h.restrict(None, None), h)
+        self.assertEqual(h.restrict(None, 5).nbins, 5)
+        self.assertEqual(h.restrict(5, None).nbins, 5)
+
     def test_cumulative(self):
         h1 = Hist1D([0.5, 1.5, 2.5, 3.5], bins=[0, 1, 2, 3, 4])
         self.assertTrue(

@@ -456,6 +456,41 @@ class Hist1D(object):
         hnew._metadata = self._metadata.copy()
         return hnew
 
+    def restrict(self, low=None, high=None):
+        """
+        Restricts to a contiguous subset of bins with
+        bin center values within [low, high]. If `low`/`high`
+        is `None`, there is no lower/upper bound
+
+        Parameters
+        ----------
+        low : float (default None)
+            Lower x center to keep
+        high : float (default None)
+            Highest x center to keep
+
+        Returns
+        -------
+        Hist1D
+        """
+        centers = self.bin_centers
+        sel = np.ones(self.nbins) > 0.5
+        if low is not None:
+            sel &= centers >= low
+        if high is not None:
+            sel &= centers <= high
+        h = self.copy()
+        selextra = np.concatenate([sel, [False]])
+        selextra[np.argwhere(selextra)[-1][0] + 1] = True
+        h._edges = h._edges[selextra]
+        h._counts = h._counts[sel]
+        h._errors = h._errors[sel]
+        if h._errors_up is not None:
+            h._errors_up = h._errors_up[sel]
+        if h._errors_down is not None:
+            h._errors_down = h._errors_down[sel]
+        return h
+
     def to_poisson_errors(self, alpha=1 - 0.6827):
         """
         Converts Hist object into one with asymmetric Poissonian errors, inside
