@@ -510,6 +510,8 @@ class Hist2D(Hist1D):
             Font size of count labels
         colorbar : bool, default True
             Show colorbar
+        equidistant : bool, default False
+            Make bins equally-spaced
         hide_empty : bool, default True
             Don't draw empty bins (content==0)
         logz : bool, default False
@@ -547,6 +549,7 @@ class Hist2D(Hist1D):
         counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
         counts_fontsize = kwargs.pop("counts_fontsize", 12)
         logz = kwargs.pop("logz", False)
+        equidistant = kwargs.pop("equidistant", False)
         return_self = kwargs.pop("return_self", False)
 
         if logz:
@@ -557,7 +560,21 @@ class Hist2D(Hist1D):
             countsdraw = np.array(counts)
             countsdraw[countsdraw == 0] = np.nan
 
-        c = ax.pcolorfast(xedges, yedges, countsdraw, **kwargs)
+        if equidistant:
+            c = ax.imshow(
+                countsdraw[::-1, ::1],
+                extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]],
+                interpolation="none",
+                aspect="auto",
+                **kwargs
+            )
+            ax.xaxis.set_ticks(np.linspace(xedges[0], xedges[-1], len(xedges)))
+            ax.yaxis.set_ticks(np.linspace(yedges[0], yedges[-1], len(yedges)))
+            ax.xaxis.set_ticklabels(xedges)
+            ax.yaxis.set_ticklabels(yedges)
+        else:
+            c = ax.pcolorfast(xedges, yedges, countsdraw, **kwargs)
+
         if colorbar:
             cbar = fig.colorbar(c, ax=ax)
 
@@ -567,15 +584,21 @@ class Hist2D(Hist1D):
             ax.set_ylabel(ylabel)
 
         if show_counts:
-            xcenters, ycenters = self.bin_centers
+            if equidistant:
+                xcenters = np.linspace(xedges[0], xedges[-1], len(xedges))
+                ycenters = np.linspace(yedges[0], yedges[-1], len(yedges))
+                xcenters = 0.5 * (xcenters[:-1] + xcenters[1:])
+                ycenters = 0.5 * (ycenters[:-1] + ycenters[1:])
+            else:
+                xcenters, ycenters = self.bin_centers
             xyz = np.c_[
                 np.tile(xcenters, len(ycenters)),
                 np.repeat(ycenters, len(xcenters)),
                 counts.flatten(),
             ][counts.flatten() != 0]
 
-            r, g, b, a = cbar.mappable.to_rgba(xyz[:, 2]).T
             colors = np.zeros((len(xyz), 3))
+            r, g, b, a = c.to_rgba(xyz[:, 2]).T
             colors[compute_darkness(r, g, b, a) > 0.45] = 1
 
             for (x, y, z), color in zip(xyz, colors):
