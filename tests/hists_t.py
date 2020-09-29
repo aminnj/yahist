@@ -263,6 +263,15 @@ class Hist1DTest(unittest.TestCase):
         self.assertEqual(h.lookup(-10.0), h.counts[0])
         self.assertEqual(h.lookup(10.0), h.counts[-1])
 
+    def test_sample(self):
+        h1 = Hist1D.from_random("norm", bins="10,-5,5", size=1e4)
+        h2 = Hist1D(h1.sample(size=1e5), bins=h1.edges)
+        # fitting the ratio of the two should give a horizontal line at y=1
+        ret = (h1.normalize() / h2.normalize()).fit("slope*x+offset")
+        pars = dict(zip(ret["parnames"], ret["parvalues"]))
+        self.assertTrue(abs(pars["slope"]) < 0.05)
+        self.assertTrue(abs(pars["offset"] - 1) < 0.01)
+
     def test_json(self):
         h1 = Hist1D([0.5], bins=[0.0, 1], label="foo")
 

@@ -556,7 +556,32 @@ class Hist1D(object):
         ibins = np.digitize(x, bins=self.edges) - 1
         return self.counts[ibins]
 
-    def svg(self, height=250, aspectratio=1.4, strokewidth=1):
+    def sample(self, size=1e5):
+        """
+        Returns an array of random samples according
+        to a discrete pdf from this histogram.
+
+        Parameters
+        ----------
+        size : int/float, 1e5
+            Number of random values to sample
+
+        Returns
+        -------
+        array
+        """
+        # construct CDF and its inverse
+        hcdf = self.normalize().cumulative()
+        hcdfinv = Hist1D.from_bincounts(
+            counts=hcdf.bin_centers,
+            bins=np.concatenate([[0.0], hcdf.counts]),
+            errors=0.0 * hcdf.counts,
+        )
+        # sample [0.,1.] and use these to lookup the bin content of the inv CDF
+        v = hcdfinv.lookup(np.random.random_sample(size=int(size)))
+        return v
+
+    def svg_fast(self, height=250, aspectratio=1.4, strokewidth=1):
         """
         Return HTML svg tag with bare-bones version of histogram
         (no ticks, labels).
@@ -612,7 +637,7 @@ class Hist1D(object):
         )
         return source
 
-    def svg_matplotlib(self, **kwargs):
+    def svg(self, **kwargs):
         """
         Return HTML svg tag with Matplotlib-rendered svg.
 
@@ -638,11 +663,16 @@ class Hist1D(object):
         src = "<img src='data:image/svg+xml;base64,{}'/>".format(data)
         return src
 
-    def html_table(self):
+    def html_table(self, suppress=True):
         """
         Return HTML table tag with bin contents (counts and errors)
         compactly formatted. Only the four leftmost and rightmost
         bins are shown, while the rest are hidden.
+
+        Parameters
+        ----------
+        suppress : bool, default True
+            if True, hide middle bins/rows
 
         Returns
         -------
@@ -650,7 +680,9 @@ class Hist1D(object):
         """
         tablerows = []
         nrows = len(self._counts)
-        ntoshow = 4  # num of start and end rows to show
+        ntoshow = (
+            4 if suppress else self.nbins // 2
+        )  # num of start and end rows to show
 
         def format_row(low, high, count, error):
             return "<tr><td>({:g},{:g})</td><td>{:g} \u00B1 {:g}</td></tr>".format(
@@ -685,7 +717,7 @@ class Hist1D(object):
 
     def _repr_html_(self):
         tablestr = self.html_table()
-        svgsource = self.svg_matplotlib()
+        svgsource = self.svg()
 
         source = """
         <div style="max-height:1000px;max-width:1500px;overflow:auto">

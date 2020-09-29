@@ -273,7 +273,7 @@ class Hist2D(Hist1D):
         hnew._metadata = self._metadata.copy()
         return hnew
 
-    def svg(self, height=250, aspectratio=1.4, interactive=True):
+    def svg_fast(self, height=250, aspectratio=1.4, interactive=True):
         """
         Return HTML svg tag with bare-bones version of histogram
         (no ticks, labels).
@@ -357,7 +357,7 @@ class Hist2D(Hist1D):
         source = template.format(content="\n".join(content))
         return source
 
-    def svg_matplotlib(self, **kwargs):
+    def svg(self, **kwargs):
         """
         Return HTML svg tag with Matplotlib-rendered svg.
 
@@ -477,7 +477,7 @@ class Hist2D(Hist1D):
 
     def _repr_html_(self):
         tablestr = self.html_table()
-        imgsource = self.svg_matplotlib()
+        imgsource = self.svg()
 
         source = """
         <div style="max-height:1000px;max-width:1500px;overflow:auto">
