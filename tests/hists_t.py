@@ -93,12 +93,9 @@ class FitTest(unittest.TestCase):
         h = Hist1D(np.arange(10) + 0.5, bins="5,0,10")
         result = h.fit("a+b*x", draw=False)
 
-        dpv = dict(zip(result["parnames"], result["parvalues"]))
-        dpe = dict(zip(result["parnames"], result["parerrors"]))
-
-        self.assertTrue(np.abs(dpv["a"] - 2) < 1e-3)
-        self.assertTrue(np.abs(dpv["b"] - 0) < 1e-3)
-        self.assertTrue(dpe["a"] > 0.5)
+        self.assertTrue(np.abs(result["params"]["a"]["value"] - 2) < 1e-3)
+        self.assertTrue(np.abs(result["params"]["b"]["value"] - 0) < 1e-3)
+        self.assertTrue(result["params"]["a"]["error"] > 0.5)
 
         self.assertTrue(result["chi2"] < 1e-3)
         self.assertEqual(result["ndof"], 3)
@@ -109,8 +106,8 @@ class FitTest(unittest.TestCase):
         f = "p0+0*x"
         ret_chi2 = h.fit(f, draw=False, likelihood=False)
         ret_like = h.fit(f, draw=False, likelihood=True)
-        self.assertTrue(np.isclose(ret_chi2["parvalues"][0], 1.0))
-        self.assertTrue(np.isclose(ret_like["parvalues"][0], 0.5))
+        self.assertTrue(np.isclose(ret_chi2["params"]["p0"]["value"], 1.0))
+        self.assertTrue(np.isclose(ret_like["params"]["p0"]["value"], 0.5))
 
         # all relative errors within <1% when counts are large
         h = Hist1D.from_random(
@@ -122,7 +119,11 @@ class FitTest(unittest.TestCase):
         ret_like = h.fit(
             "a*np.exp(-(x-mu)**2./(2*sigma**2.))", draw=False, likelihood=True
         )
-        v = (ret_chi2["parerrors"] - ret_like["parerrors"]) / ret_chi2["parvalues"]
+        keys = ret_chi2["params"].keys()
+        ret_chi2_errors = np.array([ret_chi2["params"][key]["error"] for key in keys])
+        ret_like_errors = np.array([ret_like["params"][key]["error"] for key in keys])
+        ret_chi2_values = np.array([ret_chi2["params"][key]["value"] for key in keys])
+        v = (ret_chi2_errors - ret_like_errors) / ret_chi2_values
         self.assertEqual((np.abs(v) < 0.01).mean(), 1.0)
 
 
@@ -268,9 +269,8 @@ class Hist1DTest(unittest.TestCase):
         h2 = Hist1D(h1.sample(size=1e5), bins=h1.edges)
         # fitting the ratio of the two should give a horizontal line at y=1
         ret = (h1.normalize() / h2.normalize()).fit("slope*x+offset")
-        pars = dict(zip(ret["parnames"], ret["parvalues"]))
-        self.assertTrue(abs(pars["slope"]) < 0.05)
-        self.assertTrue(abs(pars["offset"] - 1) < 0.01)
+        self.assertTrue(abs(ret["params"]["slope"]["value"]) < 0.05)
+        self.assertTrue(abs(ret["params"]["offset"]["value"] - 1) < 0.01)
 
     def test_json(self):
         h1 = Hist1D([0.5], bins=[0.0, 1], label="foo")

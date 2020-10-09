@@ -5,7 +5,7 @@ import numpy as np
 
 
 def is_listlike(obj):
-    return np.ndim(obj) >= 1
+    return (type(obj) in [tuple, list]) or (np.ndim(obj) >= 1)
 
 
 def has_uniform_spacing(obj, epsilon=1e-6):
@@ -367,28 +367,26 @@ def fit_hist(
     class wrapper(dict):
         def _repr_html_(self):
             s = "<table><tr><th>parameter</th><th>value</th></tr>"
-            for name, v, e in zip(
-                self["parnames"], self["parvalues"], self["parerrors"]
-            ):
-                s += f"<tr><td>{name}</td><td>{v:.4g} &plusmn; {e:.4g}</td></tr>"
+            for name, x in self["params"].items():
+                s += f"<tr><td>{name}</td><td>{x['value']:.4g} &plusmn; {x['error']:.4g}</td></tr>"
             s += "</table>"
             return s
 
-    res = wrapper(
-        parnames=func.__code__.co_varnames[1:],
-        parvalues=popt,
-        parerrors=np.diag(pcov) ** 0.5,
-        chi2=chi2,
-        ndof=ndof,
-        hfit=hfit,
-    )
+    parnames = func.__code__.co_varnames[1:]
+    parvalues = popt
+    parerrors = np.diag(pcov) ** 0.5
+    params = dict()
+    for name, v, e in zip(parnames, parvalues, parerrors):
+        params[name] = dict(value=v, error=e)
+
+    res = wrapper(params=params, chi2=chi2, ndof=ndof, hfit=hfit,)
 
     if draw:
         if label:
             label += rf" ($\chi^2$/ndof = {chi2:.3g}/{ndof})"
-            for e in zip(res["parnames"], res["parvalues"], res["parerrors"]):
+            for name, x in params.items():
                 label += "\n    "
-                label += r"{} = {:.3g} $\pm$ {:.3g}".format(*e)
+                label += rf"{name} = {x['value']:.3g} $\pm$ {x['error']:.3g}"
         ax.plot(xdata_fine, fit_ydata_fine, color=color, zorder=3, label=label)
         if band_style == "filled":
             ax.fill_between(

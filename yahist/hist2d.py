@@ -76,8 +76,9 @@ class Hist2D(Hist1D):
         self._edges = edges_x, edges_y
 
     def _check_consistency(self, other, raise_exception=True):
-        if (len(self._edges[0]) != len(other._edges[0])) or (
-            len(self._edges[1]) != len(other._edges[1])
+        if not (
+            np.allclose(self._edges[0], other._edges[0])
+            and np.allclose(self._edges[1], other._edges[1])
         ):
             if raise_exception:
                 raise Exception(

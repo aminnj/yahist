@@ -230,7 +230,7 @@ class Hist1D(object):
                 np.nan_to_num(x, copy=False)
 
     def _check_consistency(self, other, raise_exception=True):
-        if len(self._edges) != len(other._edges):
+        if not np.allclose(self._edges, other._edges):
             if raise_exception:
                 raise Exception(
                     "These histograms cannot be combined due to different binning"
