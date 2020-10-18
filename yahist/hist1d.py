@@ -45,6 +45,16 @@ class Hist1D(object):
 
     def _init_numpy(self, obj, **kwargs):
         kwargs["bins"] = kwargs.get("bins", "auto")
+
+        if kwargs.pop("norm", False) or kwargs.pop("density", False):
+            raise Exception(
+                "Please use the .normalize() method on the histogram object."
+            )
+        if kwargs.pop("cumulative", False):
+            raise Exception(
+                "Please use the .cumulative() method on the histogram object."
+            )
+
         # convert ROOT-like "50,0,10" to np.linspace(0,10,51)
         if isinstance(kwargs.get("bins"), str) and (kwargs["bins"].count(",") == 2):
             nbins, low, high = kwargs["bins"].split(",")

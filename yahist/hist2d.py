@@ -20,6 +20,11 @@ class Hist2D(Hist1D):
             # FIXME, should take a tuple of xs, ys since obj can be arbitrary
             xs, ys = obj[:, 0], obj[:, 1]
 
+        if kwargs.pop("norm", False) or kwargs.pop("density", False):
+            raise Exception(
+                "Please use the .normalize() method on the histogram object."
+            )
+
         if (
             kwargs.pop("overflow", True)
             and ("bins" in kwargs)
