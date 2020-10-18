@@ -881,6 +881,8 @@ class Hist1D(object):
             `fmt` kwarg used for matplotlib plotting
         gradient : bool, default False
             fill a light gradient under histogram if `histtype="step"`
+        interactive : bool, default False
+            Use plotly to make an interactive plot
         show_counts : bool, default False
             Show count labels for each bin
         show_errors : bool, default False
@@ -899,6 +901,10 @@ class Hist1D(object):
         Hist1D (self) if `return_self` is True, otherwise
         matplotlib AxesSubplot object
         """
+
+        if kwargs.pop("interactive", False):
+            return self.plot_plotly(**kwargs)
+
         import matplotlib.pyplot as plt
 
         if ax is None:
@@ -982,6 +988,31 @@ class Hist1D(object):
             return self
         else:
             return ax
+
+    def plot_plotly(self, **kwargs):
+        import plotly.graph_objects as go
+
+        fig = go.Figure(
+            go.Bar(
+                x=self.bin_centers,
+                width=self.bin_widths,
+                y=self.counts,
+                marker=dict(line=dict(width=0,)),
+            ),
+        )
+        fig.update_layout(
+            bargap=0,
+            height=300,
+            width=400,
+            template="simple_white",
+            font_family="Arial",
+            xaxis=dict(mirror=True,),
+            yaxis=dict(
+                mirror=True, type=("log" if kwargs.get("log", False) else "linear"),
+            ),
+            margin=dict(l=10, r=10, b=10, t=30, pad=0,),
+        )
+        return fig
 
     def fit(self, func, **kwargs):
         return fit_hist(func, self, **kwargs)

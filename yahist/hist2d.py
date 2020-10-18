@@ -515,6 +515,8 @@ class Hist2D(Hist1D):
             Make bins equally-spaced
         hide_empty : bool, default True
             Don't draw empty bins (content==0)
+        interactive : bool, default False
+            Use plotly to make an interactive plot
         logz : bool, default False
             Use logscale for z-axis
         show_counts : bool, default False
@@ -533,6 +535,10 @@ class Hist2D(Hist1D):
         Hist2D (self) if `return_self` is True, otherwise
         (pcolorfast output, matplotlib AxesSubplot object)
         """
+
+        if kwargs.pop("interactive", False):
+            return self.plot_plotly(**kwargs)
+
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
 
@@ -618,3 +624,52 @@ class Hist2D(Hist1D):
             return self
         else:
             return c, ax
+
+    def plot_plotly(self, **kwargs):
+        import plotly.graph_objects as go
+
+        xcenters, ycenters = self.bin_centers
+        counts = self.counts
+        xyz = np.c_[
+            np.tile(xcenters, len(ycenters)),
+            np.repeat(ycenters, len(xcenters)),
+            counts.flatten(),
+        ][counts.flatten() != 0]
+
+        fig = go.Figure(
+            go.Histogram2d(
+                x=xyz[:, 0],
+                y=xyz[:, 1],
+                z=xyz[:, 2],
+                histfunc="sum",
+                xbins=dict(
+                    start=self.edges[0][0],
+                    end=self.edges[0][-1],
+                    size=self.bin_widths[0][0],
+                ),
+                ybins=dict(
+                    start=self.edges[1][0],
+                    end=self.edges[1][-1],
+                    size=self.bin_widths[1][0],
+                ),
+                colorscale=[
+                    [0.00, "rgba(0,0,0,0)"],
+                    [1e-6, "rgb(68, 1, 84)"],
+                    [0.25, "rgb(59, 82, 139)"],
+                    [0.50, "rgb(33, 145, 140)"],
+                    [0.75, "rgb(94, 201, 98)"],
+                    [1.00, "rgb(253, 231, 37)"],
+                ],
+                colorbar=dict(thicknessmode="fraction", thickness=0.04,),
+            ),
+        )
+        fig.update_layout(
+            height=300,
+            width=400,
+            template="simple_white",
+            font_family="Arial",
+            xaxis=dict(mirror=True,),
+            yaxis=dict(mirror=True,),
+            margin=dict(l=10, r=10, b=10, t=30, pad=0,),
+        )
+        return fig

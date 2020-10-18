@@ -4,11 +4,12 @@
 
 ### Overview
 
-Yet another (simple) histogram (object)
+Yet another histogram (object)
 
 ### Examples
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aminnj/yahist/master?filepath=examples%2Fbasic.ipynb)
+(static [nbviewer](https://nbviewer.jupyter.org/url/github.com/aminnj/yahist/blob/master/examples/basic.ipynb) if Binder is slow)
 
 ### Installation
 
