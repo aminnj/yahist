@@ -15,7 +15,7 @@ h.plot(show_errors=True, color="k")
 h.fit("peak * np.exp(-(x-mu)**2 / (2*sigma**2))")
 ```
 
-![](examples/plot1.png)
+![](examples/plot1.png  | width=300)
 
 Much more functionality is showcased in the example notebook below.
 
