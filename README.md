@@ -1,8 +1,10 @@
 ## Yet another histogram
 
 ![Python application](https://github.com/aminnj/yahist/workflows/Python%20application/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/pip/badge/?version=latest)](https://aminnj.github.io/yahist/)
 
-### Overview
+
+### Overview ([API docs](https://aminnj.github.io/yahist/))
 
 Histogram objects (1D and 2D) with easy manipulations (`numpy`), plotting (`matplotlib`), and fitting (`scipy`/`iminuit`).
 
