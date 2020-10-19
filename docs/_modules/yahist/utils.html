@@ -1,0 +1,570 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>yahist.utils &#8212; yahist  documentation</title>
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">yahist  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">yahist.utils</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for yahist.utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="is_listlike"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.is_listlike">[docs]</a><span class="k">def</span> <span class="nf">is_listlike</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="has_uniform_spacing"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.has_uniform_spacing">[docs]</a><span class="k">def</span> <span class="nf">has_uniform_spacing</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+    <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ediff1d</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">offsets</span> <span class="o">-</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_default_style"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.set_default_style">[docs]</a><span class="k">def</span> <span class="nf">set_default_style</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">rcParams</span>
+
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;font.family&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;sans-serif&quot;</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;font.sans-serif&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;Helvetica&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Arial&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Liberation Sans&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Bitstream Vera Sans&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;DejaVu Sans&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;legend.fontsize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">11</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;legend.labelspacing&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.2</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;hatch.linewidth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.xmargin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># rootlike, no extra padding within x axis</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.labelsize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;x-large&quot;</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.formatter.use_mathtext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;legend.framealpha&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.65</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.labelsize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;x-large&quot;</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.titlesize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;large&quot;</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;xtick.labelsize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;large&quot;</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;ytick.labelsize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;large&quot;</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.subplot.hspace&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.subplot.wspace&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.subplot.right&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.96</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.max_open_warning&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;figure.dpi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.formatter.limits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="compute_darkness"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.compute_darkness">[docs]</a><span class="k">def</span> <span class="nf">compute_darkness</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="c1"># darkness = 1 - luminance</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="mf">0.299</span> <span class="o">*</span> <span class="n">r</span> <span class="o">+</span> <span class="mf">0.587</span> <span class="o">*</span> <span class="n">g</span> <span class="o">+</span> <span class="mf">0.114</span> <span class="o">*</span> <span class="n">b</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="clopper_pearson_error"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.clopper_pearson_error">[docs]</a><span class="k">def</span> <span class="nf">clopper_pearson_error</span><span class="p">(</span><span class="n">passed</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mf">0.6827</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    matching TEfficiency::ClopperPearson()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">scipy.stats</span>
+
+    <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">level</span><span class="p">)</span>
+    <span class="n">low</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">passed</span><span class="p">,</span> <span class="n">total</span> <span class="o">-</span> <span class="n">passed</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">high</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">passed</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">total</span> <span class="o">-</span> <span class="n">passed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span></div>
+
+
+<div class="viewcode-block" id="poisson_errors"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.poisson_errors">[docs]</a><span class="k">def</span> <span class="nf">poisson_errors</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.6827</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return poisson low and high values for a series of data observations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">gamma</span>
+
+    <span class="n">lows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">gamma</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">alpha</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obs</span><span class="p">)))</span>
+    <span class="n">highs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">gamma</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">alpha</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">lows</span><span class="p">,</span> <span class="n">highs</span></div>
+
+
+<div class="viewcode-block" id="binomial_obs_z"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.binomial_obs_z">[docs]</a><span class="k">def</span> <span class="nf">binomial_obs_z</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">bkg</span><span class="p">,</span> <span class="n">bkgerr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate pull values according to</span>
+<span class="sd">    https://root.cern.ch/doc/v606/NumberCountingUtils_8cxx_source.html#l00137</span>
+<span class="sd">    The scipy version is vectorized, so you can feed in arrays</span>
+<span class="sd">    If `gaussian_fallback` return a simple gaussian pull when data count is 0,</span>
+<span class="sd">    otherwise both ROOT and scipy will return inf/nan.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">betainc</span>
+    <span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">st</span>
+
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="n">nonzeros</span> <span class="o">=</span> <span class="n">data</span> <span class="o">&gt;</span> <span class="mf">1.0e-6</span>
+    <span class="n">tau</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">bkg</span><span class="p">[</span><span class="n">nonzeros</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">bkgerr</span><span class="p">[</span><span class="n">nonzeros</span><span class="p">]</span> <span class="o">/</span> <span class="n">bkg</span><span class="p">[</span><span class="n">nonzeros</span><span class="p">])</span> <span class="o">**</span> <span class="mf">2.0</span>
+    <span class="n">auxinf</span> <span class="o">=</span> <span class="n">bkg</span><span class="p">[</span><span class="n">nonzeros</span><span class="p">]</span> <span class="o">*</span> <span class="n">tau</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">betainc</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">nonzeros</span><span class="p">],</span> <span class="n">auxinf</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">tau</span><span class="p">))</span>
+    <span class="n">z</span><span class="p">[</span><span class="n">nonzeros</span><span class="p">]</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">data</span> <span class="o">&lt;</span> <span class="mf">1.0e-6</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">():</span>
+        <span class="n">zeros</span> <span class="o">=</span> <span class="n">data</span> <span class="o">&lt;</span> <span class="mf">1.0e-6</span>
+        <span class="n">z</span><span class="p">[</span><span class="n">zeros</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">bkg</span><span class="p">[</span><span class="n">zeros</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span>
+            <span class="n">poisson_errors</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">zeros</span><span class="p">])[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bkgerr</span><span class="p">[</span><span class="n">zeros</span><span class="p">]</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">z</span></div>
+
+
+<div class="viewcode-block" id="nan_to_num"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.nan_to_num">[docs]</a><span class="k">def</span> <span class="nf">nan_to_num</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">g</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">g</span></div>
+
+
+<div class="viewcode-block" id="ignore_division_errors"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.ignore_division_errors">[docs]</a><span class="k">def</span> <span class="nf">ignore_division_errors</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">g</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">g</span></div>
+
+
+<div class="viewcode-block" id="expr_to_lambda"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.expr_to_lambda">[docs]</a><span class="k">def</span> <span class="nf">expr_to_lambda</span><span class="p">(</span><span class="n">expr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a string expression like</span>
+<span class="sd">        &quot;a+b*np.exp(-c*x+math.pi)&quot;</span>
+<span class="sd">    into a lambda function with 1 variable and N parameters,</span>
+<span class="sd">        lambda x,a,b,c: &quot;a+b*np.exp(-c*x+math.pi)&quot;</span>
+<span class="sd">    `x` is assumed to be the main variable.</span>
+<span class="sd">    Very simple logic that ignores things like `foo.bar`</span>
+<span class="sd">    or `foo(` from being considered a parameter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+    <span class="kn">from</span> <span class="nn">tokenize</span> <span class="kn">import</span> <span class="n">tokenize</span><span class="p">,</span> <span class="n">NAME</span>
+
+    <span class="n">varnames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tokenize</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">readline</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
+        <span class="n">toknum</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">tokval</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">toknum</span> <span class="o">!=</span> <span class="n">NAME</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">ix</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">g</span><span class="p">[</span><span class="n">ix</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">ix</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">g</span><span class="p">[</span><span class="n">ix</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;(&quot;</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="n">varnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tokval</span><span class="p">)</span>
+    <span class="n">varnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">varnames</span> <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;x&quot;</span><span class="p">]</span>
+    <span class="n">varnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">varnames</span><span class="p">)</span>
+    <span class="p">)</span>  <span class="c1"># remove duplicates, preserving order (python&gt;=3.7)</span>
+    <span class="n">lambdastr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;lambda x,</span><span class="si">{</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">varnames</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">expr</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">lambdastr</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="calculate_hessian"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.calculate_hessian">[docs]</a><span class="k">def</span> <span class="nf">calculate_hessian</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1.0e-5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # Taken almost verbatim from https://gist.github.com/jgomezdans/3144636</span>
+<span class="sd">    A numerical approximation to the Hessian matrix of cost function at</span>
+<span class="sd">    location x0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">approx_fprime</span>
+
+    <span class="n">f1</span> <span class="o">=</span> <span class="n">approx_fprime</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
+    <span class="n">hess</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="n">xx</span> <span class="o">=</span> <span class="n">x0</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">xx0</span> <span class="o">=</span> <span class="n">xx</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>  <span class="c1"># Store old value</span>
+        <span class="n">xx</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">xx0</span> <span class="o">+</span> <span class="n">epsilon</span>  <span class="c1"># Perturb with finite difference</span>
+        <span class="c1"># Recalculate the partial derivatives for this new point</span>
+        <span class="n">f2</span> <span class="o">=</span> <span class="n">approx_fprime</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+        <span class="n">hess</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">f2</span> <span class="o">-</span> <span class="n">f1</span><span class="p">)</span> <span class="o">/</span> <span class="n">epsilon</span>  <span class="c1"># scale...</span>
+        <span class="n">xx</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">xx0</span>  <span class="c1"># Restore initial value of x0</span>
+    <span class="k">return</span> <span class="n">hess</span></div>
+
+
+<div class="viewcode-block" id="curve_fit_wrapper"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.curve_fit_wrapper">[docs]</a><span class="k">def</span> <span class="nf">curve_fit_wrapper</span><span class="p">(</span>
+    <span class="n">func</span><span class="p">,</span> <span class="n">xdata</span><span class="p">,</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">absolute_sigma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">likelihood</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper around `scipy.optimize.curve_fit`. Initial parameters (`p0`)</span>
+<span class="sd">    can be set in the function definition with defaults for kwargs</span>
+<span class="sd">    (e.g., `func = lambda x,a=1.,b=2.: x+a+b`, will feed `p0 = [1.,2.]` to `curve_fit`)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span><span class="p">,</span> <span class="n">curve_fit</span>
+
+    <span class="n">xdata</span> <span class="o">=</span> <span class="n">xdata</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>  <span class="c1"># need this for minuit hesse to converge</span>
+    <span class="k">if</span> <span class="n">func</span><span class="o">.</span><span class="vm">__defaults__</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="vm">__defaults__</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">func</span><span class="o">.</span><span class="vm">__code__</span><span class="o">.</span><span class="n">co_argcount</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;p0&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;p0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__defaults__</span>
+    <span class="n">tomask</span> <span class="o">=</span> <span class="p">(</span><span class="n">ydata</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ydata</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sigma</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tomask</span> <span class="o">|=</span> <span class="n">sigma</span> <span class="o">==</span> <span class="mf">0.0</span>
+    <span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span>
+        <span class="n">func</span><span class="p">,</span>
+        <span class="n">xdata</span><span class="p">[</span><span class="o">~</span><span class="n">tomask</span><span class="p">],</span>
+        <span class="n">ydata</span><span class="p">[</span><span class="o">~</span><span class="n">tomask</span><span class="p">],</span>
+        <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">[</span><span class="o">~</span><span class="n">tomask</span><span class="p">],</span>
+        <span class="n">absolute_sigma</span><span class="o">=</span><span class="n">absolute_sigma</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">likelihood</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">gammaln</span>
+
+        <span class="n">use_autograd</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">use_minuit</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">use_autograd</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">autograd</span> <span class="kn">import</span> <span class="n">hessian</span>
+                <span class="kn">from</span> <span class="nn">autograd.scipy.special</span> <span class="kn">import</span> <span class="n">gammaln</span> <span class="k">as</span> <span class="n">gammalna</span>
+                <span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">npa</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                    <span class="s2">&quot;For likelihood minimization, the &#39;autograd&#39; module must be installed (`pip install --user autograd`).&quot;</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_minuit</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">iminuit</span> <span class="kn">import</span> <span class="n">Minuit</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                    <span class="s2">&quot;For likelihood minimization, the &#39;iminuit&#39; module must be installed (`pip install --user iminuit`).&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">fnll</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+            <span class="n">ypred</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">*</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ypred</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="k">return</span> <span class="mf">1e6</span>
+            <span class="c1"># both are equivalent</span>
+            <span class="k">if</span> <span class="n">use_autograd</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span>
+                    <span class="n">ypred</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="o">-</span> <span class="p">(</span><span class="n">ydata</span> <span class="o">*</span> <span class="n">npa</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ypred</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="o">+</span> <span class="n">gammalna</span><span class="p">(</span><span class="n">ydata</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span>
+                    <span class="n">ypred</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="o">-</span> <span class="p">(</span><span class="n">ydata</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ypred</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                    <span class="o">+</span> <span class="n">gammaln</span><span class="p">(</span><span class="n">ydata</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="c1"># return (ypred.sum() - poisson.logpmf(ydata,ypred).sum()) * 2**-2.</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">fnll</span><span class="p">,</span> <span class="n">popt</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;BFGS&quot;</span><span class="p">)</span>
+        <span class="n">popt</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span>
+        <span class="k">if</span> <span class="n">use_autograd</span><span class="p">:</span>
+            <span class="n">hess</span> <span class="o">=</span> <span class="n">hessian</span><span class="p">(</span><span class="n">fnll</span><span class="p">)(</span><span class="n">popt</span><span class="p">)</span>
+            <span class="n">pcov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">hess</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">use_minuit</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">Minuit</span><span class="o">.</span><span class="n">from_array_func</span><span class="p">(</span><span class="n">fnll</span><span class="p">,</span> <span class="n">popt</span><span class="p">,</span> <span class="n">errordef</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">hesse</span><span class="p">()</span>
+            <span class="n">pcov</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">np_covariance</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hess</span> <span class="o">=</span> <span class="n">calculate_hessian</span><span class="p">(</span><span class="n">fnll</span><span class="p">,</span> <span class="n">popt</span><span class="p">)</span>
+            <span class="n">pcov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">hess</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span></div>
+
+
+<div class="viewcode-block" id="fit_hist"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.fit_hist">[docs]</a><span class="k">def</span> <span class="nf">fit_hist</span><span class="p">(</span>
+    <span class="n">func</span><span class="p">,</span>
+    <span class="n">hist</span><span class="p">,</span>
+    <span class="n">nsamples</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">draw</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span>
+    <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;fit $\pm$1$\sigma$&quot;</span><span class="p">,</span>
+    <span class="n">band_style</span><span class="o">=</span><span class="s2">&quot;filled&quot;</span><span class="p">,</span>
+    <span class="n">likelihood</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">curve_fit_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fits a function to a histogram via `scipy.optimize.curve_fit`,</span>
+<span class="sd">    calculating a 1-sigma band, and optionally plotting it.</span>
+<span class="sd">    Note that this does not support asymmetric errors. It will</span>
+<span class="sd">    symmetrize such errors prior to fitting. Empty bins are excluded</span>
+<span class="sd">    from the fit.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    func : function taking x data as the first argument, followed by parameters, or a string</span>
+<span class="sd">    hist : Hist1D</span>
+<span class="sd">    nsamples : int, default 500</span>
+<span class="sd">        number of samples/bootstraps for calculating error bands</span>
+<span class="sd">    ax : matplotlib AxesSubplot object, default None</span>
+<span class="sd">    band_style : None/str, default None</span>
+<span class="sd">        if not None, compute and display uncertainty band. Possible strings are</span>
+<span class="sd">        &quot;filled&quot;, &quot;dashed&quot;, &quot;dotted&quot;, &quot;dashdot&quot;, &quot;solid&quot;</span>
+<span class="sd">    draw : bool, default True</span>
+<span class="sd">       draw to a specified or pre-existing AxesSubplot object</span>
+<span class="sd">    color : str, default &quot;red&quot;</span>
+<span class="sd">       color of fit line and error band</span>
+<span class="sd">    curve_fit_kwargs : dict</span>
+<span class="sd">       dict of extra kwargs to pass to `scipy.optimize.curve_fit`</span>
+<span class="sd">    label : str, default r&quot;fit $\pm$1$\sigma$&quot;</span>
+<span class="sd">       legend entry label. Parameters will be appended unless this</span>
+<span class="sd">       is empty.</span>
+<span class="sd">    legend : bool, default True</span>
+<span class="sd">        if True and the histogram has a label, draw the legend</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict of</span>
+<span class="sd">        - parameter names, values, errors (sqrt of diagonal of the cov. matrix)</span>
+<span class="sd">        - chi2, ndof of fit</span>
+<span class="sd">        - a Hist1D object containing the fit</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; h = Hist1D(np.random.random(1000), bins=&quot;30,0,1.5&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; h.plot(show_errors=True, color=&quot;k&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; res = fit_hist(lambda x,a,b: a+b*x, h) # or fit_hist(&quot;a+b*x&quot;, h)</span>
+<span class="sd">    &gt;&gt;&gt; print(res[&quot;parnames&quot;],res[&quot;parvalues&quot;],res[&quot;parerrors&quot;])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Hist1D</span>
+
+    <span class="k">if</span> <span class="n">draw</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ax</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+    <span class="n">xdata_raw</span> <span class="o">=</span> <span class="n">hist</span><span class="o">.</span><span class="n">bin_centers</span>
+    <span class="n">ydata_raw</span> <span class="o">=</span> <span class="n">hist</span><span class="o">.</span><span class="n">counts</span>
+    <span class="n">yerrs_raw</span> <span class="o">=</span> <span class="n">hist</span><span class="o">.</span><span class="n">errors</span>
+
+    <span class="c1"># interlace bin edges with bin centers for smoother fit evaluations</span>
+    <span class="c1"># `xdata_fine[1::2]` recovers `xdata_raw`</span>
+    <span class="n">xdata_fine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">hist</span><span class="o">.</span><span class="n">edges</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">hist</span><span class="o">.</span><span class="n">bin_centers</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]),]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">tomask</span> <span class="o">=</span> <span class="p">((</span><span class="n">ydata_raw</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">yerrs_raw</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="ow">not</span> <span class="n">likelihood</span><span class="p">))</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span>
+        <span class="n">ydata_raw</span>
+    <span class="p">)</span>
+    <span class="n">xdata</span> <span class="o">=</span> <span class="n">xdata_raw</span><span class="p">[</span><span class="o">~</span><span class="n">tomask</span><span class="p">]</span>
+    <span class="n">ydata</span> <span class="o">=</span> <span class="n">ydata_raw</span><span class="p">[</span><span class="o">~</span><span class="n">tomask</span><span class="p">]</span>
+    <span class="n">yerrs</span> <span class="o">=</span> <span class="n">yerrs_raw</span><span class="p">[</span><span class="o">~</span><span class="n">tomask</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">expr_to_lambda</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+    <span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit_wrapper</span><span class="p">(</span>
+        <span class="n">func</span><span class="p">,</span>
+        <span class="n">xdata</span><span class="p">,</span>
+        <span class="n">ydata</span><span class="p">,</span>
+        <span class="n">sigma</span><span class="o">=</span><span class="n">yerrs</span><span class="p">,</span>
+        <span class="n">absolute_sigma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="o">=</span><span class="n">likelihood</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">curve_fit_kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">fit_ydata_fine</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">xdata_fine</span><span class="p">,</span> <span class="o">*</span><span class="n">popt</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">band_style</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">pcov</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">vopts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">(</span><span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span><span class="p">,</span> <span class="n">nsamples</span><span class="p">)</span>
+            <span class="n">sampled_ydata_fine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">xdata_fine</span><span class="p">,</span> <span class="o">*</span><span class="n">vopt</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="k">for</span> <span class="n">vopt</span> <span class="ow">in</span> <span class="n">vopts</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">sampled_stds_fine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">sampled_ydata_fine</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">warnings</span>
+
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Covariance matrix contains nan/inf&quot;</span><span class="p">)</span>
+            <span class="n">sampled_stds_fine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xdata_fine</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sampled_stds_fine</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="o">*</span> <span class="n">fit_ydata_fine</span>
+
+    <span class="n">hfit</span> <span class="o">=</span> <span class="n">Hist1D</span><span class="o">.</span><span class="n">from_bincounts</span><span class="p">(</span>
+        <span class="n">fit_ydata_fine</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">],</span> <span class="n">hist</span><span class="o">.</span><span class="n">edges</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">sampled_stds_fine</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">chi2</span> <span class="o">=</span> <span class="p">((</span><span class="n">func</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">*</span><span class="n">popt</span><span class="p">)</span> <span class="o">-</span> <span class="n">ydata</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">yerrs</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">ndof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">xdata</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">popt</span><span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">wrapper</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&lt;table&gt;&lt;tr&gt;&lt;th&gt;parameter&lt;/th&gt;&lt;th&gt;value&lt;/th&gt;&lt;/tr&gt;&quot;</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">s</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&lt;tr&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2"> &amp;plusmn; </span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4g</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;/tr&gt;&quot;</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;&lt;/table&gt;&quot;</span>
+            <span class="k">return</span> <span class="n">s</span>
+
+    <span class="n">parnames</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__code__</span><span class="o">.</span><span class="n">co_varnames</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">parvalues</span> <span class="o">=</span> <span class="n">popt</span>
+    <span class="n">parerrors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">pcov</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parnames</span><span class="p">,</span> <span class="n">parvalues</span><span class="p">,</span> <span class="n">parerrors</span><span class="p">):</span>
+        <span class="n">params</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">wrapper</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">chi2</span><span class="o">=</span><span class="n">chi2</span><span class="p">,</span> <span class="n">ndof</span><span class="o">=</span><span class="n">ndof</span><span class="p">,</span> <span class="n">hfit</span><span class="o">=</span><span class="n">hfit</span><span class="p">,)</span>
+
+    <span class="k">if</span> <span class="n">draw</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">label</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">+=</span> <span class="sa">rf</span><span class="s2">&quot; ($\chi^2$/ndof = </span><span class="si">{</span><span class="n">chi2</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">ndof</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">label</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">    &quot;</span>
+                <span class="n">label</span> <span class="o">+=</span> <span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2"> $\pm$ </span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xdata_fine</span><span class="p">,</span> <span class="n">fit_ydata_fine</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">band_style</span> <span class="o">==</span> <span class="s2">&quot;filled&quot;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+                <span class="n">xdata_fine</span><span class="p">,</span>
+                <span class="n">fit_ydata_fine</span> <span class="o">-</span> <span class="n">sampled_stds_fine</span><span class="p">,</span>
+                <span class="n">fit_ydata_fine</span> <span class="o">+</span> <span class="n">sampled_stds_fine</span><span class="p">,</span>
+                <span class="n">facecolor</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+                <span class="n">zorder</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">band_style</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;dashed&quot;</span><span class="p">,</span> <span class="s2">&quot;dashdot&quot;</span><span class="p">,</span> <span class="s2">&quot;dotted&quot;</span><span class="p">,</span> <span class="s2">&quot;solid&quot;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">mult</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+                <span class="n">ys</span> <span class="o">=</span> <span class="n">fit_ydata_fine</span> <span class="o">+</span> <span class="n">mult</span> <span class="o">*</span> <span class="n">sampled_stds_fine</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xdata_fine</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="n">band_style</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">legend</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="draw_gradient"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.draw_gradient">[docs]</a><span class="k">def</span> <span class="nf">draw_gradient</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">patches</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Draws gradient under a step patch (from `histtype=&quot;step&quot;`)</span>
+<span class="sd">    onto specified `ax`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ax : matplotlib AxesSubplot object</span>
+<span class="sd">    patches : matplotlib Patch objects</span>
+<span class="sd">    reverse : bool, default False</span>
+<span class="sd">        flip the gradient</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">mcolors</span>
+
+    <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
+    <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+    <span class="n">patch</span> <span class="o">=</span> <span class="n">patches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">color</span> <span class="o">=</span> <span class="n">patch</span><span class="o">.</span><span class="n">get_edgecolor</span><span class="p">()</span>
+    <span class="n">zorder</span> <span class="o">=</span> <span class="n">patch</span><span class="o">.</span><span class="n">get_zorder</span><span class="p">()</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="n">patch</span><span class="o">.</span><span class="n">get_alpha</span><span class="p">()</span> <span class="ow">or</span> <span class="mf">1.0</span>
+
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">rgb</span> <span class="o">=</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">colorConverter</span><span class="o">.</span><span class="n">to_rgb</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="n">z</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">rgb</span>
+    <span class="n">z</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.20</span> <span class="o">*</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="mi">100</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">reverse</span><span class="p">:</span>
+        <span class="n">z</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+        <span class="n">z</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">],</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span>
+    <span class="p">)</span>
+    <span class="n">im</span><span class="o">.</span><span class="n">set_clip_path</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_stack"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.plot_stack">[docs]</a><span class="k">def</span> <span class="nf">plot_stack</span><span class="p">(</span><span class="n">hists</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots a list of `Hist1D` objects as a stack</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hists : list of `Hist1D` objects</span>
+<span class="sd">    kwargs : passed to `Hist1D.plot()`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bottom</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hists</span><span class="p">:</span>
+        <span class="n">h</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="n">bottom</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">bottom</span> <span class="o">+=</span> <span class="n">h</span><span class="o">.</span><span class="n">counts</span></div>
+
+
+<div class="viewcode-block" id="darken_color"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.darken_color">[docs]</a><span class="k">def</span> <span class="nf">darken_color</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">amount</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">mc</span>
+    <span class="kn">import</span> <span class="nn">colorsys</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">cnames</span><span class="p">[</span><span class="n">color</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">color</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">rgb_to_hls</span><span class="p">(</span><span class="o">*</span><span class="n">mc</span><span class="o">.</span><span class="n">to_rgb</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">hls_to_rgb</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">amount</span><span class="p">)</span> <span class="o">*</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="draw_error_band"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.draw_error_band">[docs]</a><span class="k">def</span> <span class="nf">draw_error_band</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">opts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">zorder</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">):</span>
+        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;facecolor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">):</span>
+        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;facecolor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;facecolor&quot;</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span>
+        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;facecolor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">darken_color</span><span class="p">(</span><span class="n">opts</span><span class="p">[</span><span class="s2">&quot;facecolor&quot;</span><span class="p">],</span> <span class="mf">0.2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">errors_up</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ylow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">h</span><span class="o">.</span><span class="n">counts</span> <span class="o">-</span> <span class="n">h</span><span class="o">.</span><span class="n">errors_down</span><span class="p">,</span> <span class="n">h</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]])</span>
+        <span class="n">yhigh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">h</span><span class="o">.</span><span class="n">counts</span> <span class="o">+</span> <span class="n">h</span><span class="o">.</span><span class="n">errors_up</span><span class="p">,</span> <span class="n">h</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ylow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">h</span><span class="o">.</span><span class="n">counts</span> <span class="o">-</span> <span class="n">h</span><span class="o">.</span><span class="n">errors</span><span class="p">,</span> <span class="n">h</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]])</span>
+        <span class="n">yhigh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">h</span><span class="o">.</span><span class="n">counts</span> <span class="o">+</span> <span class="n">h</span><span class="o">.</span><span class="n">errors</span><span class="p">,</span> <span class="n">h</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">edges</span><span class="p">,</span> <span class="n">ylow</span><span class="p">,</span> <span class="n">yhigh</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">yahist  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">yahist.utils</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Author.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+yahist package
+==============
+
+Submodules
+----------
+
+yahist.hist1d module
+--------------------
+
+.. automodule:: yahist.hist1d
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+yahist.hist2d module
+--------------------
+
+.. automodule:: yahist.hist2d
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+yahist.utils module
+-------------------
+
+.. automodule:: yahist.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: yahist
+   :members:
+   :undoc-members:
+   :show-inheritance:
