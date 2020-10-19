@@ -2,9 +2,10 @@
 
 ![Python application](https://github.com/aminnj/yahist/workflows/Python%20application/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pip/badge/?version=latest)](https://aminnj.github.io/yahist/)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aminnj/yahist/master?filepath=examples%2Fbasic.ipynb)
 
 
-### Overview ([API docs](https://aminnj.github.io/yahist/))
+### Overview
 
 Histogram objects (1D and 2D) with easy manipulations (`numpy`), plotting (`matplotlib`), and fitting (`scipy`/`iminuit`).
 
@@ -33,7 +34,7 @@ h.plot(logz=True, cmap="cividis")
 
 Much more functionality is showcased in the example notebook below.
 
-### Examples
+### Examples ([API docs](https://aminnj.github.io/yahist/))
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aminnj/yahist/master?filepath=examples%2Fbasic.ipynb)
 
