@@ -20,7 +20,7 @@ h = (Hist1D(np.random.normal(0, 1, 1000), bins=100, label="data")
 h.plot(show_errors=True, color="k")
 h.fit("peak * np.exp(-(x-mu)**2 / (2*sigma**2))")
 ```
-<img src="examples/plot1.png" height="300" width="200"/>
+<img src="examples/plot1.png" height="200" width="300"/>
 
 ```python
 import pandas as pd
@@ -30,7 +30,7 @@ df = pd.DataFrame(np.random.normal(0, 1, size=(10000, 2)), columns=["A", "B"])
 h = Hist2D(df, bins=np.linspace(-3, 3, 30))
 h.plot(logz=True, cmap="cividis")
 ```
-<img src="examples/plot2.png" height="300" width="200"/>
+<img src="examples/plot2.png" height="200" width="300"/>
 
 Much more functionality is showcased in the example notebook below.
 
