@@ -354,8 +354,8 @@ class Hist2DTest(unittest.TestCase):
         xy = np.c_[x, y]
         bins = [np.linspace(-3, 3, 51), np.linspace(-3, 3, 51)]
         for overflow in [True, False]:
-            h1 = Hist2D(xy, bins=bins)
-            h2 = Hist2D(xy, bins=bins, use_numba=False)
+            h1 = Hist2D(xy, bins=bins, allow_numba=True, overflow=overflow)
+            h2 = Hist2D(xy, bins=bins, allow_numba=False, overflow=overflow)
             self.assertEqual(h1, h2)
 
 

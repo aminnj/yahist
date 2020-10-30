@@ -4,7 +4,7 @@ import numpy as np
 import copy
 import base64
 
-from .utils import is_listlike, compute_darkness, np_histogram2d_wrapper
+from .utils import is_listlike, compute_darkness
 
 from .hist1d import Hist1D
 
@@ -677,3 +677,86 @@ class Hist2D(Hist1D):
             margin=dict(l=10, r=10, b=10, t=30, pad=0,),
         )
         return fig
+
+
+
+def compute_bin_1d_uniform(x, bins, overflow=False):
+    n = bins.shape[0] - 1
+    b_min = bins[0]
+    b_max = bins[-1]
+    if overflow:
+        if x > b_max:
+            return n - 1
+        elif x < b_min:
+            return 0
+    ibin = int(n * (x - b_min) / (b_max - b_min))
+    if x < b_min or x > b_max:
+        return -1
+    else:
+        return ibin
+
+def numba_histogram2d(ax, ay, bins_x, bins_y, weights=None, overflow=False):
+    db_x = np.ediff1d(bins_x)
+    db_y = np.ediff1d(bins_y)
+    is_uniform_binning_x = np.all(db_x - db_x[0] < 1e-6)
+    is_uniform_binning_y = np.all(db_y - db_y[0] < 1e-6)
+    hist = np.zeros((len(bins_x) - 1, len(bins_y) - 1), dtype=np.float64)
+    ax = ax.flat
+    ay = ay.flat
+    b_min_x = bins_x[0]
+    b_max_x = bins_x[-1]
+    n_x = bins_x.shape[0] - 1
+    b_min_y = bins_y[0]
+    b_max_y = bins_y[-1]
+    n_y = bins_y.shape[0] - 1
+    if weights is None:
+        weights = np.ones(len(ax), dtype=np.float64)
+    if is_uniform_binning_x and is_uniform_binning_y:
+        for i in range(len(ax)):
+            ibin_x = compute_bin_1d_uniform(ax[i], bins_x, overflow=overflow)
+            ibin_y = compute_bin_1d_uniform(ay[i], bins_y, overflow=overflow)
+            if ibin_x >= 0 and ibin_y >= 0:
+                hist[ibin_x, ibin_y] += weights[i]
+    else:
+        ibins_x = np.searchsorted(bins_x, ax, side="left")
+        ibins_y = np.searchsorted(bins_y, ay, side="left")
+        for i in range(len(ax)):
+            ibin_x = ibins_x[i]
+            ibin_y = ibins_y[i]
+            if overflow:
+                if ibin_x == n_x + 1:
+                    ibin_x = n_x
+                elif ibin_x == 0:
+                    ibin_x = 1
+                if ibin_y == n_y + 1:
+                    ibin_y = n_y
+                elif ibin_y == 0:
+                    ibin_y = 1
+            if ibin_x >= 1 and ibin_y >= 1 and ibin_x <= n_x and ibin_y <= n_y:
+                hist[ibin_x - 1, ibin_y - 1] += weights[i]
+    return hist, bins_x, bins_y
+
+
+HAS_NUMBA = False
+try:
+    import numba
+
+    HAS_NUMBA = True
+    jitfunc = numba.jit(nopython=True, nogil=True, cache=True)
+    compute_bin_1d_uniform = jitfunc(compute_bin_1d_uniform)
+    numba_histogram2d = jitfunc(numba_histogram2d)
+except:
+    pass
+
+
+def np_histogram2d_wrapper(x, y, overflow=True, **kwargs):
+    if kwargs.pop("allow_numba", True) and HAS_NUMBA and (len(x) > 1e4):
+        bins = kwargs.get("bins", None)
+        # check if `bins` is a 2 element list of lists (x bins, y bins)
+        if is_listlike(bins) and (len(bins) == 2) and (is_listlike(bins[0])):
+            bins_x, bins_y = bins
+            weights = kwargs.get("weights", None)
+            return numba_histogram2d(
+                x, y, bins_x, bins_y, weights=weights, overflow=overflow
+            )
+    return np.histogram2d(x, y, **kwargs)
