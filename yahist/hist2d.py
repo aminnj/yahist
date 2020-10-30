@@ -4,7 +4,7 @@ import numpy as np
 import copy
 import base64
 
-from .utils import is_listlike, compute_darkness
+from .utils import is_listlike, compute_darkness, np_histogram2d_wrapper
 
 from .hist1d import Hist1D
 
@@ -17,7 +17,6 @@ class Hist2D(Hist1D):
             if "DataFrame" in str(type(obj)):
                 self._metadata["pandas_labels"] = obj.columns.tolist()[:2]
                 obj = obj.__array__()
-            # FIXME, should take a tuple of xs, ys since obj can be arbitrary
             xs, ys = obj[:, 0], obj[:, 1]
 
         if kwargs.pop("norm", False) or kwargs.pop("density", False):
@@ -26,7 +25,7 @@ class Hist2D(Hist1D):
             )
 
         if (
-            kwargs.pop("overflow", True)
+            kwargs.get("overflow", True)
             and ("bins" in kwargs)
             and not isinstance(kwargs["bins"], str)
         ):
@@ -39,7 +38,7 @@ class Hist2D(Hist1D):
                 xs = np.clip(xs, clip_low_x, clip_high_x)
                 ys = np.clip(ys, clip_low_y, clip_high_y)
 
-        counts, edgesx, edgesy = np.histogram2d(xs, ys, **kwargs)
+        counts, edgesx, edgesy = np_histogram2d_wrapper(xs, ys, **kwargs)
         # each row = constant y, lowest y on top
         self._counts = counts.T
         self._edges = edgesx, edgesy
@@ -53,7 +52,7 @@ class Hist2D(Hist1D):
                 # if weighted entries, need to get sum of sq. weights per bin
                 # and sqrt of that is bin error
                 kwargs["weights"] = kwargs["weights"] ** 2.0
-                counts, _, _ = np.histogram2d(xs, ys, **kwargs)
+                counts, _, _ = np_histogram2d_wrapper(xs, ys, **kwargs)
                 self._errors = np.sqrt(counts.T)
         self._errors = self._errors.astype(np.float64)
 

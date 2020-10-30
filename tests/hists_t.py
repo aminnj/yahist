@@ -347,6 +347,17 @@ class Hist2DTest(unittest.TestCase):
         h = Hist2D.from_random("norm", params=[(2, 2)], bins=50)
         self.assertEqual(h.rebin(5).projection("x"), h.projection("x").rebin(5))
 
+    def test_numba_maybe(self):
+        N = int(1e5) + 1
+        x = np.random.normal(0, 1, N)
+        y = np.random.normal(0, 1, N)
+        xy = np.c_[x, y]
+        bins = [np.linspace(-3, 3, 51), np.linspace(-3, 3, 51)]
+        for overflow in [True, False]:
+            h1 = Hist2D(xy, bins=bins)
+            h2 = Hist2D(xy, bins=bins, use_numba=False)
+            self.assertEqual(h1, h2)
+
 
 if __name__ == "__main__":
     unittest.main()
