@@ -317,6 +317,20 @@ class Hist2DTest(unittest.TestCase):
 
         self.assertEqual(h1, h1.transpose())
 
+    def test_basic(self):
+        v = np.random.normal(0,1,size=(1000,2))
+        h1 = Hist2D(v, bins=np.linspace(-5,5,11))
+        h2 = Hist2D(v, bins=[np.linspace(-5,5,11), np.linspace(-5,5,11)])
+        h3 = Hist2D(v, bins="10,-5,5")
+        h4 = Hist2D(v, bins="10,-5,5,10,-5,5")
+        self.assertEqual(h1, h2)
+        self.assertEqual(h1, h3)
+        self.assertEqual(h1, h4)
+
+        h1 = Hist2D(v, bins=[np.linspace(-5,5,11), np.linspace(-8,8,11)])
+        h2 = Hist2D(v, bins="10,-5,5,10,-8,8")
+        self.assertEqual(h1, h2)
+
     def test_reductions(self):
         xs = np.array([0.5, 1.5])
         ys = np.array([1.5, 0.5])
