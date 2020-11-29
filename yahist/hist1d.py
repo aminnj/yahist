@@ -71,6 +71,8 @@ class Hist1D(object):
                 # inside numpy by specifying number of bins and range
                 kwargs["range"] = (kwargs["bins"][0], kwargs["bins"][-1])
                 kwargs["bins"] = len(kwargs["bins"]) - 1
+        else:
+            kwargs.pop("overflow", None)
         self._counts, self._edges = np.histogram(obj, **kwargs)
         self._counts = self._counts.astype(np.float64)
 
@@ -591,7 +593,7 @@ class Hist1D(object):
         v = hcdfinv.lookup(np.random.random_sample(size=int(size)))
         return v
 
-    def svg_fast(self, height=250, aspectratio=1.4, strokewidth=1):
+    def svg_fast(self, height=250, aspectratio=1.4, padding=0.02, strokewidth=1, color="#4285F4", bottom=True, frame=True):
         """
         Return HTML svg tag with bare-bones version of histogram
         (no ticks, labels).
@@ -600,10 +602,18 @@ class Hist1D(object):
         ----------
         height : int, default 250
             Height of plot in pixels
+        padding : float, default 0.025
+            Fraction of height or width to keep between edges of plot and svg view size
         aspectratio : float, default 1.4
             Aspect ratio of plot
         strokewidth : float, default 1
             Width of strokes
+        bottom : bool, default True
+            Draw line at the bottom
+        color : str, default "#4285F4",
+            Stroke color and fill color (with 15% opacity)
+        frame : bool, default True
+            Draw frame/border
 
         Returns
         -------
@@ -611,7 +621,6 @@ class Hist1D(object):
         """
         width = height * aspectratio
 
-        padding = 0.02  # fraction of height or width to keep between edges of plot and svg view size
         safecounts = np.array(self._counts)
         safecounts[~np.isfinite(safecounts)] = 0.0
 
@@ -633,17 +642,22 @@ class Hist1D(object):
             points.append([xs[i], ys[i]])
             points.append([xs[i + 1], ys[i]])
         points.append([width * (1 - padding), height * (1 - padding)])
-        points.append([padding * width, height * (1 - padding)])
+        if bottom:
+            points.append([padding * width, height * (1 - padding)])
 
         pathstr = " ".join("{},{}".format(*p) for p in points)
 
+        if frame:
+            framestr = """<rect width="{width}" height="{height}" fill="none" stroke="#000" stroke-width="2" />""".format(width=width, height=height)
+        else:
+            framestr = ""
         source = """
         <svg width="{width}" height="{height}" version="1.1" xmlns="http://www.w3.org/2000/svg">
-          <rect width="{width}" height="{height}" fill="none" stroke="#000" stroke-width="2" />
-          <polyline points="{pathstr}" stroke="#000" fill="#5688C7" stroke-width="{strokewidth}"/>
+          {framestr}
+          <polyline points="{pathstr}" stroke="{color}" fill="{color}" fill-opacity="0.15" stroke-width="{strokewidth}"/>
         </svg>
         """.format(
-            width=width, height=height, pathstr=pathstr, strokewidth=strokewidth,
+            width=width, framestr=framestr, height=height, pathstr=pathstr, strokewidth=strokewidth, color=color,
         )
         return source
 
