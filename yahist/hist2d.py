@@ -24,6 +24,18 @@ class Hist2D(Hist1D):
                 "Please use the .normalize() method on the histogram object."
             )
 
+        # convert ROOT-like "50,0,10,50,0,10" to [np.linspace(0,10,51), np.linspace(0,10,51)]
+        if isinstance(kwargs.get("bins"), str) and (kwargs["bins"].count(",") in [2, 5]):
+            if kwargs["bins"].count(",") == 2:
+                nbinsx, lowx, highx = kwargs["bins"].split(",")
+                nbinsy, lowy, highy = nbinsx, lowx, highx
+            else:
+                nbinsx, lowx, highx, nbinsy, lowy, highy = kwargs["bins"].split(",")
+            kwargs["bins"] = [
+                    np.linspace(float(lowx), float(highx), int(nbinsx) + 1),
+                    np.linspace(float(lowy), float(highy), int(nbinsy) + 1)
+                    ]
+
         if (
             kwargs.get("overflow", True)
             and ("bins" in kwargs)
@@ -38,7 +50,7 @@ class Hist2D(Hist1D):
                 xs = np.clip(xs, clip_low_x, clip_high_x)
                 ys = np.clip(ys, clip_low_y, clip_high_y)
 
-        counts, edgesx, edgesy = np_histogram2d_wrapper(xs, ys, **kwargs)
+        counts, edgesx, edgesy = _np_histogram2d_wrapper(xs, ys, **kwargs)
         # each row = constant y, lowest y on top
         self._counts = counts.T
         self._edges = edgesx, edgesy
@@ -52,7 +64,7 @@ class Hist2D(Hist1D):
                 # if weighted entries, need to get sum of sq. weights per bin
                 # and sqrt of that is bin error
                 kwargs["weights"] = kwargs["weights"] ** 2.0
-                counts, _, _ = np_histogram2d_wrapper(xs, ys, **kwargs)
+                counts, _, _ = _np_histogram2d_wrapper(xs, ys, **kwargs)
                 self._errors = np.sqrt(counts.T)
         self._errors = self._errors.astype(np.float64)
 
@@ -515,8 +527,9 @@ class Hist2D(Hist1D):
             Font size of count labels
         colorbar : bool, default True
             Show colorbar
-        equidistant : bool, default False
-            Make bins equally-spaced
+        equidistant : bool or str ("x" or "y"), default False
+            If True, make bins equally-spaced. If either "x" or "y", 
+            do it only for that axis.
         hide_empty : bool, default True
             Don't draw empty bins (content==0)
         interactive : bool, default False
@@ -563,6 +576,8 @@ class Hist2D(Hist1D):
         equidistant = kwargs.pop("equidistant", False)
         return_self = kwargs.pop("return_self", False)
 
+        if equidistant == True: equidistant = "both"
+
         if logz:
             kwargs["norm"] = LogNorm()
 
@@ -579,10 +594,12 @@ class Hist2D(Hist1D):
                 aspect="auto",
                 **kwargs
             )
-            ax.xaxis.set_ticks(np.linspace(xedges[0], xedges[-1], len(xedges)))
-            ax.yaxis.set_ticks(np.linspace(yedges[0], yedges[-1], len(yedges)))
-            ax.xaxis.set_ticklabels(xedges)
-            ax.yaxis.set_ticklabels(yedges)
+            if equidistant in ["both", "x"]:
+                ax.xaxis.set_ticks(np.linspace(xedges[0], xedges[-1], len(xedges)))
+                ax.xaxis.set_ticklabels(xedges)
+            if equidistant in ["both", "y"]:
+                ax.yaxis.set_ticks(np.linspace(yedges[0], yedges[-1], len(yedges)))
+                ax.yaxis.set_ticklabels(yedges)
         else:
             c = ax.pcolorfast(xedges, yedges, countsdraw, **kwargs)
 
@@ -596,10 +613,12 @@ class Hist2D(Hist1D):
 
         if show_counts:
             if equidistant:
-                xcenters = np.linspace(xedges[0], xedges[-1], len(xedges))
-                ycenters = np.linspace(yedges[0], yedges[-1], len(yedges))
-                xcenters = 0.5 * (xcenters[:-1] + xcenters[1:])
-                ycenters = 0.5 * (ycenters[:-1] + ycenters[1:])
+                if equidistant in ["both", "x"]:
+                    xcenters = np.linspace(xedges[0], xedges[-1], len(xedges))
+                    xcenters = 0.5 * (xcenters[:-1] + xcenters[1:])
+                if equidistant in ["both", "y"]:
+                    ycenters = np.linspace(yedges[0], yedges[-1], len(yedges))
+                    ycenters = 0.5 * (ycenters[:-1] + ycenters[1:])
             else:
                 xcenters, ycenters = self.bin_centers
             xyz = np.c_[
@@ -679,8 +698,7 @@ class Hist2D(Hist1D):
         return fig
 
 
-
-def compute_bin_1d_uniform(x, bins, overflow=False):
+def _compute_bin_1d_uniform(x, bins, overflow=False):
     n = bins.shape[0] - 1
     b_min = bins[0]
     b_max = bins[-1]
@@ -695,7 +713,8 @@ def compute_bin_1d_uniform(x, bins, overflow=False):
     else:
         return ibin
 
-def numba_histogram2d(ax, ay, bins_x, bins_y, weights=None, overflow=False):
+
+def _numba_histogram2d(ax, ay, bins_x, bins_y, weights=None, overflow=False):
     db_x = np.ediff1d(bins_x)
     db_y = np.ediff1d(bins_y)
     is_uniform_binning_x = np.all(db_x - db_x[0] < 1e-6)
@@ -713,8 +732,8 @@ def numba_histogram2d(ax, ay, bins_x, bins_y, weights=None, overflow=False):
         weights = np.ones(len(ax), dtype=np.float64)
     if is_uniform_binning_x and is_uniform_binning_y:
         for i in range(len(ax)):
-            ibin_x = compute_bin_1d_uniform(ax[i], bins_x, overflow=overflow)
-            ibin_y = compute_bin_1d_uniform(ay[i], bins_y, overflow=overflow)
+            ibin_x = _compute_bin_1d_uniform(ax[i], bins_x, overflow=overflow)
+            ibin_y = _compute_bin_1d_uniform(ay[i], bins_y, overflow=overflow)
             if ibin_x >= 0 and ibin_y >= 0:
                 hist[ibin_x, ibin_y] += weights[i]
     else:
@@ -743,20 +762,27 @@ try:
 
     HAS_NUMBA = True
     jitfunc = numba.jit(nopython=True, nogil=True, cache=True)
-    compute_bin_1d_uniform = jitfunc(compute_bin_1d_uniform)
-    numba_histogram2d = jitfunc(numba_histogram2d)
+    _compute_bin_1d_uniform = jitfunc(_compute_bin_1d_uniform)
+    _numba_histogram2d = jitfunc(_numba_histogram2d)
 except:
     pass
 
 
-def np_histogram2d_wrapper(x, y, overflow=True, **kwargs):
+def _np_histogram2d_wrapper(x, y, overflow=True, **kwargs):
     if kwargs.pop("allow_numba", True) and HAS_NUMBA and (len(x) > 1e4):
         bins = kwargs.get("bins", None)
         # check if `bins` is a 2 element list of lists (x bins, y bins)
         if is_listlike(bins) and (len(bins) == 2) and (is_listlike(bins[0])):
             bins_x, bins_y = bins
             weights = kwargs.get("weights", None)
-            return numba_histogram2d(
+            return _numba_histogram2d(
+                x, y, bins_x, bins_y, weights=weights, overflow=overflow
+            )
+        # or if single dimension
+        if is_listlike(bins) and (np.ndim(bins) == 1):
+            bins_x = bins_y = bins
+            weights = kwargs.get("weights", None)
+            return _numba_histogram2d(
                 x, y, bins_x, bins_y, weights=weights, overflow=overflow
             )
     return np.histogram2d(x, y, **kwargs)
