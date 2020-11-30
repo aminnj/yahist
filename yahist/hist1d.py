@@ -28,6 +28,9 @@ class Hist1D(object):
         kwargs = self._extract_metadata(**kwargs)
         if "ROOT." in str(type(obj)):
             self._init_root(obj, **kwargs)
+        elif "awkward" in str(type(obj)):
+            obj = obj.__array__()
+            self._init_numpy(obj, **kwargs)
         elif is_listlike(obj):
             self._init_numpy(obj, **kwargs)
         elif type(obj) is self.__class__:
@@ -48,7 +51,7 @@ class Hist1D(object):
 
         if kwargs.pop("norm", False) or kwargs.pop("density", False):
             raise Exception(
-                "Please use the .normalize() method on the histogram object."
+                "Please use the .normalize() [.normalize(density=True)] method on the histogram object."
             )
         if kwargs.pop("cumulative", False):
             raise Exception(
@@ -409,15 +412,20 @@ class Hist1D(object):
         )
         return a2s
 
-    def normalize(self):
+    def normalize(self, density=False):
         """
         Divides counts of each bin by the sum of the total counts.
+        If `density=True`, also divide by bin widths.
+
 
         Returns
         -------
         Hist
         """
-        return self / self._counts.sum()
+        if density:
+            return self / (self.integral * self.bin_widths)
+        else:
+            return self / self.integral
 
     def scale(self, factor):
         """

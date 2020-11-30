@@ -234,6 +234,12 @@ class Hist1DTest(unittest.TestCase):
         self.assertEqual(h2.integral, 1.0)
         self.assertEqual(h2.integral_error, 0.5 ** 0.5)
 
+    def test_density(self):
+        v = np.random.normal(0,1, 100)
+        h = Hist1D(v, bins="5,-5,5", overflow=False).normalize(density=True)
+        counts, edges = np.histogram(v, bins=h.edges, density=True)
+        self.assertTrue(np.allclose(h.counts, counts))
+
     def test_rebin(self):
         h1 = Hist1D([0.5, 1.5, 2.5, 3.5], bins=[0, 1, 2, 3, 4])
         h2 = h1.rebin(2)
