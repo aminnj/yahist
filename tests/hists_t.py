@@ -126,6 +126,37 @@ class FitTest(unittest.TestCase):
         v = (ret_chi2_errors - ret_like_errors) / ret_chi2_values
         self.assertEqual((np.abs(v) < 0.01).mean(), 1.0)
 
+    def test_against_root(self):
+        """
+        import ROOT as r
+
+        h1 = r.TH1F("h1","",10,-1.01,1.01)
+        for x in [-0.1, 0.1, -0.2, 0.1, 0.1, 0.4, 0.1]:
+            h1.Fill(x)
+        for likelihood in ["", "L"]:
+            res = h1.Fit("gaus", f"QS{likelihood}").Get()
+            print(list(res.Parameters()), list(res.Errors()))
+        """
+        h = Hist1D([-0.1, 0.1, -0.2, 0.1, 0.1, 0.4, 0.1], bins="10,-1.01,1.01")
+
+        res = h.fit("gaus", likelihood=False)
+        params = res["params"]
+        self.assertTrue(abs(params["constant"]["value"] - 4.1175) < 1e-3)
+        self.assertTrue(abs(params["mean"]["value"] - 0.0673) < 1e-3)
+        self.assertTrue(abs(params["sigma"]["value"] - 0.1401) < 1e-3)
+        self.assertTrue(abs(params["constant"]["error"] - 2.0420) < 1e-3)
+        self.assertTrue(abs(params["mean"]["error"] - 0.0584) < 1e-3)
+        self.assertTrue(abs(params["sigma"]["error"] - 0.0531) < 1e-3)
+
+        res = h.fit("gaus", likelihood=True)
+        params = res["params"]
+        self.assertTrue(abs(params["constant"]["value"] - 4.3562) < 1e-3)
+        self.assertTrue(abs(params["mean"]["value"] - 0.07190) < 1e-3)
+        self.assertTrue(abs(params["sigma"]["value"] - 0.1294) < 1e-3)
+        self.assertTrue(abs(params["constant"]["error"] - 2.0008) < 1e-3)
+        self.assertTrue(abs(params["mean"]["error"] - 0.04908) < 1e-3)
+        self.assertTrue(abs(params["sigma"]["error"] - 0.0339) < 1e-3)
+
 
 class Hist1DTest(unittest.TestCase):
     def test_integral(self):
@@ -235,7 +266,7 @@ class Hist1DTest(unittest.TestCase):
         self.assertEqual(h2.integral_error, 0.5 ** 0.5)
 
     def test_density(self):
-        v = np.random.normal(0,1, 100)
+        v = np.random.normal(0, 1, 100)
         h = Hist1D(v, bins="5,-5,5", overflow=False).normalize(density=True)
         counts, edges = np.histogram(v, bins=h.edges, density=True)
         self.assertTrue(np.allclose(h.counts, counts))
@@ -324,16 +355,16 @@ class Hist2DTest(unittest.TestCase):
         self.assertEqual(h1, h1.transpose())
 
     def test_basic(self):
-        v = np.random.normal(0,1,size=(1000,2))
-        h1 = Hist2D(v, bins=np.linspace(-5,5,11))
-        h2 = Hist2D(v, bins=[np.linspace(-5,5,11), np.linspace(-5,5,11)])
+        v = np.random.normal(0, 1, size=(1000, 2))
+        h1 = Hist2D(v, bins=np.linspace(-5, 5, 11))
+        h2 = Hist2D(v, bins=[np.linspace(-5, 5, 11), np.linspace(-5, 5, 11)])
         h3 = Hist2D(v, bins="10,-5,5")
         h4 = Hist2D(v, bins="10,-5,5,10,-5,5")
         self.assertEqual(h1, h2)
         self.assertEqual(h1, h3)
         self.assertEqual(h1, h4)
 
-        h1 = Hist2D(v, bins=[np.linspace(-5,5,11), np.linspace(-8,8,11)])
+        h1 = Hist2D(v, bins=[np.linspace(-5, 5, 11), np.linspace(-8, 8, 11)])
         h2 = Hist2D(v, bins="10,-5,5,10,-8,8")
         self.assertEqual(h1, h2)
 
@@ -353,6 +384,14 @@ class Hist2DTest(unittest.TestCase):
 
         self.assertTrue(np.allclose(h1.projection("x").counts, np.array([1.0, 1.0])))
         self.assertTrue(np.allclose(h1.profile("x").counts, np.array([1.5, 0.5])))
+
+    def test_restrict(self):
+        xs = [0, 1, 2, 2, 2]
+        ys = [1, 2, 1, 1, 1]
+        h = Hist2D(np.c_[xs, ys], bins="6,0.5,3.5")
+        h = h.restrict(2.0, None, None, 1.5)
+        self.assertEqual(h.integral, 3.0)
+        self.assertEqual(h.nbins, (3, 2))
 
     def test_fromrandom(self):
         mus = [0, 0]
