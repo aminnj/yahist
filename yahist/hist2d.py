@@ -25,16 +25,18 @@ class Hist2D(Hist1D):
             )
 
         # convert ROOT-like "50,0,10,50,0,10" to [np.linspace(0,10,51), np.linspace(0,10,51)]
-        if isinstance(kwargs.get("bins"), str) and (kwargs["bins"].count(",") in [2, 5]):
+        if isinstance(kwargs.get("bins"), str) and (
+            kwargs["bins"].count(",") in [2, 5]
+        ):
             if kwargs["bins"].count(",") == 2:
                 nbinsx, lowx, highx = kwargs["bins"].split(",")
                 nbinsy, lowy, highy = nbinsx, lowx, highx
             else:
                 nbinsx, lowx, highx, nbinsy, lowy, highy = kwargs["bins"].split(",")
             kwargs["bins"] = [
-                    np.linspace(float(lowx), float(highx), int(nbinsx) + 1),
-                    np.linspace(float(lowy), float(highy), int(nbinsy) + 1)
-                    ]
+                np.linspace(float(lowx), float(highx), int(nbinsx) + 1),
+                np.linspace(float(lowy), float(highy), int(nbinsy) + 1),
+            ]
 
         if (
             kwargs.get("overflow", True)
@@ -289,6 +291,53 @@ class Hist2D(Hist1D):
         hnew._counts = new_counts
         hnew._metadata = self._metadata.copy()
         return hnew
+
+    def restrict(self, xlow=None, xhigh=None, ylow=None, yhigh=None):
+        """
+        Restricts to a contiguous subset of bins with
+        bin center values within [[xlow, xhigh], [ylow,yhigh]]. If any limit
+        is `None`, the specified direction will be unbounded.
+
+        Parameters
+        ----------
+        xlow : float (default None)
+            Lower x center to keep
+        xhigh : float (default None)
+            Highest x center to keep
+        ylow : float (default None)
+            Lower y center to keep
+        yhigh : float (default None)
+            Highest y center to keep
+
+        Returns
+        -------
+        Hist2D
+        """
+        edgesels = [None, None]
+        binsels = [None, None]
+        for name, axis, low, high in [
+            ("x", 0, xlow, xhigh),
+            ("y", 1, ylow, yhigh),
+        ]:
+            centers = self.bin_centers[axis]
+            binsel = np.ones_like(centers) > 0.5
+            if low is not None:
+                binsel &= centers >= low
+            if high is not None:
+                binsel &= centers <= high
+            edgesel = np.concatenate([binsel, [False]])
+            if not np.any(edgesel):
+                raise Exception(f"No selected bins for {name}-axis. Check the limits.")
+            edgesel[np.argwhere(edgesel)[-1][0] + 1] = True
+
+            edgesels[axis] = edgesel
+            binsels[axis] = binsel
+
+        h = self.copy()
+        h._edges = tuple([h._edges[0][edgesels[0]], h._edges[1][edgesels[1]]])
+        h._counts = h._counts[binsels[1], :][:, binsels[0]]
+        h._errors = h._errors[binsels[1], :][:, binsels[0]]
+        return h
 
     def svg_fast(self, height=250, aspectratio=1.4, interactive=True):
         """
@@ -576,7 +625,8 @@ class Hist2D(Hist1D):
         equidistant = kwargs.pop("equidistant", False)
         return_self = kwargs.pop("return_self", False)
 
-        if equidistant == True: equidistant = "both"
+        if equidistant == True:
+            equidistant = "both"
 
         if logz:
             kwargs["norm"] = LogNorm()
@@ -592,7 +642,7 @@ class Hist2D(Hist1D):
                 extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]],
                 interpolation="none",
                 aspect="auto",
-                **kwargs
+                **kwargs,
             )
             if equidistant in ["both", "x"]:
                 ax.xaxis.set_ticks(np.linspace(xedges[0], xedges[-1], len(xedges)))
