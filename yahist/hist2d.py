@@ -576,9 +576,9 @@ class Hist2D(Hist1D):
             Font size of count labels
         colorbar : bool, default True
             Show colorbar
-        equidistant : bool or str ("x" or "y"), default False
-            If True, make bins equally-spaced. If either "x" or "y", 
-            do it only for that axis.
+        equidistant : str ("", "x", "y", "xy"), default ""
+            If not an empty string, make bins equally-spaced in the x-axis ("x"),
+            y-axis ("y"), or both ("xy").
         hide_empty : bool, default True
             Don't draw empty bins (content==0)
         interactive : bool, default False
@@ -622,11 +622,8 @@ class Hist2D(Hist1D):
         counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
         counts_fontsize = kwargs.pop("counts_fontsize", 12)
         logz = kwargs.pop("logz", False)
-        equidistant = kwargs.pop("equidistant", False)
+        equidistant = kwargs.pop("equidistant", "")
         return_self = kwargs.pop("return_self", False)
-
-        if equidistant == True:
-            equidistant = "both"
 
         if logz:
             kwargs["norm"] = LogNorm()
@@ -644,10 +641,10 @@ class Hist2D(Hist1D):
                 aspect="auto",
                 **kwargs,
             )
-            if equidistant in ["both", "x"]:
+            if "x" in equidistant:
                 ax.xaxis.set_ticks(np.linspace(xedges[0], xedges[-1], len(xedges)))
                 ax.xaxis.set_ticklabels(xedges)
-            if equidistant in ["both", "y"]:
+            if "y" in equidistant:
                 ax.yaxis.set_ticks(np.linspace(yedges[0], yedges[-1], len(yedges)))
                 ax.yaxis.set_ticklabels(yedges)
         else:
@@ -662,15 +659,14 @@ class Hist2D(Hist1D):
             ax.set_ylabel(ylabel)
 
         if show_counts:
+            xcenters, ycenters = self.bin_centers
             if equidistant:
-                if equidistant in ["both", "x"]:
+                if "x" in equidistant:
                     xcenters = np.linspace(xedges[0], xedges[-1], len(xedges))
                     xcenters = 0.5 * (xcenters[:-1] + xcenters[1:])
-                if equidistant in ["both", "y"]:
+                if "y" in equidistant:
                     ycenters = np.linspace(yedges[0], yedges[-1], len(yedges))
                     ycenters = 0.5 * (ycenters[:-1] + ycenters[1:])
-            else:
-                xcenters, ycenters = self.bin_centers
             xyz = np.c_[
                 np.tile(xcenters, len(ycenters)),
                 np.repeat(ycenters, len(xcenters)),
