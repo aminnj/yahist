@@ -640,7 +640,16 @@
         <span class="n">v</span> <span class="o">=</span> <span class="n">hcdfinv</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_sample</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">size</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">v</span></div>
 
-<div class="viewcode-block" id="Hist1D.svg_fast"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D.svg_fast">[docs]</a>    <span class="k">def</span> <span class="nf">svg_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">aspectratio</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">strokewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#4285F4&quot;</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Hist1D.svg_fast"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D.svg_fast">[docs]</a>    <span class="k">def</span> <span class="nf">svg_fast</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+        <span class="n">aspectratio</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+        <span class="n">strokewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#4285F4&quot;</span><span class="p">,</span>
+        <span class="n">bottom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">frame</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return HTML svg tag with bare-bones version of histogram</span>
 <span class="sd">        (no ticks, labels).</span>
@@ -695,7 +704,9 @@
         <span class="n">pathstr</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">frame</span><span class="p">:</span>
-            <span class="n">framestr</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;&lt;rect width=&quot;</span><span class="si">{width}</span><span class="s2">&quot; height=&quot;</span><span class="si">{height}</span><span class="s2">&quot; fill=&quot;none&quot; stroke=&quot;#000&quot; stroke-width=&quot;2&quot; /&gt;&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+            <span class="n">framestr</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;&lt;rect width=&quot;</span><span class="si">{width}</span><span class="s2">&quot; height=&quot;</span><span class="si">{height}</span><span class="s2">&quot; fill=&quot;none&quot; stroke=&quot;#000&quot; stroke-width=&quot;2&quot; /&gt;&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">framestr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="n">source</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
@@ -704,7 +715,12 @@
 <span class="s2">          &lt;polyline points=&quot;</span><span class="si">{pathstr}</span><span class="s2">&quot; stroke=&quot;</span><span class="si">{color}</span><span class="s2">&quot; fill=&quot;</span><span class="si">{color}</span><span class="s2">&quot; fill-opacity=&quot;0.15&quot; stroke-width=&quot;</span><span class="si">{strokewidth}</span><span class="s2">&quot;/&gt;</span>
 <span class="s2">        &lt;/svg&gt;</span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">framestr</span><span class="o">=</span><span class="n">framestr</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">pathstr</span><span class="o">=</span><span class="n">pathstr</span><span class="p">,</span> <span class="n">strokewidth</span><span class="o">=</span><span class="n">strokewidth</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">framestr</span><span class="o">=</span><span class="n">framestr</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+            <span class="n">pathstr</span><span class="o">=</span><span class="n">pathstr</span><span class="p">,</span>
+            <span class="n">strokewidth</span><span class="o">=</span><span class="n">strokewidth</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">source</span></div>
 

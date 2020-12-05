@@ -163,6 +163,9 @@
     <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
     <span class="kn">from</span> <span class="nn">tokenize</span> <span class="kn">import</span> <span class="n">tokenize</span><span class="p">,</span> <span class="n">NAME</span>
 
+    <span class="k">if</span> <span class="n">expr</span> <span class="o">==</span> <span class="s2">&quot;gaus&quot;</span><span class="p">:</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="s2">&quot;constant * np.exp(-(x-mean)**2./(2*sigma**2))&quot;</span>
+
     <span class="n">varnames</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">g</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tokenize</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">readline</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
@@ -233,6 +236,7 @@
     <span class="k">if</span> <span class="n">likelihood</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">gammaln</span>
 
+        <span class="c1"># can use autograd, minuit, or scipy</span>
         <span class="n">use_autograd</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">use_minuit</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="n">use_autograd</span><span class="p">:</span>
@@ -254,9 +258,8 @@
 
         <span class="k">def</span> <span class="nf">fnll</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
             <span class="n">ypred</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">*</span><span class="n">v</span><span class="p">)</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">ypred</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ypred</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
                 <span class="k">return</span> <span class="mf">1e6</span>
-            <span class="c1"># both are equivalent</span>
             <span class="k">if</span> <span class="n">use_autograd</span><span class="p">:</span>
                 <span class="k">return</span> <span class="p">(</span>
                     <span class="n">ypred</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
@@ -269,7 +272,6 @@
                     <span class="o">-</span> <span class="p">(</span><span class="n">ydata</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ypred</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
                     <span class="o">+</span> <span class="n">gammaln</span><span class="p">(</span><span class="n">ydata</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
                 <span class="p">)</span>
-            <span class="c1"># return (ypred.sum() - poisson.logpmf(ydata,ypred).sum()) * 2**-2.</span>
 
         <span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">fnll</span><span class="p">,</span> <span class="n">popt</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;BFGS&quot;</span><span class="p">)</span>
         <span class="n">popt</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span>
@@ -400,7 +402,10 @@
         <span class="n">fit_ydata_fine</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">],</span> <span class="n">hist</span><span class="o">.</span><span class="n">edges</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">sampled_stds_fine</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
     <span class="p">)</span>
 
-    <span class="n">chi2</span> <span class="o">=</span> <span class="p">((</span><span class="n">func</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">*</span><span class="n">popt</span><span class="p">)</span> <span class="o">-</span> <span class="n">ydata</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">yerrs</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">likelihood</span><span class="p">:</span>
+        <span class="n">chi2</span> <span class="o">=</span> <span class="p">((</span><span class="n">func</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">*</span><span class="n">popt</span><span class="p">)</span> <span class="o">-</span> <span class="n">ydata</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">yerrs</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">chi2</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">ndof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">xdata</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">popt</span><span class="p">)</span>
 
     <span class="k">class</span> <span class="nc">wrapper</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
