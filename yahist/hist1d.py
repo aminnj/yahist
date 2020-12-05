@@ -601,7 +601,16 @@ class Hist1D(object):
         v = hcdfinv.lookup(np.random.random_sample(size=int(size)))
         return v
 
-    def svg_fast(self, height=250, aspectratio=1.4, padding=0.02, strokewidth=1, color="#4285F4", bottom=True, frame=True):
+    def svg_fast(
+        self,
+        height=250,
+        aspectratio=1.4,
+        padding=0.02,
+        strokewidth=1,
+        color="#4285F4",
+        bottom=True,
+        frame=True,
+    ):
         """
         Return HTML svg tag with bare-bones version of histogram
         (no ticks, labels).
@@ -656,7 +665,9 @@ class Hist1D(object):
         pathstr = " ".join("{},{}".format(*p) for p in points)
 
         if frame:
-            framestr = """<rect width="{width}" height="{height}" fill="none" stroke="#000" stroke-width="2" />""".format(width=width, height=height)
+            framestr = """<rect width="{width}" height="{height}" fill="none" stroke="#000" stroke-width="2" />""".format(
+                width=width, height=height
+            )
         else:
             framestr = ""
         source = """
@@ -665,7 +676,12 @@ class Hist1D(object):
           <polyline points="{pathstr}" stroke="{color}" fill="{color}" fill-opacity="0.15" stroke-width="{strokewidth}"/>
         </svg>
         """.format(
-            width=width, framestr=framestr, height=height, pathstr=pathstr, strokewidth=strokewidth, color=color,
+            width=width,
+            framestr=framestr,
+            height=height,
+            pathstr=pathstr,
+            strokewidth=strokewidth,
+            color=color,
         )
         return source
 
