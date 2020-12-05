@@ -124,6 +124,9 @@ def expr_to_lambda(expr):
     from io import BytesIO
     from tokenize import tokenize, NAME
 
+    if expr == "gaus":
+        expr = "constant * np.exp(-(x-mean)**2./(2*sigma**2))"
+
     varnames = []
     g = list(tokenize(BytesIO(expr.encode("utf-8")).readline))
     for ix, x in enumerate(g):
@@ -194,6 +197,7 @@ def curve_fit_wrapper(
     if likelihood:
         from scipy.special import gammaln
 
+        # can use autograd, minuit, or scipy
         use_autograd = False
         use_minuit = True
         if use_autograd:
@@ -215,9 +219,8 @@ def curve_fit_wrapper(
 
         def fnll(v):
             ypred = func(xdata, *v)
-            if (ypred < 0.0).any():
+            if (ypred <= 0.0).any():
                 return 1e6
-            # both are equivalent
             if use_autograd:
                 return (
                     ypred.sum()
@@ -230,7 +233,6 @@ def curve_fit_wrapper(
                     - (ydata * np.log(ypred)).sum()
                     + gammaln(ydata + 1).sum()
                 )
-            # return (ypred.sum() - poisson.logpmf(ydata,ypred).sum()) * 2**-2.
 
         res = minimize(fnll, popt, method="BFGS")
         popt = res.x
@@ -361,7 +363,10 @@ def fit_hist(
         fit_ydata_fine[1::2], hist.edges, errors=sampled_stds_fine[1::2]
     )
 
-    chi2 = ((func(xdata, *popt) - ydata) ** 2.0 / yerrs ** 2.0).sum()
+    if not likelihood:
+        chi2 = ((func(xdata, *popt) - ydata) ** 2.0 / yerrs ** 2.0).sum()
+    else:
+        chi2 = 0.0
     ndof = len(xdata) - len(popt)
 
     class wrapper(dict):
