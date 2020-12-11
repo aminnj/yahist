@@ -153,7 +153,7 @@ class FitTest(unittest.TestCase):
         self.assertTrue(abs(params["constant"]["value"] - 4.3562) < 1e-3)
         self.assertTrue(abs(params["mean"]["value"] - 0.07190) < 1e-3)
         self.assertTrue(abs(params["sigma"]["value"] - 0.1294) < 1e-3)
-        self.assertTrue(abs(params["constant"]["error"] - 2.0008) < 1e-3)
+        self.assertTrue(abs(params["constant"]["error"] - 2.0008) < 2e-2)
         self.assertTrue(abs(params["mean"]["error"] - 0.04908) < 1e-3)
         self.assertTrue(abs(params["sigma"]["error"] - 0.0339) < 1e-3)
 

@@ -197,18 +197,18 @@ def curve_fit_wrapper(
     if likelihood:
         from scipy.special import gammaln
 
-        # can use autograd, minuit, or scipy
-        use_autograd = False
+        def fnll(v):
+            ypred = func(xdata, *v)
+            if (ypred <= 0.0).any():
+                return 1e6
+            return (
+                ypred.sum() - (ydata * np.log(ypred)).sum() + gammaln(ydata + 1).sum()
+            )
+
+        res = minimize(fnll, popt, method="BFGS")
+        popt = res.x
+        pcov = res.hess_inv
         use_minuit = True
-        if use_autograd:
-            try:
-                from autograd import hessian
-                from autograd.scipy.special import gammaln as gammalna
-                import autograd.numpy as npa
-            except ImportError:
-                raise Exception(
-                    "For likelihood minimization, the 'autograd' module must be installed (`pip install --user autograd`)."
-                )
         if use_minuit:
             try:
                 from iminuit import Minuit
@@ -216,36 +216,10 @@ def curve_fit_wrapper(
                 raise Exception(
                     "For likelihood minimization, the 'iminuit' module must be installed (`pip install --user iminuit`)."
                 )
-
-        def fnll(v):
-            ypred = func(xdata, *v)
-            if (ypred <= 0.0).any():
-                return 1e6
-            if use_autograd:
-                return (
-                    ypred.sum()
-                    - (ydata * npa.log(ypred)).sum()
-                    + gammalna(ydata + 1).sum()
-                )
-            else:
-                return (
-                    ypred.sum()
-                    - (ydata * np.log(ypred)).sum()
-                    + gammaln(ydata + 1).sum()
-                )
-
-        res = minimize(fnll, popt, method="BFGS")
-        popt = res.x
-        if use_autograd:
-            hess = hessian(fnll)(popt)
-            pcov = np.linalg.inv(hess.T)
-        elif use_minuit:
-            m = Minuit.from_array_func(fnll, popt, errordef=0.5)
+            m = Minuit(fnll, popt)
+            m.errordef = 0.5
             m.hesse()
-            pcov = m.np_covariance()
-        else:
-            hess = calculate_hessian(fnll, popt)
-            pcov = np.linalg.inv(hess.T)
+            pcov = m.covariance
     return popt, pcov
 
 

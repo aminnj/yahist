@@ -1,5 +1,5 @@
 numpy
 matplotlib
 scipy
-iminuit<2
+iminuit>=2
 plotly
