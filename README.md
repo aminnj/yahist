@@ -29,6 +29,7 @@ df = pd.DataFrame(np.random.normal(0, 1, size=(10000, 2)), columns=["A", "B"])
 
 h = Hist2D(df, bins=np.linspace(-3, 3, 30))
 h.plot(logz=True, cmap="cividis")
+h.profile("x").plot(color="r", histtype="step")
 ```
 <img src="examples/plot2.png" height="300" width="450"/>
 
@@ -44,8 +45,4 @@ Much more functionality is showcased in the example notebook below.
 
 ```bash
 pip install yahist
-```
-or to install the latest version directly from github
-```bash
-pip install git+git://github.com/aminnj/yahist.git#egg=yahist -U
 ```
