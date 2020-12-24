@@ -744,11 +744,17 @@
             <span class="n">counts</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
         <span class="p">][</span><span class="n">counts</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
 
+        <span class="n">cbtitle</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">xyz</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logz&quot;</span><span class="p">):</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+            <span class="n">cbtitle</span> <span class="o">=</span> <span class="s2">&quot;log10(bin)&quot;</span>
+
         <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span>
             <span class="n">go</span><span class="o">.</span><span class="n">Histogram2d</span><span class="p">(</span>
-                <span class="n">x</span><span class="o">=</span><span class="n">xyz</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
-                <span class="n">y</span><span class="o">=</span><span class="n">xyz</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
-                <span class="n">z</span><span class="o">=</span><span class="n">xyz</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+                <span class="n">z</span><span class="o">=</span><span class="n">z</span><span class="p">,</span>
                 <span class="n">histfunc</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span>
                 <span class="n">xbins</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                     <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
@@ -768,7 +774,7 @@
                     <span class="p">[</span><span class="mf">0.75</span><span class="p">,</span> <span class="s2">&quot;rgb(94, 201, 98)&quot;</span><span class="p">],</span>
                     <span class="p">[</span><span class="mf">1.00</span><span class="p">,</span> <span class="s2">&quot;rgb(253, 231, 37)&quot;</span><span class="p">],</span>
                 <span class="p">],</span>
-                <span class="n">colorbar</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">thicknessmode</span><span class="o">=</span><span class="s2">&quot;fraction&quot;</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="mf">0.04</span><span class="p">,),</span>
+                <span class="n">colorbar</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">thicknessmode</span><span class="o">=</span><span class="s2">&quot;fraction&quot;</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="mf">0.04</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">cbtitle</span><span class="p">),</span>
             <span class="p">),</span>
         <span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
