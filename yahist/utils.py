@@ -219,7 +219,7 @@ def curve_fit_wrapper(
             m = Minuit(fnll, popt)
             m.errordef = 0.5
             m.hesse()
-            pcov = m.covariance
+            pcov = np.array(m.covariance)
     return popt, pcov
 
 
@@ -358,7 +358,15 @@ def fit_hist(
     for name, v, e in zip(parnames, parvalues, parerrors):
         params[name] = dict(value=v, error=e)
 
-    res = wrapper(params=params, chi2=chi2, ndof=ndof, hfit=hfit,)
+    res = wrapper(
+            params=params,
+            parnames=parnames,
+            parvalues=parvalues,
+            parerrors=parerrors,
+            chi2=chi2,
+            ndof=ndof,
+            hfit=hfit,
+            )
 
     if draw:
         if label:
