@@ -705,11 +705,17 @@ class Hist2D(Hist1D):
             counts.flatten(),
         ][counts.flatten() != 0]
 
+        cbtitle = None
+        x, y, z = xyz.T
+        if kwargs.get("logz"):
+            z = np.log10(z)
+            cbtitle = "log10(bin)"
+
         fig = go.Figure(
             go.Histogram2d(
-                x=xyz[:, 0],
-                y=xyz[:, 1],
-                z=xyz[:, 2],
+                x=x,
+                y=y,
+                z=z,
                 histfunc="sum",
                 xbins=dict(
                     start=self.edges[0][0],
@@ -729,7 +735,7 @@ class Hist2D(Hist1D):
                     [0.75, "rgb(94, 201, 98)"],
                     [1.00, "rgb(253, 231, 37)"],
                 ],
-                colorbar=dict(thicknessmode="fraction", thickness=0.04,),
+                colorbar=dict(thicknessmode="fraction", thickness=0.04, title=cbtitle),
             ),
         )
         fig.update_layout(
