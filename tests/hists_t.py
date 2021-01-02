@@ -368,7 +368,23 @@ class Hist2DTest(unittest.TestCase):
         h2 = Hist2D(v, bins="10,-5,5,10,-8,8")
         self.assertEqual(h1, h2)
 
-    def test_reductions(self):
+    def test_profile(self):
+        xs = np.array([0.5, 1.5])
+        ys = np.array([1.5, 0.5])
+        bins = np.array([0, 1, 2])
+        h1 = Hist2D(np.c_[xs, ys], bins=bins)
+        self.assertEqual(h1.profile("x"), h1.profile("y"))
+        self.assertTrue(np.allclose(h1.profile("x").counts, np.array([1.5, 0.5])))
+
+    def test_projection(self):
+        xs = np.array([0.5, 1.5])
+        ys = np.array([1.5, 0.5])
+        bins = np.array([0, 1, 2])
+        h1 = Hist2D(np.c_[xs, ys], bins=bins)
+        self.assertEqual(h1.projection("x"), h1.projection("y"))
+        self.assertTrue(np.allclose(h1.projection("x").counts, np.array([1.0, 1.0])))
+
+    def test_rebin(self):
         xs = np.array([0.5, 1.5])
         ys = np.array([1.5, 0.5])
         bins = np.array([0, 1, 2])
@@ -379,11 +395,10 @@ class Hist2DTest(unittest.TestCase):
         h2 = h1.rebin(2)
         self.assertEqual(h2.nbins, (1, 1))
 
-        self.assertEqual(h1.projection("x"), h1.projection("y"))
-        self.assertEqual(h1.profile("x"), h1.profile("y"))
-
-        self.assertTrue(np.allclose(h1.projection("x").counts, np.array([1.0, 1.0])))
-        self.assertTrue(np.allclose(h1.profile("x").counts, np.array([1.5, 0.5])))
+        bins = [np.array([0, 1, 2]), np.array([0, 1, 2, 3])]
+        h1 = Hist2D(np.c_[xs, ys], bins=bins)
+        self.assertEqual(h1.nbins, (2, 3))
+        self.assertEqual(h1.rebin(2, 3).nbins, (1, 1))
 
     def test_restrict(self):
         xs = [0, 1, 2, 2, 2]

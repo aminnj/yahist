@@ -259,7 +259,7 @@ class Hist2D(Hist1D):
         Hist2D
         """
         ny, nx = self.counts.shape
-        by, bx = (nrebinx, nrebinx) if nrebiny is None else (nrebinx, nrebiny)
+        by, bx = (nrebinx, nrebinx) if nrebiny is None else (nrebiny, nrebinx)
 
         if nx % bx != 0:
             raise Exception(
