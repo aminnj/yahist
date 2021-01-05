@@ -359,14 +359,14 @@ def fit_hist(
         params[name] = dict(value=v, error=e)
 
     res = wrapper(
-            params=params,
-            parnames=parnames,
-            parvalues=parvalues,
-            parerrors=parerrors,
-            chi2=chi2,
-            ndof=ndof,
-            hfit=hfit,
-            )
+        params=params,
+        parnames=parnames,
+        parvalues=parvalues,
+        parerrors=parerrors,
+        chi2=chi2,
+        ndof=ndof,
+        hfit=hfit,
+    )
 
     if draw:
         if label:
@@ -474,3 +474,17 @@ def draw_error_band(h, ax=None, **kwargs):
         ylow = np.concatenate([h.counts - h.errors, h.counts[-1:]])
         yhigh = np.concatenate([h.counts + h.errors, h.counts[-1:]])
     ax.fill_between(h.edges, ylow, yhigh, **opts)
+
+
+def register_with_dask(classes):
+    """
+    Register classes with dask so that it can serialize the underlying
+    numpy arrays a bit faster
+    """
+    try:
+        from distributed.protocol import register_generic
+
+        for c in classes:
+            register_generic(c)
+    except:
+        pass

@@ -4,7 +4,7 @@ import numpy as np
 import copy
 import base64
 
-from .utils import is_listlike, compute_darkness
+from .utils import is_listlike, compute_darkness, ignore_division_errors
 
 from .hist1d import Hist1D
 
@@ -186,6 +186,7 @@ class Hist2D(Hist1D):
             raise Exception("axis parameter must be 'x' or 'y'")
         return self._calculate_projection(iaxis, self._edges[iaxis])
 
+    @ignore_division_errors
     def _calculate_profile(self, counts, errors, edges_to_sum, edges):
         centers = 0.5 * (edges_to_sum[:-1] + edges_to_sum[1:])
         num = np.matmul(counts.T, centers)

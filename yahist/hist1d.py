@@ -214,6 +214,31 @@ class Hist1D(object):
         """
         return (self._errors ** 2.0).sum() ** 0.5
 
+    @property
+    def nbytes(self):
+        """
+        Returns sum of nbytes of underlying numpy arrays
+
+        Returns
+        -------
+        int
+            Number of bytes of underlying numpy arrays
+        """
+        n = self._counts.nbytes + self._errors.nbytes
+        if isinstance(self._edges, tuple):
+            for e in self._edges:
+                n += e.nbytes
+        else:
+            n += self._edges.nbytes
+        if self._errors_up is not None:
+            n += self._errors_up
+        if self._errors_down is not None:
+            n += self._errors_down
+        return n
+
+    def __sizeof__(self):
+        return self.nbytes
+
     def mean(self):
         """
         Returns the mean of the histogram
