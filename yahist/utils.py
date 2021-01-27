@@ -138,9 +138,6 @@ def expr_to_lambda(expr):
     from io import BytesIO
     from tokenize import tokenize, NAME
 
-    if expr == "gaus":
-        expr = "constant * np.exp(-(x-mean)**2./(2*sigma**2))"
-
     varnames = []
     g = list(tokenize(BytesIO(expr.encode("utf-8")).readline))
     for ix, x in enumerate(g):
@@ -197,7 +194,7 @@ def curve_fit_wrapper(
     if func.__defaults__ and len(func.__defaults__) + 1 == func.__code__.co_argcount:
         if "p0" not in kwargs:
             kwargs["p0"] = func.__defaults__
-    tomask = (ydata == 0.0) | np.isnan(ydata)
+    tomask = (ydata == 0.0) | (~np.isfinite(ydata))
     if sigma is not None:
         tomask |= sigma == 0.0
     popt, pcov = curve_fit(
@@ -310,12 +307,17 @@ def fit_hist(
         [hist.edges, np.concatenate([hist.bin_centers, [-1]]),]
     ).T.flatten()[:-1]
 
-    tomask = ((ydata_raw == 0.0) & (yerrs_raw == 0.0) & (not likelihood)) | np.isnan(
-        ydata_raw
+    tomask = ((ydata_raw == 0.0) & (yerrs_raw == 0.0) & (not likelihood)) | (
+        ~np.isfinite(ydata_raw)
     )
     xdata = xdata_raw[~tomask]
     ydata = ydata_raw[~tomask]
     yerrs = yerrs_raw[~tomask]
+
+    if func == "gaus":
+        # gaussian with reasonable initial guesses for parameters
+        def func(x, constant=hist.counts.max(), mean=hist.mean(), sigma=hist.std()):
+            return constant * np.exp(-((x - mean) ** 2.0) / (2 * sigma ** 2))
 
     if type(func) in [str]:
         func = expr_to_lambda(func)
