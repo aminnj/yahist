@@ -33,7 +33,17 @@ h.profile("x").plot(color="r", histtype="step")
 ```
 <img src="examples/plot2.png" height="300" width="450"/>
 
-Much more functionality is showcased in the example notebook below.
+Much more functionality is showcased in the example notebook below, including
+* interactive plots (via `bokeh`)
+* datetime inputs/axes
+* rebinning/subsetting
+* profiling/projecting 2D histograms
+* acceleration of 2D histograms with `numba` (if installed)
+* using the histogram as a lookup function
+* serialization to/from json
+...and more.
+
+
 
 ### Examples ([API docs](https://aminnj.github.io/yahist/))
 

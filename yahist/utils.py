@@ -8,6 +8,20 @@ def is_listlike(obj):
     return (type(obj) in [tuple, list]) or (np.ndim(obj) >= 1)
 
 
+def is_datelike(obj):
+    if hasattr(obj, "dtype"):
+        # return isinstance(obj.dtype.type, (type(np.datetime64),))
+        return obj.dtype.type == np.datetime64
+    else:
+        return False
+
+
+def convert_dates(obj):
+    import matplotlib.dates
+
+    return matplotlib.dates.date2num(obj)
+
+
 def has_uniform_spacing(obj, epsilon=1e-6):
     offsets = np.ediff1d(obj)
     return np.all(offsets - offsets[0] < epsilon)

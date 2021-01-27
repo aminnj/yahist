@@ -8,6 +8,8 @@ import base64
 
 from .utils import (
     is_listlike,
+    is_datelike,
+    convert_dates,
     clopper_pearson_error,
     poisson_errors,
     ignore_division_errors,
@@ -63,8 +65,18 @@ class Hist1D(object):
             nbins, low, high = kwargs["bins"].split(",")
             kwargs["range"] = (float(low), float(high))
             kwargs["bins"] = np.linspace(float(low), float(high), int(nbins) + 1)
+
+        if is_datelike(obj):
+            obj = convert_dates(obj)
+            self._metadata["date_axes"] = ["x"]
+
         if is_listlike(kwargs.get("bins")):
             bins = kwargs["bins"]
+
+            if is_datelike(bins):
+                bins = convert_dates(bins)
+                self._metadata["date_axes"] = ["x"]
+
             if kwargs.pop("overflow", True):
                 clip_low = 0.5 * (bins[0] + bins[1])
                 clip_high = 0.5 * (bins[-2] + bins[-1])
@@ -72,8 +84,8 @@ class Hist1D(object):
             if has_uniform_spacing(bins):
                 # if uniformly spaced, use O(N) algorithm instead of O(NlogN) (binary search/`np.searchsorted`)
                 # inside numpy by specifying number of bins and range
-                kwargs["range"] = (kwargs["bins"][0], kwargs["bins"][-1])
-                kwargs["bins"] = len(kwargs["bins"]) - 1
+                kwargs["range"] = (bins[0], bins[-1])
+                kwargs["bins"] = len(bins) - 1
         else:
             kwargs.pop("overflow", None)
         self._counts, self._edges = np.histogram(obj, **kwargs)
@@ -1057,6 +1069,17 @@ class Hist1D(object):
                     fontsize=counts_fontsize,
                     color=color,
                 )
+
+        if "date_axes" in self.metadata:
+            import matplotlib.dates
+
+            locator = matplotlib.dates.AutoDateLocator()
+            formatter = matplotlib.dates.ConciseDateFormatter(locator)
+            which_axes = self.metadata["date_axes"]
+            if "x" in which_axes:
+                ax.xaxis.set_major_locator(locator)
+                ax.xaxis.set_major_formatter(formatter)
+
         if return_self:
             return self
         else:

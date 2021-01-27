@@ -4,7 +4,13 @@ import numpy as np
 import copy
 import base64
 
-from .utils import is_listlike, compute_darkness, ignore_division_errors
+from .utils import (
+    is_listlike,
+    is_datelike,
+    convert_dates,
+    compute_darkness,
+    ignore_division_errors,
+)
 
 from .hist1d import Hist1D
 
@@ -16,8 +22,10 @@ class Hist2D(Hist1D):
         else:
             if "DataFrame" in str(type(obj)):
                 self._metadata["pandas_labels"] = obj.columns.tolist()[:2]
-                obj = obj.__array__()
-            xs, ys = obj[:, 0], obj[:, 1]
+                xs = obj.iloc[:, 0].values
+                ys = obj.iloc[:, 1].values
+            else:
+                xs, ys = obj[:, 0], obj[:, 1]
 
         if kwargs.pop("norm", False) or kwargs.pop("density", False):
             raise Exception(
@@ -38,19 +46,25 @@ class Hist2D(Hist1D):
                 np.linspace(float(lowy), float(highy), int(nbinsy) + 1),
             ]
 
-        if (
-            kwargs.get("overflow", True)
-            and ("bins" in kwargs)
-            and not isinstance(kwargs["bins"], str)
-        ):
+        if is_datelike(xs):
+            xs = convert_dates(xs)
+            self._metadata["date_axes"] = ["x"]
+
+        if ("bins" in kwargs) and not isinstance(kwargs["bins"], str):
             bins = kwargs["bins"]
             if is_listlike(bins) and len(bins) == 2:
-                clip_low_x = 0.5 * (bins[0][0] + bins[0][1])
-                clip_high_x = 0.5 * (bins[0][-2] + bins[0][-1])
-                clip_low_y = 0.5 * (bins[1][0] + bins[1][1])
-                clip_high_y = 0.5 * (bins[1][-2] + bins[1][-1])
-                xs = np.clip(xs, clip_low_x, clip_high_x)
-                ys = np.clip(ys, clip_low_y, clip_high_y)
+
+                if is_datelike(bins[0]):
+                    bins[0] = convert_dates(bins[0])
+                    self._metadata["date_axes"] = ["x"]
+
+                if kwargs.get("overflow", True):
+                    clip_low_x = 0.5 * (bins[0][0] + bins[0][1])
+                    clip_high_x = 0.5 * (bins[0][-2] + bins[0][-1])
+                    clip_low_y = 0.5 * (bins[1][0] + bins[1][1])
+                    clip_high_y = 0.5 * (bins[1][-2] + bins[1][-1])
+                    xs = np.clip(xs, clip_low_x, clip_high_x)
+                    ys = np.clip(ys, clip_low_y, clip_high_y)
 
         counts, edgesx, edgesy = _np_histogram2d_wrapper(xs, ys, **kwargs)
         # each row = constant y, lowest y on top
@@ -658,6 +672,16 @@ class Hist2D(Hist1D):
             xlabel, ylabel = self.metadata["pandas_labels"]
             ax.set_xlabel(xlabel)
             ax.set_ylabel(ylabel)
+
+        if "date_axes" in self.metadata:
+            import matplotlib.dates
+
+            locator = matplotlib.dates.AutoDateLocator()
+            formatter = matplotlib.dates.ConciseDateFormatter(locator)
+            which_axes = self.metadata["date_axes"]
+            if "x" in which_axes:
+                ax.xaxis.set_major_locator(locator)
+                ax.xaxis.set_major_formatter(formatter)
 
         if show_counts:
             xcenters, ycenters = self.bin_centers
