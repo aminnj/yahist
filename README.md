@@ -34,6 +34,7 @@ h.profile("x").plot(color="r", histtype="step")
 <img src="examples/plot2.png" height="300" width="450"/>
 
 Much more functionality is showcased in the example notebook below, including
+* fitting (chi2 or likelihood)
 * interactive plots (via `bokeh`)
 * datetime inputs/axes
 * rebinning/subsetting
