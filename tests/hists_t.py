@@ -408,6 +408,22 @@ class Hist2DTest(unittest.TestCase):
         self.assertEqual(h.integral, 3.0)
         self.assertEqual(h.nbins, (3, 2))
 
+    def test_cumulativelookup(self):
+        h = Hist2D.from_random(bins="5,0,5")
+        self.assertEqual(h.cumulative().counts.max(), h.integral)
+        self.assertEqual(
+            h.cumulative(forwardx=True, forwardy=True).lookup(4.9, 4.9), h.integral
+        )
+        self.assertEqual(
+            h.cumulative(forwardx=False, forwardy=False).lookup(0.1, 0.1), h.integral
+        )
+        self.assertEqual(
+            h.cumulative(forwardx=True, forwardy=False).lookup(4.9, 0.1), h.integral
+        )
+        self.assertEqual(
+            h.cumulative(forwardx=False, forwardy=True).lookup(0.1, 4.9), h.integral
+        )
+
     def test_fromrandom(self):
         mus = [0, 0]
         cov = [[1, 0], [0, 1]]

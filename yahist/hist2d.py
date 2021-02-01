@@ -354,6 +354,63 @@ class Hist2D(Hist1D):
         h._errors = h._errors[binsels[1], :][:, binsels[0]]
         return h
 
+    def cumulative(self, forwardx=True, forwardy=True):
+        """
+        Turns Hist object into one with cumulative counts.
+
+        Parameters
+        ----------
+        forwardx : bool, default True
+            If true, sum the x-axis from low to high, otherwise high to low
+        forwardy : bool, default True
+            If true, sum the y-axis from low to high, otherwise high to low
+
+        Returns
+        -------
+        Hist2D
+        """
+        hnew = self.copy()
+        # x
+        directionx = 1 if forwardx else -1
+        hnew._counts = hnew._counts[:, ::directionx].cumsum(axis=1)[:, ::directionx]
+        hnew._errors = (hnew._errors[:, ::directionx] ** 2.0).cumsum(axis=1)[
+            :, ::directionx
+        ] ** 0.5
+        # y
+        directiony = 1 if forwardy else -1
+        hnew._counts = hnew._counts[::directiony, :].cumsum(axis=0)[::directiony, :]
+        hnew._errors = (hnew._errors[::directiony, :] ** 2.0).cumsum(axis=0)[
+            ::directiony, :
+        ] ** 0.5
+        return hnew
+
+    def lookup(self, x, y):
+        """
+        Convert a specified list of x-values and y-values into corresponding
+        bin counts via `np.digitize`
+
+        Parameters
+        ----------
+        x : array of y-values, or single y-value
+        y : array of y-values, or single y-value
+
+        Returns
+        -------
+        array
+        """
+        ibins = []
+        for axis, vals in enumerate([x, y]):
+            low = self.edges[axis][0] + self.bin_widths[axis][0] * 0.5
+            low = 0.5 * (self.edges[axis][0] + self.edges[axis][1])
+            high = 0.5 * (self.edges[axis][-1] + self.edges[axis][-2])
+            vals = np.clip(vals, low, high)
+            ibins.append(np.digitize(vals, bins=self.edges[axis]) - 1)
+        ibins = tuple(ibins)[::-1]
+        return self.counts[ibins]
+
+    def sample(self):
+        raise NotImplementedError
+
     def svg_fast(self, height=250, aspectratio=1.4, interactive=True):
         """
         Return HTML svg tag with bare-bones version of histogram
@@ -846,7 +903,7 @@ except:
 
 
 def _np_histogram2d_wrapper(x, y, overflow=True, **kwargs):
-    if kwargs.pop("allow_numba", True) and HAS_NUMBA and (len(x) > 1e4):
+    if kwargs.pop("allow_numba", True) and HAS_NUMBA and (len(x) > 1e5):
         bins = kwargs.get("bins", None)
         # check if `bins` is a 2 element list of lists (x bins, y bins)
         if is_listlike(bins) and (len(bins) == 2) and (is_listlike(bins[0])):
