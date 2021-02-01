@@ -640,16 +640,9 @@ class Hist1D(object):
         -------
         array
         """
-        # construct CDF and its inverse
-        hcdf = self.normalize().cumulative()
-        hcdfinv = Hist1D.from_bincounts(
-            counts=hcdf.bin_centers,
-            bins=np.concatenate([[0.0], hcdf.counts]),
-            errors=0.0 * hcdf.counts,
-        )
-        # sample [0.,1.] and use these to lookup the bin content of the inv CDF
-        v = hcdfinv.lookup(np.random.random_sample(size=int(size)))
-        return v
+        cdf = self.normalize().cumulative().counts
+        ibins = np.searchsorted(cdf, np.random.rand(int(size)))
+        return self.bin_centers[ibins]
 
     def svg_fast(
         self,
