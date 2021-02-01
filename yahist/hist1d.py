@@ -203,6 +203,19 @@ class Hist1D(object):
         return len(self._edges) - 1
 
     @property
+    def dim(self):
+        """
+        Returns the number of dimensions.
+        Hist1D returns 1, Hist2D returns 2
+
+        Returns
+        -------
+        int
+            Number of dimensions
+        """
+        return self._counts.ndim
+
+    @property
     def integral(self):
         """
         Returns the integral of the histogram (sum of counts).
@@ -579,7 +592,7 @@ class Hist1D(object):
         Parameters
         ----------
         forward : bool, default True
-            If true, sum from the left, otherwise from the right.
+            If true, sum the x-axis from low to high, otherwise high to low
 
         Returns
         -------
@@ -997,7 +1010,7 @@ class Hist1D(object):
 
         kwargs["color"] = kwargs.get("color", self.metadata.get("color"))
         kwargs["label"] = kwargs.get("label", self.metadata.get("label"))
-        kwargs["histtype"] = kwargs.get("histtype", "stepfilled")
+        kwargs["histtype"] = kwargs.get("histtype", "step")
         legend = kwargs.pop("legend", True)
         show_counts = kwargs.pop("show_counts", False)
         show_errors = kwargs.pop("show_errors", False)
