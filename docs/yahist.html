@@ -94,13 +94,28 @@
 <dd><p>Turns Hist object into one with cumulative counts.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>forward</strong> (<em>bool</em><em>, </em><em>default True</em>) – If true, sum from the left, otherwise from the right.</p>
+<dd class="field-odd"><p><strong>forward</strong> (<em>bool</em><em>, </em><em>default True</em>) – If true, sum the x-axis from low to high, otherwise high to low</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#yahist.hist1d.Hist1D" title="yahist.hist1d.Hist1D">Hist1D</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="yahist.hist1d.Hist1D.dim">
+<em class="property">property </em><code class="sig-name descname">dim</code><a class="headerlink" href="#yahist.hist1d.Hist1D.dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of dimensions.
+Hist1D returns 1, Hist2D returns 2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of dimensions</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -329,6 +344,20 @@ bin counts via <cite>np.digitize</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Number of bins</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="yahist.hist1d.Hist1D.nbytes">
+<em class="property">property </em><code class="sig-name descname">nbytes</code><a class="headerlink" href="#yahist.hist1d.Hist1D.nbytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns sum of nbytes of underlying numpy arrays</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of bytes of underlying numpy arrays</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>int</p>
@@ -610,6 +639,26 @@ the <cite>errors_up</cite> and <cite>errors_down</cite> properties.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="yahist.hist2d.Hist2D.cumulative">
+<code class="sig-name descname">cumulative</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">forwardx</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">forwardy</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.cumulative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.cumulative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turns Hist object into one with cumulative counts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>forwardx</strong> (<em>bool</em><em>, </em><em>default True</em>) – If true, sum the x-axis from low to high, otherwise high to low</p></li>
+<li><p><strong>forwardy</strong> (<em>bool</em><em>, </em><em>default True</em>) – If true, sum the y-axis from low to high, otherwise high to low</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#yahist.hist2d.Hist2D" title="yahist.hist2d.Hist2D">Hist2D</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="yahist.hist2d.Hist2D.html_table">
 <code class="sig-name descname">html_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.html_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.html_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return dummy HTML table tag.</p>
@@ -619,6 +668,27 @@ the <cite>errors_up</cite> and <cite>errors_down</cite> properties.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="yahist.hist2d.Hist2D.lookup">
+<code class="sig-name descname">lookup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.lookup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a specified list of x-values and y-values into corresponding
+bin counts via <cite>np.digitize</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array of y-values</em><em>, or </em><em>single y-value</em>) – </p></li>
+<li><p><strong>y</strong> (<em>array of y-values</em><em>, or </em><em>single y-value</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
 </dd>
 </dl>
 </dd></dl>
@@ -763,6 +833,24 @@ is <cite>None</cite>, the specified direction will be unbounded.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="yahist.hist2d.Hist2D.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of random samples according
+to a discrete pdf from this histogram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>size</strong> (<em>int/float</em><em>, </em><em>1e5</em>) – Number of random values to sample</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="yahist.hist2d.Hist2D.svg">
 <code class="sig-name descname">svg</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.svg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.svg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return HTML svg tag with Matplotlib-rendered svg.</p>
@@ -847,6 +935,11 @@ location x0</p>
 <dl class="py function">
 <dt id="yahist.utils.compute_darkness">
 <code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">compute_darkness</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">g</span></em>, <em class="sig-param"><span class="n">b</span></em>, <em class="sig-param"><span class="n">a</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#compute_darkness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.compute_darkness" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="yahist.utils.convert_dates">
+<code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">convert_dates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#convert_dates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.convert_dates" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -954,6 +1047,11 @@ is empty.</p></li>
 <dd></dd></dl>
 
 <dl class="py function">
+<dt id="yahist.utils.is_datelike">
+<code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">is_datelike</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#is_datelike"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.is_datelike" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="yahist.utils.is_listlike">
 <code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">is_listlike</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#is_listlike"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.is_listlike" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -981,6 +1079,13 @@ is empty.</p></li>
 <dt id="yahist.utils.poisson_errors">
 <code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">poisson_errors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">0.3173</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#poisson_errors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.poisson_errors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return poisson low and high values for a series of data observations</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="yahist.utils.register_with_dask">
+<code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">register_with_dask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">classes</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#register_with_dask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.register_with_dask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register classes with dask so that it can serialize the underlying
+numpy arrays a bit faster</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1054,7 +1159,7 @@ is empty.</p></li>
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2020, Author.
+        &#169; Copyright 2021, Author.
       Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>

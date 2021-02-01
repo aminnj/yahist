@@ -43,7 +43,13 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">base64</span>
 
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">is_listlike</span><span class="p">,</span> <span class="n">compute_darkness</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">is_listlike</span><span class="p">,</span>
+    <span class="n">is_datelike</span><span class="p">,</span>
+    <span class="n">convert_dates</span><span class="p">,</span>
+    <span class="n">compute_darkness</span><span class="p">,</span>
+    <span class="n">ignore_division_errors</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">.hist1d</span> <span class="kn">import</span> <span class="n">Hist1D</span>
 
@@ -55,8 +61,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="s2">&quot;DataFrame&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s2">&quot;pandas_labels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>
-                <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">__array__</span><span class="p">()</span>
-            <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">obj</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">xs</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+                <span class="n">ys</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">obj</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;norm&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
@@ -77,19 +85,25 @@
                 <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lowy</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">highy</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">nbinsy</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
             <span class="p">]</span>
 
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;overflow&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-            <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;bins&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span>
-            <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span>
-        <span class="p">):</span>
+        <span class="k">if</span> <span class="n">is_datelike</span><span class="p">(</span><span class="n">xs</span><span class="p">):</span>
+            <span class="n">xs</span> <span class="o">=</span> <span class="n">convert_dates</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s2">&quot;date_axes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;bins&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">bins</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="n">clip_low_x</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
-                <span class="n">clip_high_x</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-                <span class="n">clip_low_y</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
-                <span class="n">clip_high_y</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-                <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">clip_low_x</span><span class="p">,</span> <span class="n">clip_high_x</span><span class="p">)</span>
-                <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">clip_low_y</span><span class="p">,</span> <span class="n">clip_high_y</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">is_datelike</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                    <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">convert_dates</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s2">&quot;date_axes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;overflow&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+                    <span class="n">clip_low_x</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">clip_high_x</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">clip_low_y</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">clip_high_y</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">clip_low_x</span><span class="p">,</span> <span class="n">clip_high_x</span><span class="p">)</span>
+                    <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">clip_low_y</span><span class="p">,</span> <span class="n">clip_high_y</span><span class="p">)</span>
 
         <span class="n">counts</span><span class="p">,</span> <span class="n">edgesx</span><span class="p">,</span> <span class="n">edgesy</span> <span class="o">=</span> <span class="n">_np_histogram2d_wrapper</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># each row = constant y, lowest y on top</span>
@@ -225,6 +239,7 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;axis parameter must be &#39;x&#39; or &#39;y&#39;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_projection</span><span class="p">(</span><span class="n">iaxis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">iaxis</span><span class="p">])</span></div>
 
+    <span class="nd">@ignore_division_errors</span>
     <span class="k">def</span> <span class="nf">_calculate_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">edges_to_sum</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
         <span class="n">centers</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">edges_to_sum</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">edges_to_sum</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
         <span class="n">num</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">centers</span><span class="p">)</span>
@@ -298,7 +313,7 @@
 <span class="sd">        Hist2D</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ny</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="o">.</span><span class="n">shape</span>
-        <span class="n">by</span><span class="p">,</span> <span class="n">bx</span> <span class="o">=</span> <span class="p">(</span><span class="n">nrebinx</span><span class="p">,</span> <span class="n">nrebinx</span><span class="p">)</span> <span class="k">if</span> <span class="n">nrebiny</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="n">nrebinx</span><span class="p">,</span> <span class="n">nrebiny</span><span class="p">)</span>
+        <span class="n">by</span><span class="p">,</span> <span class="n">bx</span> <span class="o">=</span> <span class="p">(</span><span class="n">nrebinx</span><span class="p">,</span> <span class="n">nrebinx</span><span class="p">)</span> <span class="k">if</span> <span class="n">nrebiny</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="n">nrebiny</span><span class="p">,</span> <span class="n">nrebinx</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">nx</span> <span class="o">%</span> <span class="n">bx</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
@@ -377,6 +392,63 @@
         <span class="n">h</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">_counts</span><span class="p">[</span><span class="n">binsels</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">:][:,</span> <span class="n">binsels</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="n">h</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">_errors</span><span class="p">[</span><span class="n">binsels</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">:][:,</span> <span class="n">binsels</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="k">return</span> <span class="n">h</span></div>
+
+<div class="viewcode-block" id="Hist2D.cumulative"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.cumulative">[docs]</a>    <span class="k">def</span> <span class="nf">cumulative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">forwardx</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">forwardy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Turns Hist object into one with cumulative counts.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        forwardx : bool, default True</span>
+<span class="sd">            If true, sum the x-axis from low to high, otherwise high to low</span>
+<span class="sd">        forwardy : bool, default True</span>
+<span class="sd">            If true, sum the y-axis from low to high, otherwise high to low</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Hist2D</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hnew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># x</span>
+        <span class="n">directionx</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">forwardx</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span><span class="p">[:,</span> <span class="p">::</span><span class="n">directionx</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="p">::</span><span class="n">directionx</span><span class="p">]</span>
+        <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="p">(</span><span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span><span class="p">[:,</span> <span class="p">::</span><span class="n">directionx</span><span class="p">]</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span>
+            <span class="p">:,</span> <span class="p">::</span><span class="n">directionx</span>
+        <span class="p">]</span> <span class="o">**</span> <span class="mf">0.5</span>
+        <span class="c1"># y</span>
+        <span class="n">directiony</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">forwardy</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span><span class="p">[::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="p">(</span><span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span><span class="p">[::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:]</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span>
+            <span class="p">::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:</span>
+        <span class="p">]</span> <span class="o">**</span> <span class="mf">0.5</span>
+        <span class="k">return</span> <span class="n">hnew</span></div>
+
+<div class="viewcode-block" id="Hist2D.lookup"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.lookup">[docs]</a>    <span class="k">def</span> <span class="nf">lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert a specified list of x-values and y-values into corresponding</span>
+<span class="sd">        bin counts via `np.digitize`</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : array of y-values, or single y-value</span>
+<span class="sd">        y : array of y-values, or single y-value</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ibins</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]):</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_widths</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.5</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">high</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">)</span>
+            <span class="n">ibins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">axis</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ibins</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ibins</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">ibins</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Hist2D.sample"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="Hist2D.svg_fast"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.svg_fast">[docs]</a>    <span class="k">def</span> <span class="nf">svg_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">aspectratio</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -697,6 +769,16 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="s2">&quot;date_axes&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">matplotlib.dates</span>
+
+            <span class="n">locator</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">dates</span><span class="o">.</span><span class="n">AutoDateLocator</span><span class="p">()</span>
+            <span class="n">formatter</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">dates</span><span class="o">.</span><span class="n">ConciseDateFormatter</span><span class="p">(</span><span class="n">locator</span><span class="p">)</span>
+            <span class="n">which_axes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;date_axes&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;x&quot;</span> <span class="ow">in</span> <span class="n">which_axes</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">locator</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">show_counts</span><span class="p">:</span>
             <span class="n">xcenters</span><span class="p">,</span> <span class="n">ycenters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_centers</span>
             <span class="k">if</span> <span class="n">equidistant</span><span class="p">:</span>
@@ -860,7 +942,7 @@
 
 
 <span class="k">def</span> <span class="nf">_np_histogram2d_wrapper</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;allow_numba&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">HAS_NUMBA</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e4</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;allow_numba&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">HAS_NUMBA</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e5</span><span class="p">):</span>
         <span class="n">bins</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bins&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="c1"># check if `bins` is a 2 element list of lists (x bins, y bins)</span>
         <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
@@ -914,7 +996,7 @@
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2020, Author.
+        &#169; Copyright 2021, Author.
       Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
