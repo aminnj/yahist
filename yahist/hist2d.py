@@ -408,6 +408,52 @@ class Hist2D(Hist1D):
         ibins = tuple(ibins)[::-1]
         return self.counts[ibins]
 
+    def smooth(self, window=3, ntimes=3):
+        """
+        Returns a smoothed Hist2D via
+        convolution with three kernels used by
+        https://root.cern.ch/doc/master/TH2_8cxx_source.html#l02600
+
+        Parameters
+        ----------
+        window : int (default 3)
+            Kernel size (1, 3, 5 supported)
+        ntimes : int (default 3)
+            Number of times to repeat smoothing
+
+        Returns
+        -------
+        Hist2D
+        """
+        from scipy.signal import convolve2d
+
+        kernels = {
+            1: np.array([
+                [1],
+            ]),
+            3: np.array([
+                [0,1,0],
+                [1,2,1],
+                [0,1,0],
+            ]),
+            5: np.array([
+                [0,0,1,0,0],
+                [0,2,2,2,0],
+                [1,2,5,2,1],
+                [0,2,2,2,0],
+                [0,0,1,0,0],
+            ]),
+        }
+        kernel = kernels.get(window)
+        if kernel is None:
+            raise Exception(f"Window/kernel size {window} not supported. Supported sizes: {kernels.keys()}")
+        kernel = kernel/kernel.sum()
+        h = self.copy()
+        for _ in range(ntimes):
+            h._counts = convolve2d(h._counts, kernel, mode="same")
+            h._errors = convolve2d(h._errors, kernel, mode="same")
+        return h
+
     def sample(self):
         raise NotImplementedError
 
