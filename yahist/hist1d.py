@@ -964,10 +964,14 @@ class Hist1D(object):
         ----------
         ax : matplotlib AxesSubplot object, default None
             matplotlib AxesSubplot object. Created if `None`.
+        counts
+            Alias for `show_counts`
         counts_fmt_func : function, default "{:3g}".format
             Function used to format count labels
         counts_fontsize
             Font size of count labels
+        errors
+            Alias for `show_errors`
         fmt : str, default "o"
             `fmt` kwarg used for matplotlib plotting
         gradient : bool, default False
@@ -1005,8 +1009,8 @@ class Hist1D(object):
         kwargs["label"] = kwargs.get("label", self.metadata.get("label"))
         kwargs["histtype"] = kwargs.get("histtype", "step")
         legend = kwargs.pop("legend", True)
-        show_counts = kwargs.pop("show_counts", False)
-        show_errors = kwargs.pop("show_errors", False)
+        show_counts = kwargs.pop("show_counts", kwargs.pop("counts", False))
+        show_errors = kwargs.pop("show_errors", kwargs.pop("errors", False))
         counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
         counts_fontsize = kwargs.pop("counts_fontsize", 10)
         gradient = kwargs.pop("gradient", False)

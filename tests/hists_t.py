@@ -420,6 +420,13 @@ class Hist2DTest(unittest.TestCase):
         self.assertEqual(h.lookup(2+1, 2), h.lookup(2-1, 2))
         self.assertEqual(h.lookup(2, 2+1), h.lookup(2, 2-1))
 
+    def test_sample(self):
+        h1 = Hist2D.from_random(size=1e5)
+        h2 = Hist2D(h1.sample(1e5), bins=h1.edges)
+        result = (h1.projection()/h2.projection()).fit("a+b*x")
+        slope = result["params"]["b"]
+        self.assertTrue(abs(slope["error"]) > abs(slope["value"]))
+
 
     def test_cumulativelookup(self):
         h = Hist2D.from_random(bins="5,0,5")

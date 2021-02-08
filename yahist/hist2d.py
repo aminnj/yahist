@@ -177,27 +177,27 @@ class Hist2D(Hist1D):
         hnew._edges = edges
         return hnew
 
-    def projection(self, axis):
+    def projection(self, axis="x"):
         """
         Returns the x-projection of the 2d histogram by
         summing over the y-axis.
 
         Parameters
         ----------
-        axis : str
-            if "x", return the x-projection (summing over y-axis)
-            if "y", return the y-projection (summing over x-axis)
+        axis : str/int (default "x")
+            if "x" or 0, return the x-projection (summing over y-axis)
+            if "y" or 1, return the y-projection (summing over x-axis)
 
         Returns
         -------
         Hist1D
         """
-        if axis == "x":
+        if axis in [0, "x"]:
             iaxis = 0
-        elif axis == "y":
+        elif axis in [1, "y"]:
             iaxis = 1
         else:
-            raise Exception("axis parameter must be 'x' or 'y'")
+            raise Exception("axis parameter must be 'x'/0 or 'y'/1")
         return self._calculate_projection(iaxis, self._edges[iaxis])
 
     @ignore_division_errors
@@ -215,30 +215,30 @@ class Hist2D(Hist1D):
         hnew._edges = edges
         return hnew
 
-    def profile(self, axis):
+    def profile(self, axis="x"):
         """
         Returns the x-profile of the 2d histogram by
         calculating the weighted mean over the y-axis.
 
         Parameters
         ----------
-        axis : str
-            if "x", return the x-profile (mean over y-axis)
-            if "y", return the y-profile (mean over x-axis)
+        axis : str/int (default "x")
+            if "x" or 0, return the x-profile (mean over y-axis)
+            if "y" or 1, return the y-profile (mean over x-axis)
 
         Returns
         -------
         Hist1D
         """
         xedges, yedges = self._edges
-        if axis == "x":
+        if axis in [0, "x"]:
             return self._calculate_profile(self._counts, self._errors, yedges, xedges)
-        elif axis == "y":
+        elif axis in [1, "y"]:
             return self._calculate_profile(
                 self._counts.T, self._errors.T, xedges, yedges
             )
         else:
-            raise Exception("axis parameter must be 'x' or 'y'")
+            raise Exception("axis parameter must be 'x'/0 or 'y'/1")
 
     def transpose(self):
         """
@@ -447,15 +447,46 @@ class Hist2D(Hist1D):
         kernel = kernels.get(window)
         if kernel is None:
             raise Exception(f"Window/kernel size {window} not supported. Supported sizes: {kernels.keys()}")
-        kernel = kernel/kernel.sum()
         h = self.copy()
         for _ in range(ntimes):
-            h._counts = convolve2d(h._counts, kernel, mode="same")
-            h._errors = convolve2d(h._errors, kernel, mode="same")
+            h._counts = convolve2d(h._counts, kernel, mode="same") / kernel.sum()
+            h._errors = convolve2d(h._errors**2., kernel, mode="same")**0.5 / kernel.sum()
         return h
 
-    def sample(self):
-        raise NotImplementedError
+    def sample(self, size=1e5):
+        """
+        Returns a 2-column array of random samples according
+        to a discrete pdf from this histogram.
+
+        >>> h1 = Hist2D.from_random()
+        >>> h2 = Hist2D(h1.sample(100), bins=h1.edges)
+
+        Parameters
+        ----------
+        size : int/float, 1e5
+            Number of random values to sample
+
+        Returns
+        -------
+        array
+        """
+        counts = self.counts
+        xcenters, ycenters = self.bin_centers
+
+        # triplets of (x bin center, y bin center, count)
+        xyz = np.c_[
+            np.tile(xcenters, len(ycenters)),
+            np.repeat(ycenters, len(xcenters)),
+            counts.flatten(),
+        ][counts.flatten() != 0]
+
+        idx = np.arange(len(xyz))
+        probs = xyz[:,2]/xyz[:,2].sum()
+        sampled_idx = np.random.choice(idx, size=int(size), p=probs)
+        xy = xyz[sampled_idx][:,[0,1]]
+
+        return xy
+
 
     def svg_fast(self, height=250, aspectratio=1.4, interactive=True):
         """
@@ -688,6 +719,8 @@ class Hist2D(Hist1D):
             matplotlib AxesSubplot object. Created if `None`.
         fig : matplotlib Figure object, default None
             matplotlib Figure object. Created if `None`.
+        counts
+            Alias for `show_counts`
         counts_fmt_func : function, default "{:3g}".format
             Function used to format count labels
         counts_fontsize
@@ -734,7 +767,7 @@ class Hist2D(Hist1D):
         counts = self._counts
         xedges, yedges = self._edges
 
-        show_counts = kwargs.pop("show_counts", False)
+        show_counts = kwargs.pop("show_counts", kwargs.pop("counts", False))
         colorbar = kwargs.pop("colorbar", True)
         hide_empty = kwargs.pop("hide_empty", True)
         counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)

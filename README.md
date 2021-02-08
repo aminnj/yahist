@@ -17,7 +17,7 @@ h = (Hist1D(np.random.normal(0, 1, 1000), bins=100, label="data")
      .rebin(2)
      .normalize()
     )
-h.plot(show_errors=True, color="k")
+h.plot(errors=True, color="k")
 h.fit("peak * np.exp(-(x-mu)**2 / (2*sigma**2))")
 ```
 <img src="examples/plot1.png" height="300" width="450"/>
@@ -27,9 +27,9 @@ import pandas as pd
 
 df = pd.DataFrame(np.random.normal(0, 1, size=(10000, 2)), columns=["A", "B"])
 
-h = Hist2D(df, bins=np.linspace(-3, 3, 30))
+h = Hist2D(df, bins="30,-3,3")
 h.plot(logz=True, cmap="cividis")
-h.profile("x").plot(color="r", histtype="step")
+h.profile("x").plot(color="r")
 ```
 <img src="examples/plot2.png" height="300" width="450"/>
 
