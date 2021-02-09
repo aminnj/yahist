@@ -27,6 +27,9 @@ class Hist2D(Hist1D):
             else:
                 xs, ys = obj[:, 0], obj[:, 1]
 
+        if ("weights" in kwargs) and (kwargs["weights"] is None):
+            kwargs.pop("weights")
+
         if kwargs.pop("norm", False) or kwargs.pop("density", False):
             raise Exception(
                 "Please use the .normalize() method on the histogram object."

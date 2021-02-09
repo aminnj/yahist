@@ -1,6 +1,7 @@
 import unittest
 
 import numpy as np
+
 from yahist import Hist1D, Hist2D, utils
 import os
 
@@ -186,6 +187,11 @@ class Hist1DTest(unittest.TestCase):
         self.assertTrue(np.allclose(h.counts, np.array([2.0, 4.0])))
         self.assertTrue(np.allclose(h.errors, np.array([2.0 ** 0.5, 8 ** 0.5])))
 
+    def test_weight_inputs(self):
+        v = np.array([0.5, 0.5, 1.5, 1.5])
+        h = Hist1D(v, weights=None)
+        self.assertEqual(h.integral, 4)
+
     def test_nonuniform_binning(self):
         bins = np.array([0, 1, 10, 100, 1000])
         centers = np.array([0.5, 5.5, 55, 550])
@@ -354,7 +360,7 @@ class Hist2DTest(unittest.TestCase):
 
         self.assertEqual(h1, h1.transpose())
 
-    def test_basic(self):
+    def test_equality(self):
         v = np.random.normal(0, 1, size=(1000, 2))
         h1 = Hist2D(v, bins=np.linspace(-5, 5, 11))
         h2 = Hist2D(v, bins=[np.linspace(-5, 5, 11), np.linspace(-5, 5, 11)])
@@ -367,6 +373,11 @@ class Hist2DTest(unittest.TestCase):
         h1 = Hist2D(v, bins=[np.linspace(-5, 5, 11), np.linspace(-8, 8, 11)])
         h2 = Hist2D(v, bins="10,-5,5,10,-8,8")
         self.assertEqual(h1, h2)
+
+    def test_weight_inputs(self):
+        v = np.array([0.5, 0.5, 1.5, 1.5])
+        h = Hist2D(np.c_[v,v], weights=None)
+        self.assertEqual(h.integral, 4)
 
     def test_profile(self):
         xs = np.array([0.5, 1.5])

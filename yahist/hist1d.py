@@ -51,6 +51,9 @@ class Hist1D(object):
     def _init_numpy(self, obj, **kwargs):
         kwargs["bins"] = kwargs.get("bins", "auto")
 
+        if ("weights" in kwargs) and (kwargs["weights"] is None):
+            kwargs.pop("weights")
+
         if kwargs.pop("norm", False) or kwargs.pop("density", False):
             raise Exception(
                 "Please use the .normalize() [.normalize(density=True)] method on the histogram object."
