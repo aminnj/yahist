@@ -411,7 +411,7 @@ class Hist2D(Hist1D):
         ibins = tuple(ibins)[::-1]
         return self.counts[ibins]
 
-    def smooth(self, window=3, ntimes=3):
+    def smooth(self, ntimes=3, window=3):
         """
         Returns a smoothed Hist2D via
         convolution with three kernels used by
@@ -419,10 +419,10 @@ class Hist2D(Hist1D):
 
         Parameters
         ----------
-        window : int (default 3)
-            Kernel size (1, 3, 5 supported)
         ntimes : int (default 3)
             Number of times to repeat smoothing
+        window : int (default 3)
+            Kernel size (1, 3, 5 supported)
 
         Returns
         -------
