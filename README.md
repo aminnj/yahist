@@ -4,6 +4,14 @@
 [![Documentation Status](https://readthedocs.org/projects/pip/badge/?version=latest)](https://aminnj.github.io/yahist/)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aminnj/yahist/master?filepath=examples%2Fbasic.ipynb)
 
+```bash
+pip install yahist
+```
+
+### Examples ([API docs](https://aminnj.github.io/yahist/))
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aminnj/yahist/master?filepath=examples%2Fbasic.ipynb)
+(static [nbviewer](https://nbviewer.jupyter.org/url/github.com/aminnj/yahist/blob/master/examples/basic.ipynb) if Binder is slow)
+
 
 ### Overview
 
@@ -47,14 +55,4 @@ Much more functionality is showcased in the example notebook below, including
 
 
 
-### Examples ([API docs](https://aminnj.github.io/yahist/))
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aminnj/yahist/master?filepath=examples%2Fbasic.ipynb)
-
-(static [nbviewer](https://nbviewer.jupyter.org/url/github.com/aminnj/yahist/blob/master/examples/basic.ipynb) if Binder is slow)
-
-### Installation
-
-```bash
-pip install yahist
-```
