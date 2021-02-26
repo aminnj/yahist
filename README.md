@@ -41,7 +41,7 @@ h.profile("x").plot(color="r")
 ```
 <img src="examples/plot2.png" height="300" width="450"/>
 
-Much more functionality is showcased in the example notebook below, including
+Much more functionality is showcased in the example notebook, including
 * fitting (chi2 or likelihood)
 * interactive plots (via `bokeh`)
 * datetime inputs/axes
