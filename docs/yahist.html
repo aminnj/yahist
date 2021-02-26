@@ -193,14 +193,15 @@ is empty.</p></li>
 
 <dl class="py method">
 <dt id="yahist.hist1d.Hist1D.from_bincounts">
-<em class="property">classmethod </em><code class="sig-name descname">from_bincounts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">counts</span></em>, <em class="sig-param"><span class="n">bins</span></em>, <em class="sig-param"><span class="n">errors</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.from_bincounts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.from_bincounts" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_bincounts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">counts</span></em>, <em class="sig-param"><span class="n">bins</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">errors</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.from_bincounts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.from_bincounts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates histogram object from array of histogrammed counts,
 edges/bins, and optionally errors.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>counts</strong> (<em>array</em>) – Array of bin counts</p></li>
-<li><p><strong>bins</strong> (<em>array</em>) – Array of bin edges</p></li>
+<li><p><strong>bins</strong> (<em>array</em><em>, </em><em>default None</em>) – Array of bin edges. If not specified for Hist1D,
+uses <cite>bins = np.arange(len(counts)+1)</cite>.</p></li>
 <li><p><strong>errors</strong> (<em>array</em><em>, </em><em>default None</em>) – Array of bin errors (optional)</p></li>
 </ul>
 </dd>
@@ -389,8 +390,10 @@ function, or <cite>errorbar</cite>.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ax</strong> (<em>matplotlib AxesSubplot object</em><em>, </em><em>default None</em>) – matplotlib AxesSubplot object. Created if <cite>None</cite>.</p></li>
+<li><p><strong>counts</strong> – Alias for <cite>show_counts</cite></p></li>
 <li><p><strong>counts_fmt_func</strong> (<em>function</em><em>, </em><em>default &quot;{:3g}&quot;.format</em>) – Function used to format count labels</p></li>
 <li><p><strong>counts_fontsize</strong> – Font size of count labels</p></li>
+<li><p><strong>errors</strong> – Alias for <cite>show_errors</cite></p></li>
 <li><p><strong>fmt</strong> (<em>str</em><em>, </em><em>default &quot;o&quot;</em>) – <cite>fmt</cite> kwarg used for matplotlib plotting</p></li>
 <li><p><strong>gradient</strong> (<em>bool</em><em>, </em><em>default False</em>) – fill a light gradient under histogram if <cite>histtype=”step”</cite></p></li>
 <li><p><strong>interactive</strong> (<em>bool</em><em>, </em><em>default False</em>) – Use plotly to make an interactive plot</p></li>
@@ -717,6 +720,7 @@ function, or <cite>errorbar</cite>.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ax</strong> (<em>matplotlib AxesSubplot object</em><em>, </em><em>default None</em>) – matplotlib AxesSubplot object. Created if <cite>None</cite>.</p></li>
 <li><p><strong>fig</strong> (<em>matplotlib Figure object</em><em>, </em><em>default None</em>) – matplotlib Figure object. Created if <cite>None</cite>.</p></li>
+<li><p><strong>counts</strong> – Alias for <cite>show_counts</cite></p></li>
 <li><p><strong>counts_fmt_func</strong> (<em>function</em><em>, </em><em>default &quot;{:3g}&quot;.format</em>) – Function used to format count labels</p></li>
 <li><p><strong>counts_fontsize</strong> – Font size of count labels</p></li>
 <li><p><strong>colorbar</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show colorbar</p></li>
@@ -749,13 +753,13 @@ y-axis (“y”), or both (“xy”).</p></li>
 
 <dl class="py method">
 <dt id="yahist.hist2d.Hist2D.profile">
-<code class="sig-name descname">profile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">axis</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.profile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.profile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">profile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">'x'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.profile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the x-profile of the 2d histogram by
 calculating the weighted mean over the y-axis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>axis</strong> (<em>str</em>) – if “x”, return the x-profile (mean over y-axis)
-if “y”, return the y-profile (mean over x-axis)</p>
+<dd class="field-odd"><p><strong>axis</strong> (<em>str/int</em><em> (</em><em>default &quot;x&quot;</em><em>)</em>) – if “x” or 0, return the x-profile (mean over y-axis)
+if “y” or 1, return the y-profile (mean over x-axis)</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
@@ -768,13 +772,13 @@ if “y”, return the y-profile (mean over x-axis)</p>
 
 <dl class="py method">
 <dt id="yahist.hist2d.Hist2D.projection">
-<code class="sig-name descname">projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">axis</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.projection" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">'x'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.projection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the x-projection of the 2d histogram by
 summing over the y-axis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>axis</strong> (<em>str</em>) – if “x”, return the x-projection (summing over y-axis)
-if “y”, return the y-projection (summing over x-axis)</p>
+<dd class="field-odd"><p><strong>axis</strong> (<em>str/int</em><em> (</em><em>default &quot;x&quot;</em><em>)</em>) – if “x” or 0, return the x-projection (summing over y-axis)
+if “y” or 1, return the y-projection (summing over x-axis)</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
@@ -834,9 +838,13 @@ is <cite>None</cite>, the specified direction will be unbounded.</p>
 
 <dl class="py method">
 <dt id="yahist.hist2d.Hist2D.sample">
-<code class="sig-name descname">sample</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.sample" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns an array of random samples according
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span><span class="o">=</span><span class="default_value">100000.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a 2-column array of random samples according
 to a discrete pdf from this histogram.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h1</span> <span class="o">=</span> <span class="n">Hist2D</span><span class="o">.</span><span class="n">from_random</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h2</span> <span class="o">=</span> <span class="n">Hist2D</span><span class="p">(</span><span class="n">h1</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span> <span class="n">bins</span><span class="o">=</span><span class="n">h1</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>size</strong> (<em>int/float</em><em>, </em><em>1e5</em>) – Number of random values to sample</p>
@@ -846,6 +854,28 @@ to a discrete pdf from this histogram.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="yahist.hist2d.Hist2D.smooth">
+<code class="sig-name descname">smooth</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ntimes</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">window</span><span class="o">=</span><span class="default_value">3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.smooth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a smoothed Hist2D via
+convolution with three kernels used by
+<a class="reference external" href="https://root.cern.ch/doc/master/TH2_8cxx_source.html#l02600">https://root.cern.ch/doc/master/TH2_8cxx_source.html#l02600</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ntimes</strong> (<em>int</em><em> (</em><em>default 3</em><em>)</em>) – Number of times to repeat smoothing</p></li>
+<li><p><strong>window</strong> (<em>int</em><em> (</em><em>default 3</em><em>)</em>) – Kernel size (1, 3, 5 supported)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#yahist.hist2d.Hist2D" title="yahist.hist2d.Hist2D">Hist2D</a></p>
 </dd>
 </dl>
 </dd></dl>

@@ -90,6 +90,9 @@
     <span class="k">def</span> <span class="nf">_init_numpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bins&quot;</span><span class="p">,</span> <span class="s2">&quot;auto&quot;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;weights&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;weights&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;norm&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
                 <span class="s2">&quot;Please use the .normalize() [.normalize(density=True)] method on the histogram object.&quot;</span>
@@ -922,7 +925,7 @@
         <span class="k">return</span> <span class="n">hnew</span></div>
 
 <div class="viewcode-block" id="Hist1D.from_bincounts"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D.from_bincounts">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_bincounts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_bincounts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates histogram object from array of histogrammed counts, </span>
 <span class="sd">        edges/bins, and optionally errors.</span>
@@ -931,8 +934,9 @@
 <span class="sd">        ----------</span>
 <span class="sd">        counts : array</span>
 <span class="sd">            Array of bin counts</span>
-<span class="sd">        bins : array</span>
-<span class="sd">            Array of bin edges</span>
+<span class="sd">        bins : array, default None</span>
+<span class="sd">            Array of bin edges. If not specified for Hist1D,</span>
+<span class="sd">            uses `bins = np.arange(len(counts)+1)`.</span>
 <span class="sd">        errors : array, default None</span>
 <span class="sd">            Array of bin errors (optional)</span>
 
@@ -941,6 +945,13 @@
 <span class="sd">        Hist</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">hnew</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;Hist1D&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">bins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
+
         <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="n">hnew</span><span class="o">.</span><span class="n">_edges</span> <span class="o">=</span> <span class="n">bins</span>
         <span class="k">if</span> <span class="n">errors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1003,10 +1014,14 @@
 <span class="sd">        ----------</span>
 <span class="sd">        ax : matplotlib AxesSubplot object, default None</span>
 <span class="sd">            matplotlib AxesSubplot object. Created if `None`.</span>
+<span class="sd">        counts</span>
+<span class="sd">            Alias for `show_counts`</span>
 <span class="sd">        counts_fmt_func : function, default &quot;{:3g}&quot;.format</span>
 <span class="sd">            Function used to format count labels</span>
 <span class="sd">        counts_fontsize</span>
 <span class="sd">            Font size of count labels</span>
+<span class="sd">        errors</span>
+<span class="sd">            Alias for `show_errors`</span>
 <span class="sd">        fmt : str, default &quot;o&quot;</span>
 <span class="sd">            `fmt` kwarg used for matplotlib plotting</span>
 <span class="sd">        gradient : bool, default False</span>
@@ -1044,8 +1059,8 @@
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">))</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;histtype&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;histtype&quot;</span><span class="p">,</span> <span class="s2">&quot;step&quot;</span><span class="p">)</span>
         <span class="n">legend</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;legend&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">show_counts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_counts&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-        <span class="n">show_errors</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_errors&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">show_counts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_counts&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+        <span class="n">show_errors</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_errors&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;errors&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
         <span class="n">counts_fmt_func</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts_fmt_func&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:3g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
         <span class="n">counts_fontsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts_fontsize&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
         <span class="n">gradient</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;gradient&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>

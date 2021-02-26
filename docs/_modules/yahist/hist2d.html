@@ -66,6 +66,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">obj</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
 
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;weights&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;weights&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;norm&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
                 <span class="s2">&quot;Please use the .normalize() method on the histogram object.&quot;</span>
@@ -216,27 +219,27 @@
         <span class="n">hnew</span><span class="o">.</span><span class="n">_edges</span> <span class="o">=</span> <span class="n">edges</span>
         <span class="k">return</span> <span class="n">hnew</span>
 
-<div class="viewcode-block" id="Hist2D.projection"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.projection">[docs]</a>    <span class="k">def</span> <span class="nf">projection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+<div class="viewcode-block" id="Hist2D.projection"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.projection">[docs]</a>    <span class="k">def</span> <span class="nf">projection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the x-projection of the 2d histogram by</span>
 <span class="sd">        summing over the y-axis.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        axis : str</span>
-<span class="sd">            if &quot;x&quot;, return the x-projection (summing over y-axis)</span>
-<span class="sd">            if &quot;y&quot;, return the y-projection (summing over x-axis)</span>
+<span class="sd">        axis : str/int (default &quot;x&quot;)</span>
+<span class="sd">            if &quot;x&quot; or 0, return the x-projection (summing over y-axis)</span>
+<span class="sd">            if &quot;y&quot; or 1, return the y-projection (summing over x-axis)</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Hist1D</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">]:</span>
             <span class="n">iaxis</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">axis</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]:</span>
             <span class="n">iaxis</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;axis parameter must be &#39;x&#39; or &#39;y&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;axis parameter must be &#39;x&#39;/0 or &#39;y&#39;/1&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_projection</span><span class="p">(</span><span class="n">iaxis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">iaxis</span><span class="p">])</span></div>
 
     <span class="nd">@ignore_division_errors</span>
@@ -254,30 +257,30 @@
         <span class="n">hnew</span><span class="o">.</span><span class="n">_edges</span> <span class="o">=</span> <span class="n">edges</span>
         <span class="k">return</span> <span class="n">hnew</span>
 
-<div class="viewcode-block" id="Hist2D.profile"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.profile">[docs]</a>    <span class="k">def</span> <span class="nf">profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+<div class="viewcode-block" id="Hist2D.profile"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.profile">[docs]</a>    <span class="k">def</span> <span class="nf">profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the x-profile of the 2d histogram by</span>
 <span class="sd">        calculating the weighted mean over the y-axis.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        axis : str</span>
-<span class="sd">            if &quot;x&quot;, return the x-profile (mean over y-axis)</span>
-<span class="sd">            if &quot;y&quot;, return the y-profile (mean over x-axis)</span>
+<span class="sd">        axis : str/int (default &quot;x&quot;)</span>
+<span class="sd">            if &quot;x&quot; or 0, return the x-profile (mean over y-axis)</span>
+<span class="sd">            if &quot;y&quot; or 1, return the y-profile (mean over x-axis)</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Hist1D</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">xedges</span><span class="p">,</span> <span class="n">yedges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span>
-        <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">]:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_profile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_counts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span><span class="p">,</span> <span class="n">yedges</span><span class="p">,</span> <span class="n">xedges</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">axis</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_profile</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">xedges</span><span class="p">,</span> <span class="n">yedges</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;axis parameter must be &#39;x&#39; or &#39;y&#39;&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;axis parameter must be &#39;x&#39;/0 or &#39;y&#39;/1&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Hist2D.transpose"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.transpose">[docs]</a>    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -447,8 +450,84 @@
         <span class="n">ibins</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ibins</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">[</span><span class="n">ibins</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Hist2D.sample"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+<div class="viewcode-block" id="Hist2D.smooth"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ntimes</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a smoothed Hist2D via</span>
+<span class="sd">        convolution with three kernels used by</span>
+<span class="sd">        https://root.cern.ch/doc/master/TH2_8cxx_source.html#l02600</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ntimes : int (default 3)</span>
+<span class="sd">            Number of times to repeat smoothing</span>
+<span class="sd">        window : int (default 3)</span>
+<span class="sd">            Kernel size (1, 3, 5 supported)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Hist2D</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">convolve2d</span>
+
+        <span class="n">kernels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">],]),</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],]),</span>
+            <span class="mi">5</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">]</span>
+            <span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">kernels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kernel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Window/kernel size </span><span class="si">{</span><span class="n">window</span><span class="si">}</span><span class="s2"> not supported. Supported sizes: </span><span class="si">{</span><span class="n">kernels</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ntimes</span><span class="p">):</span>
+            <span class="n">h</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">convolve2d</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">_counts</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">kernel</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">h</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">convolve2d</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">_errors</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="n">kernel</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">h</span></div>
+
+<div class="viewcode-block" id="Hist2D.sample"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mf">1e5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a 2-column array of random samples according</span>
+<span class="sd">        to a discrete pdf from this histogram.</span>
+
+<span class="sd">        &gt;&gt;&gt; h1 = Hist2D.from_random()</span>
+<span class="sd">        &gt;&gt;&gt; h2 = Hist2D(h1.sample(100), bins=h1.edges)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        size : int/float, 1e5</span>
+<span class="sd">            Number of random values to sample</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span>
+        <span class="n">xcenters</span><span class="p">,</span> <span class="n">ycenters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_centers</span>
+
+        <span class="c1"># triplets of (x bin center, y bin center, count)</span>
+        <span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xcenters</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ycenters</span><span class="p">)),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">ycenters</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">xcenters</span><span class="p">)),</span>
+            <span class="n">counts</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+        <span class="p">][</span><span class="n">counts</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xyz</span><span class="p">))</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">xyz</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">sampled_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">size</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="n">probs</span><span class="p">)</span>
+        <span class="n">xy</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">[</span><span class="n">sampled_idx</span><span class="p">][:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="n">xy</span></div>
 
 <div class="viewcode-block" id="Hist2D.svg_fast"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.svg_fast">[docs]</a>    <span class="k">def</span> <span class="nf">svg_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">aspectratio</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -681,6 +760,8 @@
 <span class="sd">            matplotlib AxesSubplot object. Created if `None`.</span>
 <span class="sd">        fig : matplotlib Figure object, default None</span>
 <span class="sd">            matplotlib Figure object. Created if `None`.</span>
+<span class="sd">        counts</span>
+<span class="sd">            Alias for `show_counts`</span>
 <span class="sd">        counts_fmt_func : function, default &quot;{:3g}&quot;.format</span>
 <span class="sd">            Function used to format count labels</span>
 <span class="sd">        counts_fontsize</span>
@@ -727,7 +808,7 @@
         <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span>
         <span class="n">xedges</span><span class="p">,</span> <span class="n">yedges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span>
 
-        <span class="n">show_counts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_counts&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">show_counts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_counts&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
         <span class="n">colorbar</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;colorbar&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">hide_empty</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;hide_empty&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">counts_fmt_func</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts_fmt_func&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:3g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
@@ -929,35 +1010,47 @@
     <span class="k">return</span> <span class="n">hist</span><span class="p">,</span> <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span>
 
 
-<span class="n">HAS_NUMBA</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">numba</span>
-
-    <span class="n">HAS_NUMBA</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">jitfunc</span> <span class="o">=</span> <span class="n">numba</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">_compute_bin_1d_uniform</span> <span class="o">=</span> <span class="n">jitfunc</span><span class="p">(</span><span class="n">_compute_bin_1d_uniform</span><span class="p">)</span>
-    <span class="n">_numba_histogram2d</span> <span class="o">=</span> <span class="n">jitfunc</span><span class="p">(</span><span class="n">_numba_histogram2d</span><span class="p">)</span>
-<span class="k">except</span><span class="p">:</span>
-    <span class="k">pass</span>
+<span class="n">_numba_histogram2d</span><span class="o">.</span><span class="n">_wrapped</span> <span class="o">=</span> <span class="kc">False</span>
 
 
 <span class="k">def</span> <span class="nf">_np_histogram2d_wrapper</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;allow_numba&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">HAS_NUMBA</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e5</span><span class="p">):</span>
-        <span class="n">bins</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bins&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="c1"># check if `bins` is a 2 element list of lists (x bins, y bins)</span>
-        <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
-            <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span> <span class="o">=</span> <span class="n">bins</span>
-            <span class="n">weights</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">_numba_histogram2d</span><span class="p">(</span>
-                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="n">overflow</span>
-            <span class="p">)</span>
-        <span class="c1"># or if single dimension</span>
-        <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="n">bins_x</span> <span class="o">=</span> <span class="n">bins_y</span> <span class="o">=</span> <span class="n">bins</span>
-            <span class="n">weights</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">_numba_histogram2d</span><span class="p">(</span>
-                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="n">overflow</span>
-            <span class="p">)</span>
+    <span class="c1"># Yuck, globals. This is so we don&#39;t incur the cost of importing numba (~1sec)</span>
+    <span class="c1"># if we never end up using it.</span>
+    <span class="k">global</span> <span class="n">_compute_bin_1d_uniform</span><span class="p">,</span> <span class="n">_numba_histogram2d</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;allow_numba&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e5</span><span class="p">):</span>
+
+        <span class="n">HAS_NUMBA</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">numba</span>
+
+            <span class="n">HAS_NUMBA</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">_numba_histogram2d</span><span class="o">.</span><span class="n">_wrapped</span><span class="p">:</span>
+                <span class="n">jitfunc</span> <span class="o">=</span> <span class="n">numba</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">_compute_bin_1d_uniform</span> <span class="o">=</span> <span class="n">jitfunc</span><span class="p">(</span><span class="n">_compute_bin_1d_uniform</span><span class="p">)</span>
+                <span class="n">_numba_histogram2d</span> <span class="o">=</span> <span class="n">jitfunc</span><span class="p">(</span><span class="n">_numba_histogram2d</span><span class="p">)</span>
+                <span class="n">_numba_histogram2d</span><span class="o">.</span><span class="n">_wrapped</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="n">HAS_NUMBA</span><span class="p">:</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bins&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="c1"># check if `bins` is a 2 element list of lists (x bins, y bins)</span>
+            <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+                <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span> <span class="o">=</span> <span class="n">bins</span>
+                <span class="n">weights</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">_numba_histogram2d</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="n">overflow</span>
+                <span class="p">)</span>
+            <span class="c1"># or if single dimension</span>
+            <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">bins_x</span> <span class="o">=</span> <span class="n">bins_y</span> <span class="o">=</span> <span class="n">bins</span>
+                <span class="n">weights</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">_numba_histogram2d</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="n">overflow</span>
+                <span class="p">)</span>
+
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </pre></div>
 

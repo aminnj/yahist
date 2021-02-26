@@ -42,6 +42,7 @@ Much more functionality is showcased in the example notebook below, including
 * acceleration of 2D histograms with `numba` (if installed)
 * using the histogram as a lookup function
 * serialization to/from json
+
 ...and more.
 
 
