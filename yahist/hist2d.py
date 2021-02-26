@@ -431,29 +431,29 @@ class Hist2D(Hist1D):
         from scipy.signal import convolve2d
 
         kernels = {
-            1: np.array([
-                [1],
-            ]),
-            3: np.array([
-                [0,1,0],
-                [1,2,1],
-                [0,1,0],
-            ]),
-            5: np.array([
-                [0,0,1,0,0],
-                [0,2,2,2,0],
-                [1,2,5,2,1],
-                [0,2,2,2,0],
-                [0,0,1,0,0],
-            ]),
+            1: np.array([[1],]),
+            3: np.array([[0, 1, 0], [1, 2, 1], [0, 1, 0],]),
+            5: np.array(
+                [
+                    [0, 0, 1, 0, 0],
+                    [0, 2, 2, 2, 0],
+                    [1, 2, 5, 2, 1],
+                    [0, 2, 2, 2, 0],
+                    [0, 0, 1, 0, 0],
+                ]
+            ),
         }
         kernel = kernels.get(window)
         if kernel is None:
-            raise Exception(f"Window/kernel size {window} not supported. Supported sizes: {kernels.keys()}")
+            raise Exception(
+                f"Window/kernel size {window} not supported. Supported sizes: {kernels.keys()}"
+            )
         h = self.copy()
         for _ in range(ntimes):
             h._counts = convolve2d(h._counts, kernel, mode="same") / kernel.sum()
-            h._errors = convolve2d(h._errors**2., kernel, mode="same")**0.5 / kernel.sum()
+            h._errors = (
+                convolve2d(h._errors ** 2.0, kernel, mode="same") ** 0.5 / kernel.sum()
+            )
         return h
 
     def sample(self, size=1e5):
@@ -484,12 +484,11 @@ class Hist2D(Hist1D):
         ][counts.flatten() != 0]
 
         idx = np.arange(len(xyz))
-        probs = xyz[:,2]/xyz[:,2].sum()
+        probs = xyz[:, 2] / xyz[:, 2].sum()
         sampled_idx = np.random.choice(idx, size=int(size), p=probs)
-        xy = xyz[sampled_idx][:,[0,1]]
+        xy = xyz[sampled_idx][:, [0, 1]]
 
         return xy
-
 
     def svg_fast(self, height=250, aspectratio=1.4, interactive=True):
         """
@@ -972,33 +971,45 @@ def _numba_histogram2d(ax, ay, bins_x, bins_y, weights=None, overflow=False):
     return hist, bins_x, bins_y
 
 
-HAS_NUMBA = False
-try:
-    import numba
-
-    HAS_NUMBA = True
-    jitfunc = numba.jit(nopython=True, nogil=True, cache=True)
-    _compute_bin_1d_uniform = jitfunc(_compute_bin_1d_uniform)
-    _numba_histogram2d = jitfunc(_numba_histogram2d)
-except:
-    pass
+_numba_histogram2d._wrapped = False
 
 
 def _np_histogram2d_wrapper(x, y, overflow=True, **kwargs):
-    if kwargs.pop("allow_numba", True) and HAS_NUMBA and (len(x) > 1e5):
-        bins = kwargs.get("bins", None)
-        # check if `bins` is a 2 element list of lists (x bins, y bins)
-        if is_listlike(bins) and (len(bins) == 2) and (is_listlike(bins[0])):
-            bins_x, bins_y = bins
-            weights = kwargs.get("weights", None)
-            return _numba_histogram2d(
-                x, y, bins_x, bins_y, weights=weights, overflow=overflow
-            )
-        # or if single dimension
-        if is_listlike(bins) and (np.ndim(bins) == 1):
-            bins_x = bins_y = bins
-            weights = kwargs.get("weights", None)
-            return _numba_histogram2d(
-                x, y, bins_x, bins_y, weights=weights, overflow=overflow
-            )
+    # Yuck, globals. This is so we don't incur the cost of importing numba (~1sec)
+    # if we never end up using it.
+    global _compute_bin_1d_uniform, _numba_histogram2d
+
+    if kwargs.pop("allow_numba", True) and (len(x) > 1e5):
+
+        HAS_NUMBA = False
+        try:
+            import numba
+
+            HAS_NUMBA = True
+
+            if not _numba_histogram2d._wrapped:
+                jitfunc = numba.jit(nopython=True, nogil=True)
+                _compute_bin_1d_uniform = jitfunc(_compute_bin_1d_uniform)
+                _numba_histogram2d = jitfunc(_numba_histogram2d)
+                _numba_histogram2d._wrapped = True
+        except:
+            pass
+
+        if HAS_NUMBA:
+            bins = kwargs.get("bins", None)
+            # check if `bins` is a 2 element list of lists (x bins, y bins)
+            if is_listlike(bins) and (len(bins) == 2) and (is_listlike(bins[0])):
+                bins_x, bins_y = bins
+                weights = kwargs.get("weights", None)
+                return _numba_histogram2d(
+                    x, y, bins_x, bins_y, weights=weights, overflow=overflow
+                )
+            # or if single dimension
+            if is_listlike(bins) and (np.ndim(bins) == 1):
+                bins_x = bins_y = bins
+                weights = kwargs.get("weights", None)
+                return _numba_histogram2d(
+                    x, y, bins_x, bins_y, weights=weights, overflow=overflow
+                )
+
     return np.histogram2d(x, y, **kwargs)
