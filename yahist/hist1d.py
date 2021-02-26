@@ -886,7 +886,7 @@ class Hist1D(object):
         return hnew
 
     @classmethod
-    def from_bincounts(cls, counts, bins, errors=None):
+    def from_bincounts(cls, counts, bins=None, errors=None):
         """
         Creates histogram object from array of histogrammed counts, 
         edges/bins, and optionally errors.
@@ -895,8 +895,9 @@ class Hist1D(object):
         ----------
         counts : array
             Array of bin counts
-        bins : array
-            Array of bin edges
+        bins : array, default None
+            Array of bin edges. If not specified for Hist1D,
+            uses `bins = np.arange(len(counts)+1)`.
         errors : array, default None
             Array of bin errors (optional)
 
@@ -905,6 +906,13 @@ class Hist1D(object):
         Hist
         """
         hnew = cls()
+        counts = np.asarray(counts)
+        if cls.__name__ == "Hist1D":
+            if bins is None:
+                bins = np.arange(len(counts) + 1)
+            else:
+                bins = np.asarray(bins)
+
         hnew._counts = counts.astype(np.float64)
         hnew._edges = bins
         if errors is not None:

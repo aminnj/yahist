@@ -335,6 +335,9 @@ class Hist1DTest(unittest.TestCase):
         counts, _ = np.histogram(v, bins=bins)
         h2 = Hist1D.from_bincounts(counts=counts, bins=bins)
         self.assertEqual(h1, h2)
+        h3 = Hist1D.from_bincounts([1, 2])
+        self.assertEqual(h3.nbins, 2)
+        self.assertEqual(h3.integral, 3.0)
 
     def test_fromrandom(self):
         h = Hist1D.from_random("norm", params=[0, 1], size=1e3, random_state=42)
@@ -376,7 +379,7 @@ class Hist2DTest(unittest.TestCase):
 
     def test_weight_inputs(self):
         v = np.array([0.5, 0.5, 1.5, 1.5])
-        h = Hist2D(np.c_[v,v], weights=None)
+        h = Hist2D(np.c_[v, v], weights=None)
         self.assertEqual(h.integral, 4)
 
     def test_profile(self):
@@ -423,21 +426,18 @@ class Hist2DTest(unittest.TestCase):
         h = Hist2D.from_random(bins="5,0,5")
         self.assertEqual(h, h.smooth(window=1, ntimes=1))
         self.assertEqual(h, h.smooth(window=1, ntimes=10))
-        m = np.array([
-            [2,2],
-        ])
-        h = Hist2D(m,bins="5,-0.5,4.5")
+        m = np.array([[2, 2],])
+        h = Hist2D(m, bins="5,-0.5,4.5")
         h = h.smooth(window=3, ntimes=1)
-        self.assertEqual(h.lookup(2+1, 2), h.lookup(2-1, 2))
-        self.assertEqual(h.lookup(2, 2+1), h.lookup(2, 2-1))
+        self.assertEqual(h.lookup(2 + 1, 2), h.lookup(2 - 1, 2))
+        self.assertEqual(h.lookup(2, 2 + 1), h.lookup(2, 2 - 1))
 
     def test_sample(self):
         h1 = Hist2D.from_random(size=1e5)
         h2 = Hist2D(h1.sample(1e5), bins=h1.edges)
-        result = (h1.projection()/h2.projection()).fit("a+b*x")
+        result = (h1.projection() / h2.projection()).fit("a+b*x")
         slope = result["params"]["b"]
         self.assertTrue(abs(slope["error"]) > abs(slope["value"]))
-
 
     def test_cumulativelookup(self):
         h = Hist2D.from_random(bins="5,0,5")
