@@ -11,6 +11,7 @@ import pytest
 def allclose(a, b, equal_nan=False):
     return np.testing.assert_allclose(np.array(a), np.array(b), equal_nan=equal_nan)
 
+
 def test_linear_fit():
     # fit a line to 2,2,2,2,2
     h = Hist1D(np.arange(10) + 0.5, bins="5,0,10")
@@ -22,6 +23,7 @@ def test_linear_fit():
 
     assert result["chi2"] < 1e-3
     assert result["ndof"] == 3
+
 
 @utils.ignore_division_errors
 def test_likelihood():
@@ -39,15 +41,14 @@ def test_likelihood():
     ret_chi2 = h.fit(
         "a*np.exp(-(x-mu)**2./(2*sigma**2.))", draw=False, likelihood=False
     )
-    ret_like = h.fit(
-        "a*np.exp(-(x-mu)**2./(2*sigma**2.))", draw=False, likelihood=True
-    )
+    ret_like = h.fit("a*np.exp(-(x-mu)**2./(2*sigma**2.))", draw=False, likelihood=True)
     keys = ret_chi2["params"].keys()
     ret_chi2_errors = np.array([ret_chi2["params"][key]["error"] for key in keys])
     ret_like_errors = np.array([ret_like["params"][key]["error"] for key in keys])
     ret_chi2_values = np.array([ret_chi2["params"][key]["value"] for key in keys])
     v = (ret_chi2_errors - ret_like_errors) / ret_chi2_values
     assert (np.abs(v) < 0.01).mean() == 1.0
+
 
 def test_against_root():
     """
@@ -79,6 +80,7 @@ def test_against_root():
     assert abs(params["constant"]["error"] - 2.0008) < 2e-2
     assert abs(params["mean"]["error"] - 0.04908) < 1e-3
     assert abs(params["sigma"]["error"] - 0.0339) < 1e-3
+
 
 if __name__ == "__main__":
     pytest.main(["--capture=no", __file__])

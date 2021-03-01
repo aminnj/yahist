@@ -331,8 +331,10 @@ class Hist1D(object):
         # allows sum([h1,h2,...]) since start value is 0
         if (type(other) is int) and (other == 0):
             return self
-        if hasattr(self, "_empty"): return other
-        if hasattr(other, "_empty"): return self
+        if hasattr(self, "_empty"):
+            return other
+        if hasattr(other, "_empty"):
+            return self
         if self._counts is None:
             return other
         self._check_consistency(other)
