@@ -28,12 +28,15 @@ class Hist1D(object):
         )  # used when dividing with binomial errors
         self._metadata = {}
         kwargs = self._extract_metadata(**kwargs)
+
         if "ROOT." in str(type(obj)):
             self._init_root(obj, **kwargs)
         elif "awkward" in str(type(obj)):
             obj = obj.__array__()
             self._init_numpy(obj, **kwargs)
         elif is_listlike(obj):
+            if len(obj) == 0:
+                self._empty = True
             self._init_numpy(obj, **kwargs)
         elif type(obj) is self.__class__:
             # allows Hist1D constructed with another Hist1D to introduce new metadata
@@ -325,8 +328,11 @@ class Hist1D(object):
         return not self.__eq__(other)
 
     def __add__(self, other):
-        if other is 0:
+        # allows sum([h1,h2,...]) since start value is 0
+        if (type(other) is int) and (other == 0):
             return self
+        if hasattr(self, "_empty"): return other
+        if hasattr(other, "_empty"): return self
         if self._counts is None:
             return other
         self._check_consistency(other)
@@ -840,7 +846,7 @@ class Hist1D(object):
         Parameters
         ----------
         obj : str, default None
-            if specified, writes json to path instead of returning string 
+            if specified, writes json to path instead of returning string
 
         Returns
         -------
@@ -888,7 +894,7 @@ class Hist1D(object):
     @classmethod
     def from_bincounts(cls, counts, bins=None, errors=None):
         """
-        Creates histogram object from array of histogrammed counts, 
+        Creates histogram object from array of histogrammed counts,
         edges/bins, and optionally errors.
 
         Parameters

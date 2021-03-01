@@ -82,6 +82,17 @@ def test_idempotence():
     h2 = Hist1D(h1, label="test")
     assert h1 == h2
 
+def test_sum():
+    h1 = Hist1D([0.5], bins=[0.0, 1])
+    h2 = Hist1D([0.5], bins=[0.0, 1])
+    assert sum([h1,h2]) == (h1+h2)
+
+    h1 = Hist1D([-0.5, 0.5], bins=[-1, 0, 1])
+    h2 = Hist1D([-0.5, 0.5], bins="5,0,5")
+    assert (Hist1D() + h1) == h1
+    assert (h1 + Hist1D()) == h1
+    assert (Hist1D([], bins="10,0,1") + h2) == h2
+
 def test_metadata():
     assert Hist1D().metadata == {}
     assert Hist1D(label="test").metadata == {"label": "test"}

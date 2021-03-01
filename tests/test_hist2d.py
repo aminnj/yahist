@@ -62,6 +62,13 @@ def test_projection():
     assert h1.projection("x") == h1.projection("y")
     allclose(h1.projection("x").counts, np.array([1.0, 1.0]))
 
+def test_sum():
+    h1 = Hist2D.from_random(size=100, bins="5,0,5")
+    h2 = Hist2D.from_random(size=100, bins="5,0,5")
+    assert sum([h1,h2]) == (h1+h2)
+    assert (Hist2D() + h1) == h1
+
+
 def test_rebin():
     xs = np.array([0.5, 1.5])
     ys = np.array([1.5, 0.5])

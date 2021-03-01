@@ -247,7 +247,7 @@ def fit_hist(
     likelihood=False,
     curve_fit_kwargs=dict(),
 ):
-    """
+    r"""
     Fits a function to a histogram via `scipy.optimize.curve_fit`,
     calculating a 1-sigma band, and optionally plotting it.
     Note that this does not support asymmetric errors. It will
