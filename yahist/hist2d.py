@@ -365,8 +365,10 @@ class Hist2D(Hist1D):
         ----------
         forwardx : bool, default True
             If true, sum the x-axis from low to high, otherwise high to low
+            If None, do not sum along this axis.
         forwardy : bool, default True
             If true, sum the y-axis from low to high, otherwise high to low
+            If None, do not sum along this axis.
 
         Returns
         -------
@@ -374,17 +376,19 @@ class Hist2D(Hist1D):
         """
         hnew = self.copy()
         # x
-        directionx = 1 if forwardx else -1
-        hnew._counts = hnew._counts[:, ::directionx].cumsum(axis=1)[:, ::directionx]
-        hnew._errors = (hnew._errors[:, ::directionx] ** 2.0).cumsum(axis=1)[
-            :, ::directionx
-        ] ** 0.5
+        if forwardx is not None:
+            directionx = 1 if forwardx else -1
+            hnew._counts = hnew._counts[:, ::directionx].cumsum(axis=1)[:, ::directionx]
+            hnew._errors = (hnew._errors[:, ::directionx] ** 2.0).cumsum(axis=1)[
+                :, ::directionx
+            ] ** 0.5
         # y
-        directiony = 1 if forwardy else -1
-        hnew._counts = hnew._counts[::directiony, :].cumsum(axis=0)[::directiony, :]
-        hnew._errors = (hnew._errors[::directiony, :] ** 2.0).cumsum(axis=0)[
-            ::directiony, :
-        ] ** 0.5
+        if forwardy is not None:
+            directiony = 1 if forwardy else -1
+            hnew._counts = hnew._counts[::directiony, :].cumsum(axis=0)[::directiony, :]
+            hnew._errors = (hnew._errors[::directiony, :] ** 2.0).cumsum(axis=0)[
+                ::directiony, :
+            ] ** 0.5
         return hnew
 
     def lookup(self, x, y):

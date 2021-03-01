@@ -439,6 +439,10 @@ class Hist2DTest(unittest.TestCase):
         slope = result["params"]["b"]
         self.assertTrue(abs(slope["error"]) > abs(slope["value"]))
 
+    def test_cumulative(self):
+        h = Hist2D.from_random(bins="5,0,5")
+        self.assertEqual(h, h.cumulative(forwardx=None, forwardy=None))
+
     def test_cumulativelookup(self):
         h = Hist2D.from_random(bins="5,0,5")
         self.assertEqual(h.cumulative().counts.max(), h.integral)
