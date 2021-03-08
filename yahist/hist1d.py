@@ -13,19 +13,10 @@ from .utils import (
     clopper_pearson_error,
     poisson_errors,
     ignore_division_errors,
-    has_uniform_spacing,
     fit_hist,
     draw_gradient,
     histogramdd_wrapper,
 )
-
-# histfunc = np.histogram
-
-# try:
-#     import boost_histogram as bh
-#     histfunc = bh.numpy.histogram
-# except:
-#     pass
 
 
 class Hist1D(object):
