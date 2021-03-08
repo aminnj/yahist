@@ -30,6 +30,16 @@ def test_basic():
     assert h1 == h1.transpose()
 
 
+def test_tuple_input():
+    xs = np.array([0.5, 1.5])
+    ys = np.array([1.5, 0.5])
+    bins = np.array([0, 1, 2])
+    h1 = Hist2D((xs, ys), bins=bins)
+    counts, edgesx, edgesy = np.histogram2d(xs, ys, bins)
+    h2 = Hist2D.from_bincounts(counts, (edgesx, edgesy))
+    assert h1 == h2
+
+
 def test_equality():
     v = np.random.normal(0, 1, size=(1000, 2))
     h1 = Hist2D(v, bins=np.linspace(-5, 5, 11))
@@ -149,16 +159,17 @@ def test_fromrandom():
     assert h.rebin(5).projection("x") == h.projection("x").rebin(5)
 
 
-def test_numba_maybe():
+def test_threads():
     N = int(1e5) + 1
     x = np.random.normal(0, 1, N)
     y = np.random.normal(0, 1, N)
     xy = np.c_[x, y]
     bins = [np.linspace(-3, 3, 51), np.linspace(-3, 3, 51)]
     for overflow in [True, False]:
-        h1 = Hist2D(xy, bins=bins, allow_numba=True, overflow=overflow)
-        h2 = Hist2D(xy, bins=bins, allow_numba=False, overflow=overflow)
-        assert h1 == h2
+        h1 = Hist2D(xy, bins=bins, overflow=overflow)
+        for threads in [None, 0, 1, 2]:
+            h2 = Hist2D(xy, bins=bins, threads=threads, overflow=overflow)
+            assert h1 == h2
 
 
 if __name__ == "__main__":

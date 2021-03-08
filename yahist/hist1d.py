@@ -16,10 +16,56 @@ from .utils import (
     has_uniform_spacing,
     fit_hist,
     draw_gradient,
+    histogramdd_wrapper,
 )
+
+# histfunc = np.histogram
+
+# try:
+#     import boost_histogram as bh
+#     histfunc = bh.numpy.histogram
+# except:
+#     pass
 
 
 class Hist1D(object):
+    """
+    Constructs a Hist1D object from a variety of inputs
+
+    Parameters
+    ----------
+    obj : a list/array of numbers to histogram, or another `Hist1D` object
+
+    kwargs
+        bins : list/array of bin edges, number of bins, string, or "auto", default "auto"
+            Follows usage for `np.histogramd`,
+            with addition of string specification
+        range : list/array of axis ranges, default None
+            Follows usage for `np.histogram`
+        weights : list/array of weights, default None
+            Follows usage for `np.histogram`
+        threads : int, default 1
+            Number of threads to use for histogramming.
+        overflow : bool, default True
+            Include overflow counts in outermost bins
+        metadata : dict, default {}
+            Attach arbitrary extra data to this object
+
+    Returns
+    -------
+    Hist1D
+
+    Examples
+    --------
+    >>> x = np.random.normal(0, 1, 1000)
+    >>> Hist1D(x, bins=np.linspace(-5,5,11))
+    >>> Hist1D(x, bins="10,-5,5")
+    >>> Hist1D(x, bins="10,-5,5,20,-3,3")
+    >>> h1 = Hist1D(label="foo", color="C0")
+    >>> h1 = Hist1D(h1, label="bar", color="C1")
+    >>> Hist1D([], metadata=dict(foo=1))
+    """
+
     def __init__(self, obj=[], **kwargs):
         self._counts, self._edges, self._errors = None, None, None
         self._errors_up, self._errors_down = (
@@ -51,63 +97,42 @@ class Hist1D(object):
         hnew.__dict__.update(copy.deepcopy(self.__dict__))
         return hnew
 
-    def _init_numpy(self, obj, **kwargs):
-        kwargs["bins"] = kwargs.get("bins", "auto")
+    def _init_numpy(
+        self, obj, bins="auto", range=None, weights=None, threads=1, overflow=True
+    ):
 
-        if ("weights" in kwargs) and (kwargs["weights"] is None):
-            kwargs.pop("weights")
+        # convert ROOT-like "50,0,10" to equivalent of np.linspace(0,10,51)
+        if isinstance(bins, str) and (bins.count(",") == 2):
+            nbins, low, high = bins.split(",")
+            range = (float(low), float(high))
+            bins = int(nbins)
 
-        if kwargs.pop("norm", False) or kwargs.pop("density", False):
-            raise Exception(
-                "Please use the .normalize() [.normalize(density=True)] method on the histogram object."
-            )
-        if kwargs.pop("cumulative", False):
-            raise Exception(
-                "Please use the .cumulative() method on the histogram object."
-            )
-
-        # convert ROOT-like "50,0,10" to np.linspace(0,10,51)
-        if isinstance(kwargs.get("bins"), str) and (kwargs["bins"].count(",") == 2):
-            nbins, low, high = kwargs["bins"].split(",")
-            kwargs["range"] = (float(low), float(high))
-            kwargs["bins"] = np.linspace(float(low), float(high), int(nbins) + 1)
+        if isinstance(bins, str):
+            bins = np.histogram_bin_edges(obj, bins, range, weights)
 
         if is_datelike(obj):
             obj = convert_dates(obj)
             self._metadata["date_axes"] = ["x"]
 
-        if is_listlike(kwargs.get("bins")):
-            bins = kwargs["bins"]
+        if is_datelike(bins):
+            bins = convert_dates(bins)
+            self._metadata["date_axes"] = ["x"]
 
-            if is_datelike(bins):
-                bins = convert_dates(bins)
-                self._metadata["date_axes"] = ["x"]
+        counts, (edges,) = histogramdd_wrapper(
+            (obj,), (bins,), (range,), weights, overflow, threads,
+        )
 
-            if kwargs.pop("overflow", True):
-                clip_low = 0.5 * (bins[0] + bins[1])
-                clip_high = 0.5 * (bins[-2] + bins[-1])
-                obj = np.clip(obj, clip_low, clip_high)
-            if has_uniform_spacing(bins):
-                # if uniformly spaced, use O(N) algorithm instead of O(NlogN) (binary search/`np.searchsorted`)
-                # inside numpy by specifying number of bins and range
-                kwargs["range"] = (bins[0], bins[-1])
-                kwargs["bins"] = len(bins) - 1
+        if weights is not None:
+            sumw2, _ = histogramdd_wrapper(
+                (obj,), (bins,), (range,), weights ** 2, overflow, threads,
+            )
+            errors = sumw2 ** 0.5
         else:
-            kwargs.pop("overflow", None)
-        self._counts, self._edges = np.histogram(obj, **kwargs)
-        self._counts = self._counts.astype(np.float64)
+            errors = counts ** 0.5
 
-        # poisson defaults if not specified
-        if self._errors is None:
-            if "weights" not in kwargs:
-                self._errors = np.sqrt(self._counts)
-            else:
-                # if weighted entries, need to get sum of sq. weights per bin
-                # and sqrt of that is bin error
-                kwargs["weights"] = kwargs["weights"] ** 2.0
-                counts, _ = np.histogram(obj, **kwargs)
-                self._errors = np.sqrt(counts)
-        self._errors = self._errors.astype(np.float64)
+        self._counts = counts
+        self._edges = edges
+        self._errors = errors
 
     def _init_root(self, obj, **kwargs):
         nbins = obj.GetNbinsX()
@@ -1108,6 +1133,9 @@ class Hist1D(object):
             if "x" in which_axes:
                 ax.xaxis.set_major_locator(locator)
                 ax.xaxis.set_major_formatter(formatter)
+
+        # import matplotlib.ticker
+        # ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
 
         if return_self:
             return self

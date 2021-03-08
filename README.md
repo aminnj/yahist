@@ -21,10 +21,8 @@ Histogram objects (1D and 2D) with easy manipulations (`numpy`), plotting (`matp
 import numpy as np
 from yahist import Hist1D
 
-h = (Hist1D(np.random.normal(0, 1, 1000), bins=100, label="data")
-     .rebin(2)
-     .normalize()
-    )
+v = np.random.normal(0, 1, 1000)
+h = Hist1D(v, bins=100, label="data").rebin(2).normalize()
 h.plot(errors=True, color="k")
 h.fit("peak * np.exp(-(x-mu)**2 / (2*sigma**2))")
 ```
@@ -35,7 +33,7 @@ import pandas as pd
 
 df = pd.DataFrame(np.random.normal(0, 1, size=(10000, 2)), columns=["A", "B"])
 
-h = Hist2D(df, bins="30,-3,3")
+h = Hist2D(df, bins="30,-3,3", threads=4)
 h.plot(logz=True, cmap="cividis")
 h.profile("x").plot(color="r")
 ```
@@ -47,7 +45,7 @@ Much more functionality is showcased in the example notebook, including
 * datetime inputs/axes
 * rebinning/subsetting
 * profiling/projecting 2D histograms
-* acceleration of 2D histograms with `numba` (if installed)
+* acceleration of 1D/2D histogram creation with [boost-histogram](https://github.com/scikit-hep/boost-histogram)
 * using the histogram as a lookup function
 * serialization to/from json
 
