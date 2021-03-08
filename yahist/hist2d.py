@@ -10,82 +10,107 @@ from .utils import (
     convert_dates,
     compute_darkness,
     ignore_division_errors,
+    histogramdd_wrapper,
 )
 
 from .hist1d import Hist1D
 
 
 class Hist2D(Hist1D):
-    def _init_numpy(self, obj, **kwargs):
+    """
+    Constructs a Hist2D object from a variety of inputs
+
+    Parameters
+    ----------
+    obj : a 2D array of numbers to histogram, another `Hist2D` object,
+            or a tuple of x and y values
+
+    kwargs
+        bins : list/array of bin edges, number of bins, or string, default 10
+            Follows usage for `np.histogram2d`, 
+            with addition of string specification
+        range : list/array of axis ranges, default None
+            Follows usage for `np.histogram2d`
+        weights : list/array of weights, default None
+            Follows usage for `np.histogram2d`
+        threads : int, default 1
+            Number of threads to use for histogramming.
+        overflow : bool, default True
+            Include overflow counts in outermost bins
+        metadata : dict, default {}
+            Attach arbitrary extra data to this object
+
+    Returns
+    -------
+    Hist2D
+
+    Examples
+    --------
+    >>> x = np.random.normal(0, 1, 1000)
+    >>> y = np.random.normal(0, 1, 1000)
+    >>> Hist2D(np.c_[x,y], bins=np.linspace(-5,5,11))
+    >>> Hist2D((x,y), bins="10,-5,5")
+    >>> Hist2D((x,y), bins="10,-5,5,20,-3,3")
+    >>> df = pd.DataFrame(dict(x=x,y=y))
+    >>> Hist2D(df[["x","y"]], bins="10,-5,5", threads=4)
+    """
+
+    def _init_numpy(
+        self, obj, bins=10, range=None, weights=None, threads=1, overflow=True
+    ):
+
         if len(obj) == 0:
             xs, ys = [], []
+        elif isinstance(obj, tuple) and len(obj) == 2:
+            xs, ys = obj
+        elif "DataFrame" in str(type(obj)):
+            self._metadata["pandas_labels"] = obj.columns.tolist()[:2]
+            xs = obj.iloc[:, 0].values
+            ys = obj.iloc[:, 1].values
         else:
-            if "DataFrame" in str(type(obj)):
-                self._metadata["pandas_labels"] = obj.columns.tolist()[:2]
-                xs = obj.iloc[:, 0].values
-                ys = obj.iloc[:, 1].values
-            else:
-                xs, ys = obj[:, 0], obj[:, 1]
-
-        if ("weights" in kwargs) and (kwargs["weights"] is None):
-            kwargs.pop("weights")
-
-        if kwargs.pop("norm", False) or kwargs.pop("density", False):
-            raise Exception(
-                "Please use the .normalize() method on the histogram object."
-            )
-
-        # convert ROOT-like "50,0,10,50,0,10" to [np.linspace(0,10,51), np.linspace(0,10,51)]
-        if isinstance(kwargs.get("bins"), str) and (
-            kwargs["bins"].count(",") in [2, 5]
-        ):
-            if kwargs["bins"].count(",") == 2:
-                nbinsx, lowx, highx = kwargs["bins"].split(",")
-                nbinsy, lowy, highy = nbinsx, lowx, highx
-            else:
-                nbinsx, lowx, highx, nbinsy, lowy, highy = kwargs["bins"].split(",")
-            kwargs["bins"] = [
-                np.linspace(float(lowx), float(highx), int(nbinsx) + 1),
-                np.linspace(float(lowy), float(highy), int(nbinsy) + 1),
-            ]
+            xs, ys = obj[:, 0], obj[:, 1]
 
         if is_datelike(xs):
             xs = convert_dates(xs)
             self._metadata["date_axes"] = ["x"]
 
-        if ("bins" in kwargs) and not isinstance(kwargs["bins"], str):
-            bins = kwargs["bins"]
-            if is_listlike(bins) and len(bins) == 2:
-
-                if is_datelike(bins[0]):
-                    bins[0] = convert_dates(bins[0])
-                    self._metadata["date_axes"] = ["x"]
-
-                if kwargs.get("overflow", True):
-                    clip_low_x = 0.5 * (bins[0][0] + bins[0][1])
-                    clip_high_x = 0.5 * (bins[0][-2] + bins[0][-1])
-                    clip_low_y = 0.5 * (bins[1][0] + bins[1][1])
-                    clip_high_y = 0.5 * (bins[1][-2] + bins[1][-1])
-                    xs = np.clip(xs, clip_low_x, clip_high_x)
-                    ys = np.clip(ys, clip_low_y, clip_high_y)
-
-        counts, edgesx, edgesy = _np_histogram2d_wrapper(xs, ys, **kwargs)
-        # each row = constant y, lowest y on top
-        self._counts = counts.T
-        self._edges = edgesx, edgesy
-        self._counts = self._counts.astype(np.float64)
-
-        # poisson defaults if not specified
-        if self._errors is None:
-            if "weights" not in kwargs:
-                self._errors = np.sqrt(self._counts)
+        # convert ROOT-like "50,0,10,50,0,10" to [np.linspace(0,10,51), np.linspace(0,10,51)]
+        if isinstance(bins, str) and (bins.count(",") in [2, 5]):
+            if bins.count(",") == 2:
+                nbinsx, lowx, highx = bins.split(",")
+                nbinsy, lowy, highy = nbinsx, lowx, highx
             else:
-                # if weighted entries, need to get sum of sq. weights per bin
-                # and sqrt of that is bin error
-                kwargs["weights"] = kwargs["weights"] ** 2.0
-                counts, _, _ = _np_histogram2d_wrapper(xs, ys, **kwargs)
-                self._errors = np.sqrt(counts.T)
-        self._errors = self._errors.astype(np.float64)
+                nbinsx, lowx, highx, nbinsy, lowy, highy = bins.split(",")
+            bins = [
+                np.linspace(float(lowx), float(highx), int(nbinsx) + 1),
+                np.linspace(float(lowy), float(highy), int(nbinsy) + 1),
+            ]
+
+        if is_listlike(bins) and not len(bins) == 2:
+            if not is_listlike(bins[0]):
+                bins = [bins, bins]
+
+            if is_datelike(bins[0]):
+                bins[0] = convert_dates(bins[0])
+                self._metadata["date_axes"] = ["x"]
+
+        result = histogramdd_wrapper((xs, ys), bins, range, weights, overflow, threads,)
+
+        counts, (edgesx, edgesy) = result
+        counts = counts.T
+
+        if weights is not None:
+            sumw2, _ = yahist.utils.histogramdd_wrapper(
+                (xs, ys), bins, range, weights ** 2, overflow, threads,
+            )
+            errors = sumw2 ** 0.5
+            errors = errors.T
+        else:
+            errors = counts ** 0.5
+
+        self._counts = counts
+        self._edges = (edgesx, edgesy)
+        self._errors = errors
 
     def _init_root(self, obj, **kwargs):
         xaxis = obj.GetXaxis()
@@ -917,103 +942,103 @@ class Hist2D(Hist1D):
         return fig
 
 
-def _compute_bin_1d_uniform(x, bins, overflow=False):
-    n = bins.shape[0] - 1
-    b_min = bins[0]
-    b_max = bins[-1]
-    if overflow:
-        if x > b_max:
-            return n - 1
-        elif x < b_min:
-            return 0
-    ibin = int(n * (x - b_min) / (b_max - b_min))
-    if x < b_min or x > b_max:
-        return -1
-    else:
-        return ibin
+# def _compute_bin_1d_uniform(x, bins, overflow=False):
+#     n = bins.shape[0] - 1
+#     b_min = bins[0]
+#     b_max = bins[-1]
+#     if overflow:
+#         if x > b_max:
+#             return n - 1
+#         elif x < b_min:
+#             return 0
+#     ibin = int(n * (x - b_min) / (b_max - b_min))
+#     if x < b_min or x > b_max:
+#         return -1
+#     else:
+#         return ibin
 
 
-def _numba_histogram2d(ax, ay, bins_x, bins_y, weights=None, overflow=False):
-    db_x = np.ediff1d(bins_x)
-    db_y = np.ediff1d(bins_y)
-    is_uniform_binning_x = np.all(db_x - db_x[0] < 1e-6)
-    is_uniform_binning_y = np.all(db_y - db_y[0] < 1e-6)
-    hist = np.zeros((len(bins_x) - 1, len(bins_y) - 1), dtype=np.float64)
-    ax = ax.flat
-    ay = ay.flat
-    b_min_x = bins_x[0]
-    b_max_x = bins_x[-1]
-    n_x = bins_x.shape[0] - 1
-    b_min_y = bins_y[0]
-    b_max_y = bins_y[-1]
-    n_y = bins_y.shape[0] - 1
-    if weights is None:
-        weights = np.ones(len(ax), dtype=np.float64)
-    if is_uniform_binning_x and is_uniform_binning_y:
-        for i in range(len(ax)):
-            ibin_x = _compute_bin_1d_uniform(ax[i], bins_x, overflow=overflow)
-            ibin_y = _compute_bin_1d_uniform(ay[i], bins_y, overflow=overflow)
-            if ibin_x >= 0 and ibin_y >= 0:
-                hist[ibin_x, ibin_y] += weights[i]
-    else:
-        ibins_x = np.searchsorted(bins_x, ax, side="left")
-        ibins_y = np.searchsorted(bins_y, ay, side="left")
-        for i in range(len(ax)):
-            ibin_x = ibins_x[i]
-            ibin_y = ibins_y[i]
-            if overflow:
-                if ibin_x == n_x + 1:
-                    ibin_x = n_x
-                elif ibin_x == 0:
-                    ibin_x = 1
-                if ibin_y == n_y + 1:
-                    ibin_y = n_y
-                elif ibin_y == 0:
-                    ibin_y = 1
-            if ibin_x >= 1 and ibin_y >= 1 and ibin_x <= n_x and ibin_y <= n_y:
-                hist[ibin_x - 1, ibin_y - 1] += weights[i]
-    return hist, bins_x, bins_y
+# def _numba_histogram2d(ax, ay, bins_x, bins_y, weights=None, overflow=False):
+#     db_x = np.ediff1d(bins_x)
+#     db_y = np.ediff1d(bins_y)
+#     is_uniform_binning_x = np.all(db_x - db_x[0] < 1e-6)
+#     is_uniform_binning_y = np.all(db_y - db_y[0] < 1e-6)
+#     hist = np.zeros((len(bins_x) - 1, len(bins_y) - 1), dtype=np.float64)
+#     ax = ax.flat
+#     ay = ay.flat
+#     b_min_x = bins_x[0]
+#     b_max_x = bins_x[-1]
+#     n_x = bins_x.shape[0] - 1
+#     b_min_y = bins_y[0]
+#     b_max_y = bins_y[-1]
+#     n_y = bins_y.shape[0] - 1
+#     if weights is None:
+#         weights = np.ones(len(ax), dtype=np.float64)
+#     if is_uniform_binning_x and is_uniform_binning_y:
+#         for i in range(len(ax)):
+#             ibin_x = _compute_bin_1d_uniform(ax[i], bins_x, overflow=overflow)
+#             ibin_y = _compute_bin_1d_uniform(ay[i], bins_y, overflow=overflow)
+#             if ibin_x >= 0 and ibin_y >= 0:
+#                 hist[ibin_x, ibin_y] += weights[i]
+#     else:
+#         ibins_x = np.searchsorted(bins_x, ax, side="left")
+#         ibins_y = np.searchsorted(bins_y, ay, side="left")
+#         for i in range(len(ax)):
+#             ibin_x = ibins_x[i]
+#             ibin_y = ibins_y[i]
+#             if overflow:
+#                 if ibin_x == n_x + 1:
+#                     ibin_x = n_x
+#                 elif ibin_x == 0:
+#                     ibin_x = 1
+#                 if ibin_y == n_y + 1:
+#                     ibin_y = n_y
+#                 elif ibin_y == 0:
+#                     ibin_y = 1
+#             if ibin_x >= 1 and ibin_y >= 1 and ibin_x <= n_x and ibin_y <= n_y:
+#                 hist[ibin_x - 1, ibin_y - 1] += weights[i]
+#     return hist, bins_x, bins_y
 
 
-_numba_histogram2d._wrapped = False
+# _numba_histogram2d._wrapped = False
 
 
-def _np_histogram2d_wrapper(x, y, overflow=True, **kwargs):
-    # Yuck, globals. This is so we don't incur the cost of importing numba (~1sec)
-    # if we never end up using it.
-    global _compute_bin_1d_uniform, _numba_histogram2d
+# def _np_histogram2d_wrapper(x, y, overflow=True, **kwargs):
+#     # Yuck, globals. This is so we don't incur the cost of importing numba (~1sec)
+#     # if we never end up using it.
+#     global _compute_bin_1d_uniform, _numba_histogram2d
 
-    if kwargs.pop("allow_numba", True) and (len(x) > 1e5):
+#     if kwargs.pop("allow_numba", True) and (len(x) > 1e5):
 
-        HAS_NUMBA = False
-        try:
-            import numba
+#         HAS_NUMBA = False
+#         try:
+#             import numba
 
-            HAS_NUMBA = True
+#             HAS_NUMBA = True
 
-            if not _numba_histogram2d._wrapped:
-                jitfunc = numba.jit(nopython=True, nogil=True)
-                _compute_bin_1d_uniform = jitfunc(_compute_bin_1d_uniform)
-                _numba_histogram2d = jitfunc(_numba_histogram2d)
-                _numba_histogram2d._wrapped = True
-        except:
-            pass
+#             if not _numba_histogram2d._wrapped:
+#                 jitfunc = numba.jit(nopython=True, nogil=True)
+#                 _compute_bin_1d_uniform = jitfunc(_compute_bin_1d_uniform)
+#                 _numba_histogram2d = jitfunc(_numba_histogram2d)
+#                 _numba_histogram2d._wrapped = True
+#         except:
+#             pass
 
-        if HAS_NUMBA:
-            bins = kwargs.get("bins", None)
-            # check if `bins` is a 2 element list of lists (x bins, y bins)
-            if is_listlike(bins) and (len(bins) == 2) and (is_listlike(bins[0])):
-                bins_x, bins_y = bins
-                weights = kwargs.get("weights", None)
-                return _numba_histogram2d(
-                    x, y, bins_x, bins_y, weights=weights, overflow=overflow
-                )
-            # or if single dimension
-            if is_listlike(bins) and (np.ndim(bins) == 1):
-                bins_x = bins_y = bins
-                weights = kwargs.get("weights", None)
-                return _numba_histogram2d(
-                    x, y, bins_x, bins_y, weights=weights, overflow=overflow
-                )
+#         if HAS_NUMBA:
+#             bins = kwargs.get("bins", None)
+#             # check if `bins` is a 2 element list of lists (x bins, y bins)
+#             if is_listlike(bins) and (len(bins) == 2) and (is_listlike(bins[0])):
+#                 bins_x, bins_y = bins
+#                 weights = kwargs.get("weights", None)
+#                 return _numba_histogram2d(
+#                     x, y, bins_x, bins_y, weights=weights, overflow=overflow
+#                 )
+#             # or if single dimension
+#             if is_listlike(bins) and (np.ndim(bins) == 1):
+#                 bins_x = bins_y = bins
+#                 weights = kwargs.get("weights", None)
+#                 return _numba_histogram2d(
+#                     x, y, bins_x, bins_y, weights=weights, overflow=overflow
+#                 )
 
-    return np.histogram2d(x, y, **kwargs)
+#     return np.histogram2d(x, y, **kwargs)

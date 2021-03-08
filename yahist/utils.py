@@ -3,6 +3,8 @@ from __future__ import print_function
 import matplotlib
 import numpy as np
 
+import boost_histogram as bh
+
 
 def is_listlike(obj):
     return (type(obj) in [tuple, list]) or (np.ndim(obj) >= 1)
@@ -25,6 +27,70 @@ def convert_dates(obj):
 def has_uniform_spacing(obj, epsilon=1e-6):
     offsets = np.ediff1d(obj)
     return np.all(offsets - offsets[0] < epsilon)
+
+
+def histogramdd_wrapper(a, bins, range_, weights, overflow, threads):
+    # Based on
+    # https://github.com/scikit-hep/boost-histogram/blob/develop/src/boost_histogram/numpy.py
+    if isinstance(a, np.ndarray):
+        a = a.T
+
+    rank = len(a)
+    try:
+        bins = (int(bins),) * rank
+    except TypeError:
+        pass
+
+    if range_ is None:
+        range_ = (None,) * rank
+
+    axs = []
+    for n, (b, r) in enumerate(zip(bins, range_)):
+        if is_listlike(b) and has_uniform_spacing(b):
+            r = b[0], b[-1]
+            b = len(b) - 1
+        if np.issubdtype(type(b), np.integer):
+            if r is None:
+                if len(a[n]):
+                    r = (np.min(a[n]), np.max(a[n]))
+                else:
+                    r = (0, 1)
+            axis = bh.axis.Regular(b, r[0], r[1], underflow=True, overflow=True)
+            # low, high = r[0], r[1]
+            # integer_binning = float(low).is_integer() and (float(high-low) == float(b))
+            # if integer_binning:
+            #     high = np.nextafter(high, np.finfo("d").max)
+            #     axis = bh.axis.Integer(int(low), int(high), underflow=True, overflow=True)
+            # else:
+            #    axis = bh.axis.Regular(b, low, high, underflow=True, overflow=True)
+            axs.append(axis)
+        else:
+            barr = np.asarray(b, dtype=np.double)
+            axs.append(bh.axis.Variable(barr, underflow=True, overflow=True))
+
+    counts, edges = (
+        bh.Histogram(*axs)
+        .fill(*a, weight=weights, threads=threads)
+        .to_numpy(view=True, dd=True, flow=overflow)
+    )
+
+    if overflow:
+        edges = list(edges)
+        for n in range(rank):
+            edges[n] = edges[n][1:-1]
+
+        if np.ndim(counts) == 1:
+            counts[1] += counts[0]
+            counts[-2] += counts[-1]
+            counts = counts[1:-1]
+        else:
+            counts[:, 1] += counts[:, 0]
+            counts[:, -2] += counts[:, -1]
+            counts[1, :] += counts[0, :]
+            counts[-2, :] += counts[-1, :]
+            counts = counts[1:-1, 1:-1]
+
+    return counts, edges
 
 
 def set_default_style():
