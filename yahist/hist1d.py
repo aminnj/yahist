@@ -99,7 +99,16 @@ class Hist1D(object):
             bins = int(nbins)
 
         if isinstance(bins, str):
-            bins = np.histogram_bin_edges(obj, bins, range, weights)
+
+            # if binning integers, binning choice is easy
+            # check just 10% on each side to get reasonable ranges
+            if hasattr(obj, "dtype") and ("int" in str(obj.dtype)):
+                n = max(int(0.1*len(obj)), 1)
+                maxi = max(obj[:n].max(), obj[-n:].max())
+                mini = min(obj[:n].min(), obj[-n:].min())
+                bins = np.linspace(mini-0.5, maxi+0.5, maxi-mini+2)
+            else:
+                bins = np.histogram_bin_edges(obj, bins, range, weights)
 
         if is_datelike(obj):
             obj = convert_dates(obj)
@@ -310,6 +319,17 @@ class Hist1D(object):
             self.counts * (self.bin_centers - self.mean()) ** 2.0
         ).sum() / self.integral
         return variance ** 0.5
+
+    def median(self):
+        """
+        Returns the bin center closest to the median of the histogram.
+
+        Returns
+        -------
+        float
+             median
+        """
+        return self.quantile(0.5)
 
     def _fix_nan(self):
         for x in [self._counts, self._errors, self._errors_up, self._errors_down]:
@@ -652,6 +672,24 @@ class Hist1D(object):
         x = np.clip(x, low, high)
         ibins = np.digitize(x, bins=self.edges) - 1
         return self.counts[ibins]
+
+    def quantile(self, q):
+        """
+        Returns the bin center corresponding to the quantile(s) `q`.
+        Similar to `np.quantile`.
+
+        Parameters
+        ----------
+        q : float, or array of floats
+            quantile between 0 and 1
+
+        Returns
+        -------
+        float, or array of floats
+        """
+        counts = np.cumsum(self.counts / self.integral)
+        ixs = np.searchsorted(counts, q, side="right")
+        return self.bin_centers[ixs]
 
     def sample(self, size=1e5):
         """

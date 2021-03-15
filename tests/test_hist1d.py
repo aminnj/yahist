@@ -73,6 +73,12 @@ def test_binning():
     assert h2 == h3
 
 
+def test_integer_binning():
+    v = np.arange(100).astype(int)
+    edges = np.linspace(-0.5, 99.5, 101)
+    h1 = Hist1D(v)
+    allclose(h1.edges, edges)
+
 def test_overflow():
     v = np.arange(10)
     bins = "8,0.5,8.5"
@@ -86,6 +92,19 @@ def test_overflow():
     assert h.counts[-1] == 1
     assert h.integral == 8
 
+def test_median_quantiles():
+    np.random.seed(42)
+    v = np.concatenate([
+        np.random.normal(0, 1, 100),
+        np.random.normal(1, 1, 100),
+        ])
+    h = Hist1D(v, bins="100,-5,5")
+    qs = np.linspace(0, 1, 11)
+    v1 = np.quantile(v, qs)
+    v2 = h.quantile(qs)
+    bw = h.bin_widths[0]
+    assert np.all(np.abs(v1 - v2) < bw)
+    assert np.abs(np.median(v) - h.median()) < bw
 
 def test_idempotence():
     h1 = Hist1D([0.5], bins=[0.0, 1])
