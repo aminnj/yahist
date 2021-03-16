@@ -108,7 +108,10 @@ class Hist1D(object):
                 mini = min(obj[:n].min(), obj[-n:].min())
                 bins = np.linspace(mini-0.5, maxi+0.5, maxi-mini+2)
             else:
-                bins = np.histogram_bin_edges(obj, bins, range, weights)
+                bins = np.histogram_bin_edges(obj, bins, range)
+
+        if weights is not None:
+            weights = np.array(weights, copy=False)
 
         if is_datelike(obj):
             obj = convert_dates(obj)

@@ -33,6 +33,11 @@ def test_basic():
     allclose(h.bin_centers, np.array([0.5, 1.5]))
 
 
+def test_from_list():
+    h = Hist1D([-1,1], weights=[1,2])
+    assert h.integral == 3.
+
+
 def test_weighted():
     v = np.array([0.5, 0.5, 1.5, 1.5])
     w = np.array([1.0, 1.0, 2.0, 2.0])
