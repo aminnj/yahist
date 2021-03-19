@@ -237,7 +237,7 @@ class Hist2D(Hist1D):
         num_err = np.matmul(errors.T ** 2, centers ** 2) ** 0.5
         den_err = np.sum(errors ** 2, axis=0) ** 0.5
         r_val = num / den
-        r_err = ((num_err / den) ** 2 + (den_err * num / den ** 2.0) ** 2.0) ** 0.5
+        r_err = ((num_err / den) ** 2 - (den_err * num / den ** 2.0) ** 2.0) ** 0.5
         hnew = Hist1D()
         hnew._counts = r_val
         hnew._errors = r_err
