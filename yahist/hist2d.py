@@ -87,9 +87,10 @@ class Hist2D(Hist1D):
                 np.linspace(float(lowy), float(highy), int(nbinsy) + 1),
             ]
 
-        if is_listlike(bins) and not len(bins) == 2:
-            if not is_listlike(bins[0]):
-                bins = [bins, bins]
+        if is_listlike(bins):
+            if not len(bins) == 2:
+                if not is_listlike(bins[0]):
+                    bins = [bins, bins]
 
             if is_datelike(bins[0]):
                 bins[0] = convert_dates(bins[0])
