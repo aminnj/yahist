@@ -49,82 +49,109 @@
     <span class="n">convert_dates</span><span class="p">,</span>
     <span class="n">compute_darkness</span><span class="p">,</span>
     <span class="n">ignore_division_errors</span><span class="p">,</span>
+    <span class="n">histogramdd_wrapper</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">.hist1d</span> <span class="kn">import</span> <span class="n">Hist1D</span>
 
 
 <div class="viewcode-block" id="Hist2D"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D">[docs]</a><span class="k">class</span> <span class="nc">Hist2D</span><span class="p">(</span><span class="n">Hist1D</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">_init_numpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Constructs a Hist2D object from a variety of inputs</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : a 2D array of numbers to histogram, another `Hist2D` object,</span>
+<span class="sd">            or a tuple of x and y values</span>
+
+<span class="sd">    kwargs</span>
+<span class="sd">        bins : list/array of bin edges, number of bins, or string, default 10</span>
+<span class="sd">            Follows usage for `np.histogram2d`, </span>
+<span class="sd">            with addition of string specification</span>
+<span class="sd">        range : list/array of axis ranges, default None</span>
+<span class="sd">            Follows usage for `np.histogram2d`</span>
+<span class="sd">        weights : list/array of weights, default None</span>
+<span class="sd">            Follows usage for `np.histogram2d`</span>
+<span class="sd">        threads : int, default 0</span>
+<span class="sd">            Number of threads to use for histogramming.</span>
+<span class="sd">            If 0, autodetect (within `boost_histogram`)</span>
+<span class="sd">        overflow : bool, default True</span>
+<span class="sd">            Include overflow counts in outermost bins</span>
+<span class="sd">        metadata : dict, default {}</span>
+<span class="sd">            Attach arbitrary extra data to this object</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Hist2D</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; x = np.random.normal(0, 1, 1000)</span>
+<span class="sd">    &gt;&gt;&gt; y = np.random.normal(0, 1, 1000)</span>
+<span class="sd">    &gt;&gt;&gt; Hist2D(np.c_[x,y], bins=np.linspace(-5,5,11))</span>
+<span class="sd">    &gt;&gt;&gt; Hist2D((x,y), bins=&quot;10,-5,5&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; Hist2D((x,y), bins=&quot;10,-5,5,20,-3,3&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; df = pd.DataFrame(dict(x=x,y=y))</span>
+<span class="sd">    &gt;&gt;&gt; Hist2D(df[[&quot;x&quot;,&quot;y&quot;]], bins=&quot;10,-5,5&quot;, threads=4)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_init_numpy</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">):</span>
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">obj</span>
+        <span class="k">elif</span> <span class="s2">&quot;DataFrame&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s2">&quot;pandas_labels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">xs</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">ys</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;DataFrame&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s2">&quot;pandas_labels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>
-                <span class="n">xs</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-                <span class="n">ys</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">obj</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;weights&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;weights&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;norm&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-                <span class="s2">&quot;Please use the .normalize() method on the histogram object.&quot;</span>
-            <span class="p">)</span>
-
-        <span class="c1"># convert ROOT-like &quot;50,0,10,50,0,10&quot; to [np.linspace(0,10,51), np.linspace(0,10,51)]</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bins&quot;</span><span class="p">),</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
-        <span class="p">):</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="n">nbinsx</span><span class="p">,</span> <span class="n">lowx</span><span class="p">,</span> <span class="n">highx</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-                <span class="n">nbinsy</span><span class="p">,</span> <span class="n">lowy</span><span class="p">,</span> <span class="n">highy</span> <span class="o">=</span> <span class="n">nbinsx</span><span class="p">,</span> <span class="n">lowx</span><span class="p">,</span> <span class="n">highx</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">nbinsx</span><span class="p">,</span> <span class="n">lowx</span><span class="p">,</span> <span class="n">highx</span><span class="p">,</span> <span class="n">nbinsy</span><span class="p">,</span> <span class="n">lowy</span><span class="p">,</span> <span class="n">highy</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lowx</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">highx</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">nbinsx</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lowy</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">highy</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">nbinsy</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="p">]</span>
+            <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">obj</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">is_datelike</span><span class="p">(</span><span class="n">xs</span><span class="p">):</span>
             <span class="n">xs</span> <span class="o">=</span> <span class="n">convert_dates</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s2">&quot;date_axes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;bins&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">bins</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bins&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-
-                <span class="k">if</span> <span class="n">is_datelike</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-                    <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">convert_dates</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s2">&quot;date_axes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
-
-                <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;overflow&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
-                    <span class="n">clip_low_x</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">clip_high_x</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">clip_low_y</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">clip_high_y</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">clip_low_x</span><span class="p">,</span> <span class="n">clip_high_x</span><span class="p">)</span>
-                    <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">clip_low_y</span><span class="p">,</span> <span class="n">clip_high_y</span><span class="p">)</span>
-
-        <span class="n">counts</span><span class="p">,</span> <span class="n">edgesx</span><span class="p">,</span> <span class="n">edgesy</span> <span class="o">=</span> <span class="n">_np_histogram2d_wrapper</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c1"># each row = constant y, lowest y on top</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">T</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span> <span class="o">=</span> <span class="n">edgesx</span><span class="p">,</span> <span class="n">edgesy</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-
-        <span class="c1"># poisson defaults if not specified</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;weights&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_counts</span><span class="p">)</span>
+        <span class="c1"># convert ROOT-like &quot;50,0,10,50,0,10&quot; to [np.linspace(0,10,51), np.linspace(0,10,51)]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">bins</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">bins</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">nbinsx</span><span class="p">,</span> <span class="n">lowx</span><span class="p">,</span> <span class="n">highx</span> <span class="o">=</span> <span class="n">bins</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+                <span class="n">nbinsy</span><span class="p">,</span> <span class="n">lowy</span><span class="p">,</span> <span class="n">highy</span> <span class="o">=</span> <span class="n">nbinsx</span><span class="p">,</span> <span class="n">lowx</span><span class="p">,</span> <span class="n">highx</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># if weighted entries, need to get sum of sq. weights per bin</span>
-                <span class="c1"># and sqrt of that is bin error</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;weights&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;weights&quot;</span><span class="p">]</span> <span class="o">**</span> <span class="mf">2.0</span>
-                <span class="n">counts</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_np_histogram2d_wrapper</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+                <span class="n">nbinsx</span><span class="p">,</span> <span class="n">lowx</span><span class="p">,</span> <span class="n">highx</span><span class="p">,</span> <span class="n">nbinsy</span><span class="p">,</span> <span class="n">lowy</span><span class="p">,</span> <span class="n">highy</span> <span class="o">=</span> <span class="n">bins</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lowx</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">highx</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">nbinsx</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lowy</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">highy</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">nbinsy</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                    <span class="n">bins</span> <span class="o">=</span> <span class="p">[</span><span class="n">bins</span><span class="p">,</span> <span class="n">bins</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">is_datelike</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">convert_dates</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s2">&quot;date_axes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">histogramdd_wrapper</span><span class="p">((</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">),</span> <span class="n">bins</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">overflow</span><span class="p">,</span> <span class="n">threads</span><span class="p">,)</span>
+
+        <span class="n">counts</span><span class="p">,</span> <span class="p">(</span><span class="n">edgesx</span><span class="p">,</span> <span class="n">edgesy</span><span class="p">)</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sumw2</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">yahist</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">histogramdd_wrapper</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">),</span> <span class="n">bins</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="n">weights</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">overflow</span><span class="p">,</span> <span class="n">threads</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="n">sumw2</span> <span class="o">**</span> <span class="mf">0.5</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="n">errors</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="n">counts</span> <span class="o">**</span> <span class="mf">0.5</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">counts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span> <span class="o">=</span> <span class="p">(</span><span class="n">edgesx</span><span class="p">,</span> <span class="n">edgesy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="n">errors</span>
 
     <span class="k">def</span> <span class="nf">_init_root</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">xaxis</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetXaxis</span><span class="p">()</span>
@@ -250,7 +277,7 @@
         <span class="n">num_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">errors</span><span class="o">.</span><span class="n">T</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">centers</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
         <span class="n">den_err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">errors</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
         <span class="n">r_val</span> <span class="o">=</span> <span class="n">num</span> <span class="o">/</span> <span class="n">den</span>
-        <span class="n">r_err</span> <span class="o">=</span> <span class="p">((</span><span class="n">num_err</span> <span class="o">/</span> <span class="n">den</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">den_err</span> <span class="o">*</span> <span class="n">num</span> <span class="o">/</span> <span class="n">den</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
+        <span class="n">r_err</span> <span class="o">=</span> <span class="p">((</span><span class="n">num_err</span> <span class="o">/</span> <span class="n">den</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">(</span><span class="n">den_err</span> <span class="o">*</span> <span class="n">num</span> <span class="o">/</span> <span class="n">den</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span>
         <span class="n">hnew</span> <span class="o">=</span> <span class="n">Hist1D</span><span class="p">()</span>
         <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">r_val</span>
         <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="n">r_err</span>
@@ -404,8 +431,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        forwardx : bool, default True</span>
 <span class="sd">            If true, sum the x-axis from low to high, otherwise high to low</span>
+<span class="sd">            If None, do not sum along this axis.</span>
 <span class="sd">        forwardy : bool, default True</span>
 <span class="sd">            If true, sum the y-axis from low to high, otherwise high to low</span>
+<span class="sd">            If None, do not sum along this axis.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -413,17 +442,19 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">hnew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># x</span>
-        <span class="n">directionx</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">forwardx</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span><span class="p">[:,</span> <span class="p">::</span><span class="n">directionx</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="p">::</span><span class="n">directionx</span><span class="p">]</span>
-        <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="p">(</span><span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span><span class="p">[:,</span> <span class="p">::</span><span class="n">directionx</span><span class="p">]</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span>
-            <span class="p">:,</span> <span class="p">::</span><span class="n">directionx</span>
-        <span class="p">]</span> <span class="o">**</span> <span class="mf">0.5</span>
+        <span class="k">if</span> <span class="n">forwardx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">directionx</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">forwardx</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span><span class="p">[:,</span> <span class="p">::</span><span class="n">directionx</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="p">::</span><span class="n">directionx</span><span class="p">]</span>
+            <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="p">(</span><span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span><span class="p">[:,</span> <span class="p">::</span><span class="n">directionx</span><span class="p">]</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span>
+                <span class="p">:,</span> <span class="p">::</span><span class="n">directionx</span>
+            <span class="p">]</span> <span class="o">**</span> <span class="mf">0.5</span>
         <span class="c1"># y</span>
-        <span class="n">directiony</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">forwardy</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span><span class="p">[::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:]</span>
-        <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="p">(</span><span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span><span class="p">[::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:]</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span>
-            <span class="p">::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:</span>
-        <span class="p">]</span> <span class="o">**</span> <span class="mf">0.5</span>
+        <span class="k">if</span> <span class="n">forwardy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">directiony</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">forwardy</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span><span class="p">[::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="p">(</span><span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span><span class="p">[::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:]</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span>
+                <span class="p">::</span><span class="n">directiony</span><span class="p">,</span> <span class="p">:</span>
+            <span class="p">]</span> <span class="o">**</span> <span class="mf">0.5</span>
         <span class="k">return</span> <span class="n">hnew</span></div>
 
 <div class="viewcode-block" id="Hist2D.lookup"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.lookup">[docs]</a>    <span class="k">def</span> <span class="nf">lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
@@ -950,108 +981,6 @@
             <span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">0</span><span class="p">,),</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span></div></div>
-
-
-<span class="k">def</span> <span class="nf">_compute_bin_1d_uniform</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="n">bins</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="n">b_min</span> <span class="o">=</span> <span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">b_max</span> <span class="o">=</span> <span class="n">bins</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">overflow</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">b_max</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
-        <span class="k">elif</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">b_min</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mi">0</span>
-    <span class="n">ibin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">b_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">b_max</span> <span class="o">-</span> <span class="n">b_min</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">b_min</span> <span class="ow">or</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">b_max</span><span class="p">:</span>
-        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">ibin</span>
-
-
-<span class="k">def</span> <span class="nf">_numba_histogram2d</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">,</span> <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="n">db_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ediff1d</span><span class="p">(</span><span class="n">bins_x</span><span class="p">)</span>
-    <span class="n">db_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ediff1d</span><span class="p">(</span><span class="n">bins_y</span><span class="p">)</span>
-    <span class="n">is_uniform_binning_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">db_x</span> <span class="o">-</span> <span class="n">db_x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">)</span>
-    <span class="n">is_uniform_binning_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">db_y</span> <span class="o">-</span> <span class="n">db_y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">)</span>
-    <span class="n">hist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">bins_x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bins_y</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-    <span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flat</span>
-    <span class="n">ay</span> <span class="o">=</span> <span class="n">ay</span><span class="o">.</span><span class="n">flat</span>
-    <span class="n">b_min_x</span> <span class="o">=</span> <span class="n">bins_x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">b_max_x</span> <span class="o">=</span> <span class="n">bins_x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">n_x</span> <span class="o">=</span> <span class="n">bins_x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="n">b_min_y</span> <span class="o">=</span> <span class="n">bins_y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">b_max_y</span> <span class="o">=</span> <span class="n">bins_y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">n_y</span> <span class="o">=</span> <span class="n">bins_y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ax</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">is_uniform_binning_x</span> <span class="ow">and</span> <span class="n">is_uniform_binning_y</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ax</span><span class="p">)):</span>
-            <span class="n">ibin_x</span> <span class="o">=</span> <span class="n">_compute_bin_1d_uniform</span><span class="p">(</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">bins_x</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="n">overflow</span><span class="p">)</span>
-            <span class="n">ibin_y</span> <span class="o">=</span> <span class="n">_compute_bin_1d_uniform</span><span class="p">(</span><span class="n">ay</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">bins_y</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="n">overflow</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">ibin_x</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ibin_y</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">hist</span><span class="p">[</span><span class="n">ibin_x</span><span class="p">,</span> <span class="n">ibin_y</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">ibins_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">bins_x</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
-        <span class="n">ibins_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">bins_y</span><span class="p">,</span> <span class="n">ay</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ax</span><span class="p">)):</span>
-            <span class="n">ibin_x</span> <span class="o">=</span> <span class="n">ibins_x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="n">ibin_y</span> <span class="o">=</span> <span class="n">ibins_y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">overflow</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">ibin_x</span> <span class="o">==</span> <span class="n">n_x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">ibin_x</span> <span class="o">=</span> <span class="n">n_x</span>
-                <span class="k">elif</span> <span class="n">ibin_x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">ibin_x</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="k">if</span> <span class="n">ibin_y</span> <span class="o">==</span> <span class="n">n_y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">ibin_y</span> <span class="o">=</span> <span class="n">n_y</span>
-                <span class="k">elif</span> <span class="n">ibin_y</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">ibin_y</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">if</span> <span class="n">ibin_x</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">ibin_y</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">ibin_x</span> <span class="o">&lt;=</span> <span class="n">n_x</span> <span class="ow">and</span> <span class="n">ibin_y</span> <span class="o">&lt;=</span> <span class="n">n_y</span><span class="p">:</span>
-                <span class="n">hist</span><span class="p">[</span><span class="n">ibin_x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ibin_y</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">hist</span><span class="p">,</span> <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span>
-
-
-<span class="n">_numba_histogram2d</span><span class="o">.</span><span class="n">_wrapped</span> <span class="o">=</span> <span class="kc">False</span>
-
-
-<span class="k">def</span> <span class="nf">_np_histogram2d_wrapper</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="c1"># Yuck, globals. This is so we don&#39;t incur the cost of importing numba (~1sec)</span>
-    <span class="c1"># if we never end up using it.</span>
-    <span class="k">global</span> <span class="n">_compute_bin_1d_uniform</span><span class="p">,</span> <span class="n">_numba_histogram2d</span>
-
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;allow_numba&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e5</span><span class="p">):</span>
-
-        <span class="n">HAS_NUMBA</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">numba</span>
-
-            <span class="n">HAS_NUMBA</span> <span class="o">=</span> <span class="kc">True</span>
-
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">_numba_histogram2d</span><span class="o">.</span><span class="n">_wrapped</span><span class="p">:</span>
-                <span class="n">jitfunc</span> <span class="o">=</span> <span class="n">numba</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">_compute_bin_1d_uniform</span> <span class="o">=</span> <span class="n">jitfunc</span><span class="p">(</span><span class="n">_compute_bin_1d_uniform</span><span class="p">)</span>
-                <span class="n">_numba_histogram2d</span> <span class="o">=</span> <span class="n">jitfunc</span><span class="p">(</span><span class="n">_numba_histogram2d</span><span class="p">)</span>
-                <span class="n">_numba_histogram2d</span><span class="o">.</span><span class="n">_wrapped</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">pass</span>
-
-        <span class="k">if</span> <span class="n">HAS_NUMBA</span><span class="p">:</span>
-            <span class="n">bins</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bins&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="c1"># check if `bins` is a 2 element list of lists (x bins, y bins)</span>
-            <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
-                <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span> <span class="o">=</span> <span class="n">bins</span>
-                <span class="n">weights</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">_numba_histogram2d</span><span class="p">(</span>
-                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="n">overflow</span>
-                <span class="p">)</span>
-            <span class="c1"># or if single dimension</span>
-            <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
-                <span class="n">bins_x</span> <span class="o">=</span> <span class="n">bins_y</span> <span class="o">=</span> <span class="n">bins</span>
-                <span class="n">weights</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">_numba_histogram2d</span><span class="p">(</span>
-                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">bins_x</span><span class="p">,</span> <span class="n">bins_y</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">overflow</span><span class="o">=</span><span class="n">overflow</span>
-                <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </pre></div>
 
             <div class="clearer"></div>

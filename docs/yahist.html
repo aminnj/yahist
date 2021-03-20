@@ -50,6 +50,46 @@
 <dt id="yahist.hist1d.Hist1D">
 <em class="property">class </em><code class="sig-prename descclassname">yahist.hist1d.</code><code class="sig-name descname">Hist1D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Constructs a Hist1D object from a variety of inputs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> (a list/array of numbers to histogram, or another <cite>Hist1D</cite> object) – </p></li>
+<li><p><strong>kwargs</strong> – <dl class="simple">
+<dt>bins<span class="classifier">list/array of bin edges, number of bins, string, or “auto”, default “auto”</span></dt><dd><p>Follows usage for <cite>np.histogramd</cite>,
+with addition of string specification</p>
+</dd>
+<dt>range<span class="classifier">list/array of axis ranges, default None</span></dt><dd><p>Follows usage for <cite>np.histogram</cite></p>
+</dd>
+<dt>weights<span class="classifier">list/array of weights, default None</span></dt><dd><p>Follows usage for <cite>np.histogram</cite></p>
+</dd>
+<dt>threads<span class="classifier">int, default 1</span></dt><dd><p>Number of threads to use for histogramming.</p>
+</dd>
+<dt>overflow<span class="classifier">bool, default True</span></dt><dd><p>Include overflow counts in outermost bins</p>
+</dd>
+<dt>metadata<span class="classifier">dict, default {}</span></dt><dd><p>Attach arbitrary extra data to this object</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#yahist.hist1d.Hist1D" title="yahist.hist1d.Hist1D">Hist1D</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Hist1D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Hist1D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;10,-5,5&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Hist1D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;10,-5,5,20,-3,3&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h1</span> <span class="o">=</span> <span class="n">Hist1D</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C0&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h1</span> <span class="o">=</span> <span class="n">Hist1D</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Hist1D</span><span class="p">([],</span> <span class="n">metadata</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">foo</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt id="yahist.hist1d.Hist1D.bin_centers">
 <em class="property">property </em><code class="sig-name descname">bin_centers</code><a class="headerlink" href="#yahist.hist1d.Hist1D.bin_centers" title="Permalink to this definition">¶</a></dt>
@@ -334,9 +374,38 @@ bin counts via <cite>np.digitize</cite></p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="yahist.hist1d.Hist1D.median">
+<code class="sig-name descname">median</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.median"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.median" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the bin center closest to the median of the histogram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>median</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="yahist.hist1d.Hist1D.metadata">
 <em class="property">property </em><code class="sig-name descname">metadata</code><a class="headerlink" href="#yahist.hist1d.Hist1D.metadata" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt id="yahist.hist1d.Hist1D.mode">
+<code class="sig-name descname">mode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns mode (bin center for bin with largest value).
+If multiple bins are tied, only the first/leftmost is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>mode</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="yahist.hist1d.Hist1D.nbins">
@@ -419,6 +488,24 @@ function, or <cite>errorbar</cite>.</p>
 <dt id="yahist.hist1d.Hist1D.plot_plotly">
 <code class="sig-name descname">plot_plotly</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.plot_plotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.plot_plotly" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt id="yahist.hist1d.Hist1D.quantile">
+<code class="sig-name descname">quantile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.quantile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.quantile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the bin center corresponding to the quantile(s) <cite>q</cite>.
+Similar to <cite>np.quantile</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>q</strong> (<em>float</em><em>, or </em><em>array of floats</em>) – quantile between 0 and 1</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float, or array of floats</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="yahist.hist1d.Hist1D.rebin">
@@ -593,6 +680,47 @@ the <cite>errors_up</cite> and <cite>errors_down</cite> properties.</p>
 <dt id="yahist.hist2d.Hist2D">
 <em class="property">class </em><code class="sig-prename descclassname">yahist.hist2d.</code><code class="sig-name descname">Hist2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#yahist.hist1d.Hist1D" title="yahist.hist1d.Hist1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">yahist.hist1d.Hist1D</span></code></a></p>
+<p>Constructs a Hist2D object from a variety of inputs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> (a 2D array of numbers to histogram, another <cite>Hist2D</cite> object,) – or a tuple of x and y values</p></li>
+<li><p><strong>kwargs</strong> – <dl class="simple">
+<dt>bins<span class="classifier">list/array of bin edges, number of bins, or string, default 10</span></dt><dd><p>Follows usage for <cite>np.histogram2d</cite>,
+with addition of string specification</p>
+</dd>
+<dt>range<span class="classifier">list/array of axis ranges, default None</span></dt><dd><p>Follows usage for <cite>np.histogram2d</cite></p>
+</dd>
+<dt>weights<span class="classifier">list/array of weights, default None</span></dt><dd><p>Follows usage for <cite>np.histogram2d</cite></p>
+</dd>
+<dt>threads<span class="classifier">int, default 0</span></dt><dd><p>Number of threads to use for histogramming.
+If 0, autodetect (within <cite>boost_histogram</cite>)</p>
+</dd>
+<dt>overflow<span class="classifier">bool, default True</span></dt><dd><p>Include overflow counts in outermost bins</p>
+</dd>
+<dt>metadata<span class="classifier">dict, default {}</span></dt><dd><p>Attach arbitrary extra data to this object</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#yahist.hist2d.Hist2D" title="yahist.hist2d.Hist2D">Hist2D</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Hist2D</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Hist2D</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;10,-5,5&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Hist2D</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;10,-5,5,20,-3,3&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Hist2D</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span><span class="s2">&quot;y&quot;</span><span class="p">]],</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;10,-5,5&quot;</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt id="yahist.hist2d.Hist2D.bin_centers">
 <em class="property">property </em><code class="sig-name descname">bin_centers</code><a class="headerlink" href="#yahist.hist2d.Hist2D.bin_centers" title="Permalink to this definition">¶</a></dt>
@@ -648,8 +776,10 @@ the <cite>errors_up</cite> and <cite>errors_down</cite> properties.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>forwardx</strong> (<em>bool</em><em>, </em><em>default True</em>) – If true, sum the x-axis from low to high, otherwise high to low</p></li>
-<li><p><strong>forwardy</strong> (<em>bool</em><em>, </em><em>default True</em>) – If true, sum the y-axis from low to high, otherwise high to low</p></li>
+<li><p><strong>forwardx</strong> (<em>bool</em><em>, </em><em>default True</em>) – If true, sum the x-axis from low to high, otherwise high to low
+If None, do not sum along this axis.</p></li>
+<li><p><strong>forwardy</strong> (<em>bool</em><em>, </em><em>default True</em>) – If true, sum the y-axis from low to high, otherwise high to low
+If None, do not sum along this axis.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1069,6 +1199,11 @@ is empty.</p></li>
 <dl class="py function">
 <dt id="yahist.utils.has_uniform_spacing">
 <code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">has_uniform_spacing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">epsilon</span><span class="o">=</span><span class="default_value">1e-06</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#has_uniform_spacing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.has_uniform_spacing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="yahist.utils.histogramdd_wrapper">
+<code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">histogramdd_wrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">bins</span></em>, <em class="sig-param"><span class="n">range_</span></em>, <em class="sig-param"><span class="n">weights</span></em>, <em class="sig-param"><span class="n">overflow</span></em>, <em class="sig-param"><span class="n">threads</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#histogramdd_wrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.histogramdd_wrapper" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
