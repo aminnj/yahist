@@ -34,8 +34,8 @@ def test_basic():
 
 
 def test_from_list():
-    h = Hist1D([-1,1], weights=[1,2])
-    assert h.integral == 3.
+    h = Hist1D([-1, 1], weights=[1, 2])
+    assert h.integral == 3.0
 
 
 def test_weighted():
@@ -63,10 +63,16 @@ def test_nonuniform_binning():
 
 def test_statistics():
     v = [0.5, 0.5, 1.5, 1.5]
-    bins = np.array([0.0, 1.0, 2.0])
+    bins = [0.0, 1.0, 2.0]
     h = Hist1D(v, bins=bins)
     assert h.mean() == 1.0
     assert h.std() == 0.5
+    assert h.mode() == 0.5
+
+    v = [0.5, 1.5, 1.5]
+    bins = [0.0, 1.0, 2.0]
+    h = Hist1D(v, bins=bins)
+    assert h.mode() == 1.5
 
 
 def test_binning():
@@ -84,6 +90,7 @@ def test_integer_binning():
     h1 = Hist1D(v)
     allclose(h1.edges, edges)
 
+
 def test_overflow():
     v = np.arange(10)
     bins = "8,0.5,8.5"
@@ -97,12 +104,10 @@ def test_overflow():
     assert h.counts[-1] == 1
     assert h.integral == 8
 
+
 def test_median_quantiles():
     np.random.seed(42)
-    v = np.concatenate([
-        np.random.normal(0, 1, 100),
-        np.random.normal(1, 1, 100),
-        ])
+    v = np.concatenate([np.random.normal(0, 1, 100), np.random.normal(1, 1, 100),])
     h = Hist1D(v, bins="100,-5,5")
     qs = np.linspace(0, 1, 11)
     v1 = np.quantile(v, qs)
@@ -110,6 +115,7 @@ def test_median_quantiles():
     bw = h.bin_widths[0]
     assert np.all(np.abs(v1 - v2) < bw)
     assert np.abs(np.median(v) - h.median()) < bw
+
 
 def test_idempotence():
     h1 = Hist1D([0.5], bins=[0.0, 1])

@@ -72,6 +72,7 @@ def test_profile():
 
     assert h1.profile(0) == h1.profile(1)
 
+
 def test_profile_against_root():
     # import ROOT
     # h = ROOT.TH2F("h","", 5,-5,5, 5,-5,5)
@@ -80,15 +81,24 @@ def test_profile_against_root():
     # hp = h.ProfileX()
     # for i in [2,3,4]:
     #     print(hp.GetBinContent(i), hp.GetBinError(i)**2)
-    xy = np.array([
-        [-2, 1.5], [-2, -3.5], [-2, 1.5], # x = -2
-        [0., -2.], [0., -2.], [0., 0.], [0., 2.], [0., 4.], # x = 0
-        [2, 1.5], # x = +2
-        ])
+    xy = np.array(
+        [
+            [-2, 1.5],
+            [-2, -3.5],
+            [-2, 1.5],  # x = -2
+            [0.0, -2.0],
+            [0.0, -2.0],
+            [0.0, 0.0],
+            [0.0, 2.0],
+            [0.0, 4.0],  # x = 0
+            [2, 1.5],  # x = +2
+        ]
+    )
     h = Hist2D(xy, bins="5,-5,5", overflow=False)
     hp = h.profile("x")
     allclose(hp.counts[1:-1], [0.0, 0.4, 2.0])
-    allclose(hp.errors[1:-1]**2, [2.66666667, 1.088, 0.0])
+    allclose(hp.errors[1:-1] ** 2, [2.66666667, 1.088, 0.0])
+
 
 def test_projection():
     xs = np.array([0.5, 1.5])

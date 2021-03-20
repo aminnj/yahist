@@ -101,12 +101,13 @@ class Hist1D(object):
         if isinstance(bins, str):
 
             # if binning integers, binning choice is easy
-            # check just 10% on each side to get reasonable ranges
             if hasattr(obj, "dtype") and ("int" in str(obj.dtype)):
-                n = max(int(0.1*len(obj)), 1)
-                maxi = max(obj[:n].max(), obj[-n:].max())
-                mini = min(obj[:n].min(), obj[-n:].min())
-                bins = np.linspace(mini-0.5, maxi+0.5, maxi-mini+2)
+                # check just 10% on each side to get reasonable ranges
+                # n = max(int(0.1*len(obj)), 1)
+                # maxi = max(obj[:n].max(), obj[-n:].max())
+                # mini = min(obj[:n].min(), obj[-n:].min())
+                mini, maxi = obj.min(), obj.max()
+                bins = np.linspace(mini - 0.5, maxi + 0.5, maxi - mini + 2)
             else:
                 bins = np.histogram_bin_edges(obj, bins, range)
 
@@ -333,6 +334,18 @@ class Hist1D(object):
              median
         """
         return self.quantile(0.5)
+
+    def mode(self):
+        """
+        Returns mode (bin center for bin with largest value).
+        If multiple bins are tied, only the first/leftmost is returned.
+
+        Returns
+        -------
+        float
+             mode
+        """
+        return self.bin_centers[self.counts.argmax()]
 
     def _fix_nan(self):
         for x in [self._counts, self._errors, self._errors_up, self._errors_down]:
