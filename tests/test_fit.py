@@ -25,6 +25,23 @@ def test_linear_fit():
     assert result["ndof"] == 3
 
 
+def test_extent():
+    h_full = Hist1D.from_random(
+        "uniform", params=[-1, 1], size=1e3, bins="100,-1,1"
+    ) + Hist1D.from_random("uniform", params=[0, +1], size=2e3, bins="100,-1,1")
+
+    h_restricted = h_full.restrict(0, 1)
+    fit_full = h_full.fit("a+b*x", extent=[0, 1], color="C0", draw=False)
+    fit_restricted = h_restricted.fit("a+b*x", color="C3", draw=False)
+
+    # fitted values should be the same since the domain is the same
+    assert fit_full["params"] == fit_restricted["params"]
+
+    # check that the histograms of the fit match the input domain
+    assert h_restricted._check_consistency(fit_restricted["hfit"])
+    assert h_full._check_consistency(fit_full["hfit"])
+
+
 @utils.ignore_division_errors
 def test_likelihood():
     h = Hist1D(np.arange(5) * 2, bins="10,0,10")

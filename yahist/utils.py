@@ -304,6 +304,7 @@ def fit_hist(
     func,
     hist,
     nsamples=500,
+    extent=None,
     ax=None,
     draw=True,
     color="red",
@@ -336,6 +337,9 @@ def fit_hist(
        color of fit line and error band
     curve_fit_kwargs : dict
        dict of extra kwargs to pass to `scipy.optimize.curve_fit`
+    extent: 2-tuple, default None
+        if 2-tuple, these are used with `Hist1D.restrict()` to
+        fit only a subset of the x-axis (but still draw the full range)
     label : str, default r"fit $\pm$1$\sigma$"
        legend entry label. Parameters will be appended unless this
        is empty.
@@ -363,6 +367,11 @@ def fit_hist(
 
         ax = plt.gca()
 
+    hist_full = hist.copy()
+
+    if is_listlike(extent) and len(extent) == 2:
+        hist = hist.restrict(*extent)
+
     xdata_raw = hist.bin_centers
     ydata_raw = hist.counts
     yerrs_raw = hist.errors
@@ -370,7 +379,7 @@ def fit_hist(
     # interlace bin edges with bin centers for smoother fit evaluations
     # `xdata_fine[1::2]` recovers `xdata_raw`
     xdata_fine = np.vstack(
-        [hist.edges, np.concatenate([hist.bin_centers, [-1]]),]
+        [hist_full.edges, np.concatenate([hist_full.bin_centers, [-1]]),]
     ).T.flatten()[:-1]
 
     tomask = ((ydata_raw == 0.0) & (yerrs_raw == 0.0) & (not likelihood)) | (
@@ -416,7 +425,7 @@ def fit_hist(
         sampled_stds_fine = 0.0 * fit_ydata_fine
 
     hfit = Hist1D.from_bincounts(
-        fit_ydata_fine[1::2], hist.edges, errors=sampled_stds_fine[1::2]
+        fit_ydata_fine[1::2], hist_full.edges, errors=sampled_stds_fine[1::2]
     )
 
     if not likelihood:
