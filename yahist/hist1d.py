@@ -118,7 +118,6 @@ class Hist1D(object):
         if weights is not None:
             weights = np.array(weights, copy=False)
 
-
         if is_datelike(bins):
             bins = convert_dates(bins)
             self._metadata["date_axes"] = ["x"]

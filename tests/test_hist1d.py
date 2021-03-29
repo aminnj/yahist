@@ -255,19 +255,23 @@ def test_fromrandom():
     assert abs(h.mean()) < 0.1
     assert 0.9 < h.std() < 1.1
 
-def test_datetime():
-    pd = pytest.importorskip('pandas')
-    df = pd.DataFrame()
-    df["date"] = pd.date_range("2019-01-01","2020-01-10", freq="1h")
-    df["num"] = np.random.normal(0,1,len(df))
 
-    bins = pd.date_range(pd.Timestamp("2019-01-01"), pd.Timestamp("2020-01-10"), periods=20)
+def test_datetime():
+    pd = pytest.importorskip("pandas")
+    df = pd.DataFrame()
+    df["date"] = pd.date_range("2019-01-01", "2020-01-10", freq="1h")
+    df["num"] = np.random.normal(0, 1, len(df))
+
+    bins = pd.date_range(
+        pd.Timestamp("2019-01-01"), pd.Timestamp("2020-01-10"), periods=20
+    )
     h1 = Hist1D(df["date"])
     h2 = Hist1D(df["date"], bins=10)
     h3 = Hist1D(df["date"], bins=bins)
 
     for h in [h1, h2, h3]:
         assert len(df) == h.integral
+
 
 if __name__ == "__main__":
     pytest.main(["--capture=no", __file__])

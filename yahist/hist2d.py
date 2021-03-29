@@ -75,6 +75,10 @@ class Hist2D(Hist1D):
             xs = convert_dates(xs)
             self._metadata["date_axes"] = ["x"]
 
+        if is_datelike(ys):
+            ys = convert_dates(ys)
+            self._metadata["date_axes"] = ["y"]
+
         # convert ROOT-like "50,0,10,50,0,10" to [np.linspace(0,10,51), np.linspace(0,10,51)]
         if isinstance(bins, str) and (bins.count(",") in [2, 5]):
             if bins.count(",") == 2:
@@ -95,6 +99,10 @@ class Hist2D(Hist1D):
             if is_datelike(bins[0]):
                 bins[0] = convert_dates(bins[0])
                 self._metadata["date_axes"] = ["x"]
+
+            if is_datelike(bins[1]):
+                bins[1] = convert_dates(bins[1])
+                self._metadata["date_axes"] = ["y"]
 
         result = histogramdd_wrapper((xs, ys), bins, range, weights, overflow, threads,)
 
