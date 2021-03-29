@@ -98,6 +98,10 @@ class Hist1D(object):
             range = (float(low), float(high))
             bins = int(nbins)
 
+        if is_datelike(obj):
+            obj = convert_dates(obj)
+            self._metadata["date_axes"] = ["x"]
+
         if isinstance(bins, str):
 
             # if binning integers, binning choice is easy
@@ -114,9 +118,6 @@ class Hist1D(object):
         if weights is not None:
             weights = np.array(weights, copy=False)
 
-        if is_datelike(obj):
-            obj = convert_dates(obj)
-            self._metadata["date_axes"] = ["x"]
 
         if is_datelike(bins):
             bins = convert_dates(bins)

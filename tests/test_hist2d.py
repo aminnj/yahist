@@ -201,6 +201,23 @@ def test_threads():
             h2 = Hist2D(xy, bins=bins, threads=threads, overflow=overflow)
             assert h1 == h2
 
+def test_datetime():
+    pd = pytest.importorskip('pandas')
+    df = pd.DataFrame()
+    df["date"] = pd.date_range("2019-01-01","2020-01-10", freq="1h")
+    df["num"] = np.random.normal(0,1,len(df))
+
+    xbins = pd.date_range(pd.Timestamp("2019-01-01"), pd.Timestamp("2020-01-10"), periods=20)
+    ybins = np.linspace(-3,3,30)
+
+    h1 = Hist2D(df[["date","num"]])
+    h2 = Hist2D(df[["date","num"]], bins=[20,20])
+    h3 = Hist2D(df[["date","num"]], bins=[xbins,20])
+    h4 = Hist2D(df[["date","num"]], bins=[xbins,ybins])
+
+    for h in [h1, h2, h3, h4]:
+        assert len(df) == h.integral
+
 
 if __name__ == "__main__":
     pytest.main(["--capture=no", __file__])

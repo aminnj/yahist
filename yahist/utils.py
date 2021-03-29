@@ -14,6 +14,8 @@ def is_datelike(obj):
     if hasattr(obj, "dtype"):
         # return isinstance(obj.dtype.type, (type(np.datetime64),))
         return obj.dtype.type == np.datetime64
+    elif "Timestamp" in str(type(obj)):
+        return True
     else:
         return False
 
