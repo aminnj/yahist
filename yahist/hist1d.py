@@ -826,7 +826,7 @@ class Hist1D(object):
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots(figsize=(4, 3))
-        fig.subplots_adjust(bottom=0.08, right=0.99, top=0.99)
+        fig.subplots_adjust(bottom=0.15, right=0.95, top=0.94)
         self.plot(ax=ax, histtype="step", **kwargs)
         buf = BytesIO()
         fig.savefig(buf, format="svg")

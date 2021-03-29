@@ -630,7 +630,7 @@ class Hist2D(Hist1D):
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots(figsize=(4, 3))
-        fig.subplots_adjust(left=0.15, bottom=0.15, right=0.96, top=0.96)
+        fig.subplots_adjust(left=0.18, bottom=0.16, right=0.95, top=0.94)
         self.plot(ax=ax, **kwargs)
         buf = BytesIO()
         fig.savefig(buf, format="svg")
@@ -859,6 +859,9 @@ class Hist2D(Hist1D):
             if "x" in which_axes:
                 ax.xaxis.set_major_locator(locator)
                 ax.xaxis.set_major_formatter(formatter)
+            if "y" in which_axes:
+                ax.yaxis.set_major_locator(locator)
+                ax.yaxis.set_major_formatter(formatter)
 
         if show_counts:
             xcenters, ycenters = self.bin_centers
