@@ -1,5 +1,5 @@
 numpy
-boost-histogram
+boost-histogram>=1.0
 matplotlib
 scipy
 iminuit>=2

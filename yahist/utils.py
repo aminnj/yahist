@@ -132,7 +132,8 @@ def compute_darkness(r, g, b, a=1.0):
 
 def clopper_pearson_error(passed, total, level=0.6827):
     """
-    matching TEfficiency::ClopperPearson()
+    matching TEfficiency::ClopperPearson(),
+    >>> ROOT.TEfficiency.ClopperPearson(total, passed, level, is_upper)
     """
     import scipy.stats
 
@@ -482,6 +483,10 @@ def fit_hist(
                 ys = fit_ydata_fine + mult * sampled_stds_fine
                 ax.plot(xdata_fine, ys, color=color, zorder=3, linestyle=band_style)
         if legend:
+            # Because of this issue, we cannot iteratively append
+            # a combined patch (2-tuple of the ax.plot and ax.fill_between patches)
+            # to the legend, as ax.get_legend_handles_labels() will drop a previous patch
+            # https://stackoverflow.com/questions/56333115/matplotlib-iterate-to-combine-legend-handles-and-labels
             ax.legend()
 
     return res

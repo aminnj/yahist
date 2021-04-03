@@ -24,6 +24,7 @@ def test_basic():
     v = np.array([0.5, 0.5, 1.5, 1.5])
     bins = np.array([0.0, 1.0, 2.0])
     h = Hist1D(v, bins=bins)
+    assert h.dim == 1
     a = np.array([2.0, 2.0])
     allclose(h.counts, a)
     allclose(h.errors, a ** 0.5)
@@ -195,6 +196,7 @@ def test_rebin():
 
 def test_restrict():
     h = Hist1D(np.arange(10), bins="10,0,10")
+    assert h.restrict() == h
     assert h.restrict(None, None) == h
     assert h.restrict(None, 5).nbins == 5
     assert h.restrict(5, None).nbins == 5
@@ -222,6 +224,23 @@ def test_sample():
     ret = (h1.normalize() / h2.normalize()).fit("slope*x+offset")
     assert abs(ret["params"]["slope"]["value"]) < 0.05
     assert abs(ret["params"]["offset"]["value"] - 1) < 0.01
+
+
+def test_gaussian():
+    np.random.seed(42)
+    for mean, sigma in [[0, 1], [1, 2]]:
+        h1 = Hist1D.from_random(
+            "norm", params=[mean, sigma], bins="10,-5,5", size=1e4, overflow=False
+        )
+        for likelihood in [True, False]:
+            fit = h1.fit("gaus", likelihood=likelihood)
+            assert abs(fit["params"]["mean"]["value"] - h1.mean()) < 0.2
+            assert abs(fit["params"]["sigma"]["value"] - h1.std()) / h1.std() < 0.1
+            assert (
+                abs(fit["params"]["constant"]["value"] - h1.counts.max())
+                / h1.counts.max()
+                < 0.2
+            )
 
 
 def test_json():

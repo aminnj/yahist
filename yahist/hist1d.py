@@ -381,7 +381,7 @@ class Hist1D(object):
 
     def __add__(self, other):
         # allows sum([h1,h2,...]) since start value is 0
-        if (type(other) is int) and (other == 0):
+        if isinstance(other, int) and (other == 0):
             return self
         if hasattr(self, "_empty"):
             return other
@@ -453,8 +453,9 @@ class Hist1D(object):
             hnew._counts = self._counts / other._counts
             # these are actually the positions for down and up, but we want the errors
             # wrt to the central value
-            hnew._errors_up = hnew._errors_up - hnew._counts
-            hnew._errors_down = hnew._counts - hnew._errors_down
+            hnew._errors_up = np.nan_to_num(hnew._errors_up - hnew._counts)
+            hnew._errors_down = np.nan_to_num(hnew._counts - hnew._errors_down)
+
             hnew._errors = 0.5 * (
                 hnew._errors_down + hnew._errors_up
             )  # nominal errors are avg of up and down
@@ -1032,7 +1033,7 @@ class Hist1D(object):
             raise Exception(
                 f"{which} is not a valid distribution in `scipy.stats`. Valid distributions are: {valid}"
             )
-        if type(size) == float:
+        if isinstance(size, float):
             size = int(size)
         if (
             "multivariate" not in which

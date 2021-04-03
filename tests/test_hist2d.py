@@ -19,6 +19,7 @@ def test_basic():
     h1 = Hist2D(np.c_[xs, ys], bins=bins)
     counts, edgesx, edgesy = np.histogram2d(xs, ys, bins)
     h2 = Hist2D.from_bincounts(counts, (edgesx, edgesy))
+    assert h1.dim == 2
     assert h1 == h2
     assert h1.nbins == (2, 2)
     assert h1.integral == 2.0
