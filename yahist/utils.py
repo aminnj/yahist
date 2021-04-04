@@ -468,9 +468,10 @@ def fit_hist(
             for name, x in params.items():
                 label += "\n    "
                 label += rf"{name} = {x['value']:.3g} $\pm$ {x['error']:.3g}"
-        ax.plot(xdata_fine, fit_ydata_fine, color=color, zorder=3, label=label)
+        p1, = ax.plot(xdata_fine, fit_ydata_fine, color=color, zorder=3, label=label)
+        p2 = None
         if band_style == "filled":
-            ax.fill_between(
+            p2 = ax.fill_between(
                 xdata_fine,
                 fit_ydata_fine - sampled_stds_fine,
                 fit_ydata_fine + sampled_stds_fine,
@@ -478,6 +479,7 @@ def fit_hist(
                 alpha=0.25,
                 zorder=3,
             )
+            # p2.set_label(p1.get_label())
         elif band_style in ["dashed", "dashdot", "dotted", "solid"]:
             for mult in [-1, 1]:
                 ys = fit_ydata_fine + mult * sampled_stds_fine
@@ -487,10 +489,34 @@ def fit_hist(
             # a combined patch (2-tuple of the ax.plot and ax.fill_between patches)
             # to the legend, as ax.get_legend_handles_labels() will drop a previous patch
             # https://stackoverflow.com/questions/56333115/matplotlib-iterate-to-combine-legend-handles-and-labels
-            ax.legend()
+            handles, labels = get_hl(ax)
+            handles.append((p1, p2))
+            labels.append(label)
+            ax.legend(handles=handles,labels=labels)
+            # ax.legend()
 
     return res
 
+def get_hl(ax):
+    d = dict()
+    for handle, label in zip(*ax.get_legend_handles_labels()):
+        d[handle] = label
+    handles_labels = list(zip(*d.items()))
+    handles = list(handles_labels[0])
+    labels = list(handles_labels[1])
+    to_remove = []
+    for i,(handle,label) in enumerate(zip(handles, labels)):
+        if not isinstance(handle, matplotlib.collections.PolyCollection): continue
+        found = [j for j, lab in enumerate(labels) if (lab == label) and (i != j)]
+        if not found: continue
+        idx = found[0]
+        handles[idx] = (handles[idx], handle)
+        to_remove.append(i)
+    to_remove = reversed(sorted(to_remove))
+    for i in to_remove:
+        del handles[i]
+        del labels[i]
+    return handles, labels
 
 def draw_gradient(ax, patches, reverse=False):
     """
