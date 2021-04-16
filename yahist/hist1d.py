@@ -72,8 +72,6 @@ class Hist1D(object):
             obj = obj.__array__()
             self._init_numpy(obj, **kwargs)
         elif is_listlike(obj):
-            if len(obj) == 0:
-                self._empty = True
             self._init_numpy(obj, **kwargs)
         elif type(obj) is self.__class__:
             # allows Hist1D constructed with another Hist1D to introduce new metadata
@@ -382,10 +380,6 @@ class Hist1D(object):
     def __add__(self, other):
         # allows sum([h1,h2,...]) since start value is 0
         if isinstance(other, int) and (other == 0):
-            return self
-        if hasattr(self, "_empty"):
-            return other
-        if hasattr(other, "_empty"):
             return self
         if self._counts is None:
             return other

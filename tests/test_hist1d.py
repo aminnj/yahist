@@ -129,11 +129,11 @@ def test_sum():
     h2 = Hist1D([0.5], bins=[0.0, 1])
     assert sum([h1, h2]) == (h1 + h2)
 
-    h1 = Hist1D([-0.5, 0.5], bins=[-1, 0, 1])
-    h2 = Hist1D([-0.5, 0.5], bins="5,0,5")
-    assert (Hist1D() + h1) == h1
-    assert (h1 + Hist1D()) == h1
-    assert (Hist1D([], bins="10,0,1") + h2) == h2
+    h1 = Hist1D.from_bincounts([2])
+    h2 = Hist1D.from_bincounts([3])
+    h3 = Hist1D.from_bincounts([4])
+    assert (h1 + h2 + h3).integral == 9
+    assert sum([h1, h2, h3]).integral == 9
 
 
 def test_metadata():
