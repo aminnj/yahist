@@ -110,7 +110,7 @@ class Hist2D(Hist1D):
         counts = counts.T
 
         if weights is not None:
-            sumw2, _ = yahist.utils.histogramdd_wrapper(
+            sumw2, _ = histogramdd_wrapper(
                 (xs, ys), bins, range, weights ** 2, overflow, threads,
             )
             errors = sumw2 ** 0.5
