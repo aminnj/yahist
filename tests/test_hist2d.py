@@ -111,9 +111,9 @@ def test_projection():
 
 
 def test_sum():
-    h1 = Hist2D.from_bincounts([[2]], ([0,1],[0,1]))
-    h2 = Hist2D.from_bincounts([[3]], ([0,1],[0,1]))
-    h3 = Hist2D.from_bincounts([[4]], ([0,1],[0,1]))
+    h1 = Hist2D.from_bincounts([[2]], ([0, 1], [0, 1]))
+    h2 = Hist2D.from_bincounts([[3]], ([0, 1], [0, 1]))
+    h3 = Hist2D.from_bincounts([[4]], ([0, 1], [0, 1]))
     assert (h1 + h2 + h3).integral == 9
     assert sum([h1, h2, h3]).integral == 9
 

@@ -268,6 +268,12 @@ def test_frombincounts():
     assert h3.nbins == 2
     assert h3.integral == 3.0
 
+    h = Hist1D.from_bincounts(
+        [1, 1, 2], [-1.5, -0.5, 0.5, 1.5], label="test1", color="red"
+    )
+    allclose(h.counts, [1.0, 1.0, 2.0])
+    assert h.metadata["label"] == "test1"
+
 
 def test_fromrandom():
     h = Hist1D.from_random("norm", params=[0, 1], size=1e3, random_state=42)

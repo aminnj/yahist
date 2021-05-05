@@ -464,7 +464,7 @@ def fit_hist(
 
     if draw:
         if label:
-            label += rf" ($\chi^2$/ndof = {chi2:.3g}/{ndof})"
+            # label += rf" ($\chi^2$/ndof = {chi2:.3g}/{ndof})"
             for name, x in params.items():
                 label += "\n    "
                 label += rf"{name} = {x['value']:.3g} $\pm$ {x['error']:.3g}"
