@@ -1091,7 +1091,7 @@ class Hist1D(object):
         gradient : bool, default False
             fill a light gradient under histogram if `histtype="step"`
         interactive : bool, default False
-            Use plotly to make an interactive plot
+            Use plotly to make an interactive plot. See `Hist1D.plot_plotly()`.
         show_counts : bool, default False
             Show count labels for each bin
         show_errors : bool, default False
@@ -1200,32 +1200,70 @@ class Hist1D(object):
                 ax.xaxis.set_major_locator(locator)
                 ax.xaxis.set_major_formatter(formatter)
 
-        # import matplotlib.ticker
-        # ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
-
         return ax
 
-    def plot_plotly(self, **kwargs):
+    def plot_plotly(
+        self,
+        fig=None,
+        color=None,
+        errors=False,
+        log=False,
+        label=None,
+        flipxy=False,
+        **kwargs,
+    ):
         import plotly.graph_objects as go
+        import matplotlib.colors
 
-        fig = go.Figure(
-            go.Bar(
-                x=self.bin_centers,
-                width=self.bin_widths,
-                y=self.counts,
-                marker=dict(line=dict(width=0,)),
-            ),
-        )
+        if color is None:
+            if self.metadata.get("color") is not None:
+                color = self.metadata["color"]
+            else:
+                color = "C0"
+        color = matplotlib.colors.to_hex(color)
+        yscale = "log" if log else "linear"
+        rangemode = "nonnegative"
+        if np.any(self.counts < 0.0):
+            rangemode = "normal"
+        if errors:
+            trace = go.Scatter()
+            trace.error_x = dict(array=self.bin_widths / 2, width=0, color=color)
+            trace.error_y = dict(array=self.errors, width=0, color=color)
+            if flipxy:
+                trace.error_x, trace.error_y = (
+                    trace.error_y.to_plotly_json(),
+                    trace.error_x.to_plotly_json(),
+                )
+            trace.mode = "markers"
+            trace.marker.size = 5
+        else:
+            trace = go.Bar()
+            trace.width = self.bin_widths
+            trace.orientation = "h" if flipxy else "v"
+        trace.marker.color = color
+        trace.marker.line.width = 0.0
+        trace.x = self.bin_centers
+        trace.y = self.counts
+        if flipxy:
+            trace.x, trace.y = trace.y, trace.x
+        if label is not None:
+            trace.name = label
+        elif self.metadata.get("label") is not None:
+            trace.name = self.metadata["label"]
+        else:
+            trace.showlegend = False
+
+        if fig is None:
+            fig = go.Figure()
+        fig.add_trace(trace)
         fig.update_layout(
             bargap=0,
             height=300,
             width=400,
             template="simple_white",
             font_family="Arial",
-            xaxis=dict(mirror=True,),
-            yaxis=dict(
-                mirror=True, type=("log" if kwargs.get("log", False) else "linear"),
-            ),
+            xaxis=dict(mirror=True),
+            yaxis=dict(mirror=True, type=yscale, rangemode=rangemode),
             margin=dict(l=10, r=10, b=10, t=30, pad=0,),
         )
         return fig

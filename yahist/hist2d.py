@@ -815,7 +815,6 @@ class Hist2D(Hist1D):
         counts_fontsize = kwargs.pop("counts_fontsize", 12)
         logz = kwargs.pop("logz", False)
         equidistant = kwargs.pop("equidistant", "")
-        return_self = kwargs.pop("return_self", False)
 
         if logz:
             kwargs["norm"] = LogNorm()
@@ -886,50 +885,33 @@ class Hist2D(Hist1D):
 
         return (c, ax)
 
-    def plot_plotly(self, **kwargs):
+    def plot_plotly(self, fig=None, cmap=None, logz=False, label=None, **kwargs):
         import plotly.graph_objects as go
 
-        xcenters, ycenters = self.bin_centers
-        counts = self.counts
-        xyz = np.c_[
-            np.tile(xcenters, len(ycenters)),
-            np.repeat(ycenters, len(xcenters)),
-            counts.flatten(),
-        ][counts.flatten() != 0]
+        z = np.array(self.counts)
+        z[z <= 0] = np.nan
 
-        cbtitle = None
-        x, y, z = xyz.T
-        if kwargs.get("logz"):
-            z = np.log10(z)
-            cbtitle = "log10(bin)"
-
-        fig = go.Figure(
-            go.Histogram2d(
-                x=x,
-                y=y,
-                z=z,
-                histfunc="sum",
-                xbins=dict(
-                    start=self.edges[0][0],
-                    end=self.edges[0][-1],
-                    size=self.bin_widths[0][0],
-                ),
-                ybins=dict(
-                    start=self.edges[1][0],
-                    end=self.edges[1][-1],
-                    size=self.bin_widths[1][0],
-                ),
-                colorscale=[
-                    [0.00, "rgba(0,0,0,0)"],
-                    [1e-6, "rgb(68, 1, 84)"],
-                    [0.25, "rgb(59, 82, 139)"],
-                    [0.50, "rgb(33, 145, 140)"],
-                    [0.75, "rgb(94, 201, 98)"],
-                    [1.00, "rgb(253, 231, 37)"],
-                ],
-                colorbar=dict(thicknessmode="fraction", thickness=0.04, title=cbtitle),
-            ),
+        trace = go.Heatmap(
+            x=self.edges[0],
+            y=self.edges[1],
+            z=z,
+            hoverongaps=False,
+            colorscale=cmap,
+            colorbar=dict(thicknessmode="fraction", thickness=0.04, len=1.08),
         )
+        if logz:
+            trace.z = np.log10(z)
+            trace.colorbar.tickprefix = "10<sup>"
+            trace.colorbar.ticksuffix = "</sup>"
+
+        if label is not None:
+            trace.name = label
+        elif self.metadata.get("label") is not None:
+            trace.name = self.metadata["label"]
+
+        if fig is None:
+            fig = go.Figure()
+        fig.add_trace(trace)
         fig.update_layout(
             height=300,
             width=400,
@@ -938,5 +920,13 @@ class Hist2D(Hist1D):
             xaxis=dict(mirror=True,),
             yaxis=dict(mirror=True,),
             margin=dict(l=10, r=10, b=10, t=30, pad=0,),
+            legend=dict(
+                orientation="v",
+                xanchor="right",
+                yanchor="top",
+                x=0.99,
+                y=0.99,
+                bgcolor="rgba(255,255,255,0.8)",
+            ),
         )
         return fig
