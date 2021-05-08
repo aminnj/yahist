@@ -54,6 +54,15 @@ def test_weight_inputs():
     assert h.integral == 4
 
 
+def test_weight_broadcasting():
+    v = [0.5, 0.5, 1.5, 1.5]
+    h1 = Hist1D(v, bins="2,0,2")
+    h2 = Hist1D(v, bins="2,0,2", weights=2)
+    h3 = Hist1D(v, bins="2,0,2", weights=2 * np.ones_like(v))
+    assert h1 * 2 == h2
+    assert h1 * 2 == h3
+
+
 def test_nonuniform_binning():
     bins = np.array([0, 1, 10, 100, 1000])
     centers = np.array([0.5, 5.5, 55, 550])
