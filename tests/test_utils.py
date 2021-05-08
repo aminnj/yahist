@@ -1,6 +1,8 @@
 import numpy as np
 
 from yahist import Hist1D, Hist2D, utils
+
+
 import os
 
 np.set_printoptions(linewidth=120)
@@ -61,26 +63,6 @@ def test_nan_to_num():
     g = utils.nan_to_num(f)
     allclose(f([1]), [np.nan], equal_nan=True)
     allclose(g([1]), [0.0], equal_nan=True)
-
-
-def test_expr_to_lambda():
-    f = utils.expr_to_lambda("x+a+a+b+np.pi")
-    g = lambda x, a, b: x + a + a + b + np.pi
-    assert f(1, 2, 3) == g(1, 2, 3)
-
-    f = utils.expr_to_lambda("m*x+b")
-    g = lambda x, m, b: m * x + b
-    assert f(1, 2, 3) == g(1, 2, 3)
-
-    f = utils.expr_to_lambda("1+np.poly1d([a,b,c])(x)")
-    g = lambda x, a, b, c: 1 + np.poly1d([a, b, c])(x)
-    assert f(1, 2, 3, 4) == g(1, 2, 3, 4)
-
-    f = utils.expr_to_lambda("const + norm*np.exp(-(x-mu)**2/(2*sigma**2))")
-    g = lambda x, const, norm, mu, sigma: const + norm * np.exp(
-        -((x - mu) ** 2) / (2 * sigma ** 2)
-    )
-    assert f(1, 2, 3, 4, 5) == g(1, 2, 3, 4, 5)
 
 
 if __name__ == "__main__":

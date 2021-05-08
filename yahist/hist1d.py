@@ -13,10 +13,11 @@ from .utils import (
     clopper_pearson_error,
     poisson_errors,
     ignore_division_errors,
-    fit_hist,
     draw_gradient,
     histogramdd_wrapper,
 )
+
+from .fit import fit_hist
 
 
 class Hist1D(object):
@@ -1070,8 +1071,6 @@ class Hist1D(object):
             Show error bars
         legend : bool, default True
             if True and the histogram has a label, draw the legend
-        return_self : bool, default False
-            If true, return self (Hist1D object)
         **kwargs
             Parameters to be passed to matplotlib
             `hist` or `errorbar` function.
@@ -1079,7 +1078,6 @@ class Hist1D(object):
 
         Returns
         -------
-        Hist1D (self) if `return_self` is True, otherwise
         matplotlib AxesSubplot object
         """
 
@@ -1100,7 +1098,6 @@ class Hist1D(object):
         counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
         counts_fontsize = kwargs.pop("counts_fontsize", 10)
         gradient = kwargs.pop("gradient", False)
-        return_self = kwargs.pop("return_self", False)
         counts = self._counts
         edges = self._edges
         yerrs = self._errors
@@ -1179,10 +1176,7 @@ class Hist1D(object):
         # import matplotlib.ticker
         # ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
 
-        if return_self:
-            return self
-        else:
-            return ax
+        return ax
 
     def plot_plotly(self, **kwargs):
         import plotly.graph_objects as go

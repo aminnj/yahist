@@ -3,6 +3,8 @@ import numpy as np
 from yahist import Hist1D, Hist2D, utils
 import os
 
+from yahist.fit import expr_to_lambda
+
 np.set_printoptions(linewidth=120)
 
 import pytest
@@ -97,6 +99,39 @@ def test_against_root():
     assert abs(params["constant"]["error"] - 2.0008) < 2e-2
     assert abs(params["mean"]["error"] - 0.04908) < 1e-3
     assert abs(params["sigma"]["error"] - 0.0339) < 1e-3
+
+
+def test_gaus_extra():
+    np.random.seed(42)
+    bins = "50,-5,5"
+    mean = 1.0
+    sigma = 0.5
+    h = Hist1D(np.random.normal(mean, sigma, 350), bins=bins) + Hist1D(
+        10 * np.random.random(600) - 5, bins=bins
+    )
+    params = h.fit("offset+gaus", draw=False)["params"]
+    assert abs(params["mean"]["value"] - mean) / mean < 0.1
+    assert abs(params["sigma"]["value"] - sigma) / sigma < 0.2
+
+
+def test_expr_to_lambda():
+    f = expr_to_lambda("x+a+a+b+np.pi")
+    g = lambda x, a, b: x + a + a + b + np.pi
+    assert f(1, 2, 3) == g(1, 2, 3)
+
+    f = expr_to_lambda("m*x+b")
+    g = lambda x, m, b: m * x + b
+    assert f(1, 2, 3) == g(1, 2, 3)
+
+    f = expr_to_lambda("1+np.poly1d([a,b,c])(x)")
+    g = lambda x, a, b, c: 1 + np.poly1d([a, b, c])(x)
+    assert f(1, 2, 3, 4) == g(1, 2, 3, 4)
+
+    f = expr_to_lambda("const + norm*np.exp(-(x-mu)**2/(2*sigma**2))")
+    g = lambda x, const, norm, mu, sigma: const + norm * np.exp(
+        -((x - mu) ** 2) / (2 * sigma ** 2)
+    )
+    assert f(1, 2, 3, 4, 5) == g(1, 2, 3, 4, 5)
 
 
 if __name__ == "__main__":
