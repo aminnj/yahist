@@ -4,6 +4,14 @@ yahist package
 Submodules
 ----------
 
+yahist.fit module
+-----------------
+
+.. automodule:: yahist.fit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 yahist.hist1d module
 --------------------
 

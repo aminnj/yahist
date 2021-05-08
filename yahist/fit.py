@@ -13,6 +13,14 @@ def expr_to_lambda(expr):
     `x` is assumed to be the main variable.
     Very simple logic that ignores things like `foo.bar`
     or `foo(` from being considered a parameter.
+
+    Parameters
+    ----------
+    expr : str
+
+    Returns
+    -------
+    callable/lambda
     """
     from io import BytesIO
     from tokenize import tokenize, NAME

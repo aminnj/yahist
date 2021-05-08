@@ -44,6 +44,98 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="module-yahist.fit">
+<span id="yahist-fit-module"></span><h2>yahist.fit module<a class="headerlink" href="#module-yahist.fit" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="yahist.fit.calculate_hessian">
+<code class="sig-prename descclassname">yahist.fit.</code><code class="sig-name descname">calculate_hessian</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">epsilon</span><span class="o">=</span><span class="default_value">1e-05</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/fit.html#calculate_hessian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.fit.calculate_hessian" title="Permalink to this definition">¶</a></dt>
+<dd><p># Taken almost verbatim from <a class="reference external" href="https://gist.github.com/jgomezdans/3144636">https://gist.github.com/jgomezdans/3144636</a>
+A numerical approximation to the Hessian matrix of cost function at
+location x0</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="yahist.fit.curve_fit_wrapper">
+<code class="sig-prename descclassname">yahist.fit.</code><code class="sig-name descname">curve_fit_wrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em>, <em class="sig-param"><span class="n">xdata</span></em>, <em class="sig-param"><span class="n">ydata</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">absolute_sigma</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">likelihood</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/fit.html#curve_fit_wrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.fit.curve_fit_wrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around <cite>scipy.optimize.curve_fit</cite>. Initial parameters (<cite>p0</cite>)
+can be set in the function definition with defaults for kwargs
+(e.g., <cite>func = lambda x,a=1.,b=2.: x+a+b</cite>, will feed <cite>p0 = [1.,2.]</cite> to <cite>curve_fit</cite>)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="yahist.fit.expr_to_lambda">
+<code class="sig-prename descclassname">yahist.fit.</code><code class="sig-name descname">expr_to_lambda</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/fit.html#expr_to_lambda"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.fit.expr_to_lambda" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Converts a string expression like</dt><dd><p>“a+b*np.exp(-c*x+math.pi)”</p>
+</dd>
+<dt>into a lambda function with 1 variable and N parameters,</dt><dd><p>lambda x,a,b,c: “a+b*np.exp(-c*x+math.pi)”</p>
+</dd>
+</dl>
+<p><cite>x</cite> is assumed to be the main variable.
+Very simple logic that ignores things like <cite>foo.bar</cite>
+or <cite>foo(</cite> from being considered a parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>expr</strong> (<em>str</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>callable/lambda</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="yahist.fit.fit_hist">
+<code class="sig-prename descclassname">yahist.fit.</code><code class="sig-name descname">fit_hist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em>, <em class="sig-param"><span class="n">hist</span></em>, <em class="sig-param"><span class="n">nsamples</span><span class="o">=</span><span class="default_value">500</span></em>, <em class="sig-param"><span class="n">extent</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">draw</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'red'</span></em>, <em class="sig-param"><span class="n">legend</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">label</span><span class="o">=</span><span class="default_value">'fit $\\pm$1$\\sigma$'</span></em>, <em class="sig-param"><span class="n">band_style</span><span class="o">=</span><span class="default_value">'filled'</span></em>, <em class="sig-param"><span class="n">likelihood</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">curve_fit_kwargs</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/fit.html#fit_hist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.fit.fit_hist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits a function to a histogram via <cite>scipy.optimize.curve_fit</cite>,
+calculating a 1-sigma band, and optionally plotting it.
+Note that this does not support asymmetric errors. It will
+symmetrize such errors prior to fitting. Empty bins are excluded
+from the fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> (<em>function taking x data as the first argument</em><em>, </em><em>followed by parameters</em><em>, or </em><em>a string</em>) – </p></li>
+<li><p><strong>hist</strong> (<a class="reference internal" href="#yahist.hist1d.Hist1D" title="yahist.hist1d.Hist1D"><em>Hist1D</em></a>) – </p></li>
+<li><p><strong>nsamples</strong> (<em>int</em><em>, </em><em>default 500</em>) – number of samples/bootstraps for calculating error bands</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib AxesSubplot object</em><em>, </em><em>default None</em>) – </p></li>
+<li><p><strong>band_style</strong> (<em>None/str</em><em>, </em><em>default None</em>) – if not None, compute and display uncertainty band. Possible strings are
+“filled”, “dashed”, “dotted”, “dashdot”, “solid”</p></li>
+<li><p><strong>draw</strong> (<em>bool</em><em>, </em><em>default True</em>) – draw to a specified or pre-existing AxesSubplot object</p></li>
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>default &quot;red&quot;</em>) – color of fit line and error band</p></li>
+<li><p><strong>curve_fit_kwargs</strong> (<em>dict</em>) – dict of extra kwargs to pass to <cite>scipy.optimize.curve_fit</cite></p></li>
+<li><p><strong>extent</strong> (<em>2-tuple</em><em>, </em><em>default None</em>) – if 2-tuple, these are used with <cite>Hist1D.restrict()</cite> to
+fit only a subset of the x-axis (but still draw the full range)</p></li>
+<li><p><strong>label</strong> (<em>str</em><em>, </em><em>default r&quot;fit $pm$1$sigma$&quot;</em>) – legend entry label. Parameters will be appended unless this
+is empty.</p></li>
+<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>default True</em>) – if True and the histogram has a label, draw the legend</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>parameter names, values, errors (sqrt of diagonal of the cov. matrix)</p></li>
+<li><p>chi2, ndof of fit</p></li>
+<li><p>a Hist1D object containing the fit</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict of</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">Hist1D</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1000</span><span class="p">),</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;30,0,1.5&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">fit_hist</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">:</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="c1"># or fit_hist(&quot;a+b*x&quot;, h)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s2">&quot;parnames&quot;</span><span class="p">],</span><span class="n">res</span><span class="p">[</span><span class="s2">&quot;parvalues&quot;</span><span class="p">],</span><span class="n">res</span><span class="p">[</span><span class="s2">&quot;parerrors&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
 <div class="section" id="module-yahist.hist1d">
 <span id="yahist-hist1d-module"></span><h2>yahist.hist1d module<a class="headerlink" href="#module-yahist.hist1d" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -235,7 +327,7 @@ is empty.</p></li>
 
 <dl class="py method">
 <dt id="yahist.hist1d.Hist1D.from_bincounts">
-<em class="property">classmethod </em><code class="sig-name descname">from_bincounts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">counts</span></em>, <em class="sig-param"><span class="n">bins</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">errors</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.from_bincounts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.from_bincounts" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_bincounts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">counts</span></em>, <em class="sig-param"><span class="n">bins</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">errors</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.from_bincounts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.from_bincounts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates histogram object from array of histogrammed counts,
 edges/bins, and optionally errors.</p>
 <dl class="field-list simple">
@@ -245,6 +337,7 @@ edges/bins, and optionally errors.</p>
 <li><p><strong>bins</strong> (<em>array</em><em>, </em><em>default None</em>) – Array of bin edges. If not specified for Hist1D,
 uses <cite>bins = np.arange(len(counts)+1)</cite>.</p></li>
 <li><p><strong>errors</strong> (<em>array</em><em>, </em><em>default None</em>) – Array of bin errors (optional)</p></li>
+<li><p><strong>**kwargs</strong> – Parameters to be passed to <cite>Hist1D</cite>/<cite>Hist2D</cite> constructor.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -471,17 +564,15 @@ function, or <cite>errorbar</cite>.</p>
 <li><p><strong>show_counts</strong> (<em>bool</em><em>, </em><em>default False</em>) – Show count labels for each bin</p></li>
 <li><p><strong>show_errors</strong> (<em>bool</em><em>, </em><em>default False</em>) – Show error bars</p></li>
 <li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>default True</em>) – if True and the histogram has a label, draw the legend</p></li>
-<li><p><strong>return_self</strong> (<em>bool</em><em>, </em><em>default False</em>) – If true, return self (Hist1D object)</p></li>
 <li><p><strong>**kwargs</strong> – Parameters to be passed to matplotlib
 <cite>hist</cite> or <cite>errorbar</cite> function.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>Hist1D (self) if <cite>return_self</cite> is True, otherwise</p></li>
-<li><p><em>matplotlib AxesSubplot object</em></p></li>
-</ul>
-</p>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>matplotlib AxesSubplot object</p>
 </dd>
 </dl>
 </dd></dl>
@@ -863,17 +954,15 @@ y-axis (“y”), or both (“xy”).</p></li>
 <li><p><strong>logz</strong> (<em>bool</em><em>, </em><em>default False</em>) – Use logscale for z-axis</p></li>
 <li><p><strong>show_counts</strong> (<em>bool</em><em>, </em><em>default False</em>) – Show count labels for each bin</p></li>
 <li><p><strong>show_errors</strong> (<em>bool</em><em>, </em><em>default False</em>) – Show error bars</p></li>
-<li><p><strong>return_self</strong> (<em>bool</em><em>, </em><em>default False</em>) – If true, return self (Hist2D object)</p></li>
 <li><p><strong>**kwargs</strong> – Parameters to be passed to matplotlib
 <cite>pcolorfast</cite> function.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>Hist2D (self) if <cite>return_self</cite> is True, otherwise</p></li>
-<li><p><em>(pcolorfast output, matplotlib AxesSubplot object)</em></p></li>
-</ul>
-</p>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>2-tuple of (pcolorfast output, matplotlib AxesSubplot object)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1081,17 +1170,10 @@ otherwise both ROOT and scipy will return inf/nan.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="yahist.utils.calculate_hessian">
-<code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">calculate_hessian</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">epsilon</span><span class="o">=</span><span class="default_value">1e-05</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#calculate_hessian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.calculate_hessian" title="Permalink to this definition">¶</a></dt>
-<dd><p># Taken almost verbatim from <a class="reference external" href="https://gist.github.com/jgomezdans/3144636">https://gist.github.com/jgomezdans/3144636</a>
-A numerical approximation to the Hessian matrix of cost function at
-location x0</p>
-</dd></dl>
-
-<dl class="py function">
 <dt id="yahist.utils.clopper_pearson_error">
 <code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">clopper_pearson_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">passed</span></em>, <em class="sig-param"><span class="n">total</span></em>, <em class="sig-param"><span class="n">level</span><span class="o">=</span><span class="default_value">0.6827</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#clopper_pearson_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.clopper_pearson_error" title="Permalink to this definition">¶</a></dt>
-<dd><p>matching TEfficiency::ClopperPearson()</p>
+<dd><p>matching TEfficiency::ClopperPearson(),
+&gt;&gt;&gt; ROOT.TEfficiency.ClopperPearson(total, passed, level, is_upper)</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1103,14 +1185,6 @@ location x0</p>
 <dt id="yahist.utils.convert_dates">
 <code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">convert_dates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#convert_dates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.convert_dates" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="py function">
-<dt id="yahist.utils.curve_fit_wrapper">
-<code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">curve_fit_wrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em>, <em class="sig-param"><span class="n">xdata</span></em>, <em class="sig-param"><span class="n">ydata</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">absolute_sigma</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">likelihood</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#curve_fit_wrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.curve_fit_wrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <cite>scipy.optimize.curve_fit</cite>. Initial parameters (<cite>p0</cite>)
-can be set in the function definition with defaults for kwargs
-(e.g., <cite>func = lambda x,a=1.,b=2.: x+a+b</cite>, will feed <cite>p0 = [1.,2.]</cite> to <cite>curve_fit</cite>)</p>
-</dd></dl>
 
 <dl class="py function">
 <dt id="yahist.utils.darken_color">
@@ -1136,68 +1210,6 @@ onto specified <cite>ax</cite>.</p>
 </ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="yahist.utils.expr_to_lambda">
-<code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">expr_to_lambda</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#expr_to_lambda"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.expr_to_lambda" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Converts a string expression like</dt><dd><p>“a+b*np.exp(-c*x+math.pi)”</p>
-</dd>
-<dt>into a lambda function with 1 variable and N parameters,</dt><dd><p>lambda x,a,b,c: “a+b*np.exp(-c*x+math.pi)”</p>
-</dd>
-</dl>
-<p><cite>x</cite> is assumed to be the main variable.
-Very simple logic that ignores things like <cite>foo.bar</cite>
-or <cite>foo(</cite> from being considered a parameter.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="yahist.utils.fit_hist">
-<code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">fit_hist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em>, <em class="sig-param"><span class="n">hist</span></em>, <em class="sig-param"><span class="n">nsamples</span><span class="o">=</span><span class="default_value">500</span></em>, <em class="sig-param"><span class="n">extent</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">draw</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'red'</span></em>, <em class="sig-param"><span class="n">legend</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">label</span><span class="o">=</span><span class="default_value">'fit $\\pm$1$\\sigma$'</span></em>, <em class="sig-param"><span class="n">band_style</span><span class="o">=</span><span class="default_value">'filled'</span></em>, <em class="sig-param"><span class="n">likelihood</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">curve_fit_kwargs</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#fit_hist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.fit_hist" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fits a function to a histogram via <cite>scipy.optimize.curve_fit</cite>,
-calculating a 1-sigma band, and optionally plotting it.
-Note that this does not support asymmetric errors. It will
-symmetrize such errors prior to fitting. Empty bins are excluded
-from the fit.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>func</strong> (<em>function taking x data as the first argument</em><em>, </em><em>followed by parameters</em><em>, or </em><em>a string</em>) – </p></li>
-<li><p><strong>hist</strong> (<a class="reference internal" href="#yahist.hist1d.Hist1D" title="yahist.hist1d.Hist1D"><em>Hist1D</em></a>) – </p></li>
-<li><p><strong>nsamples</strong> (<em>int</em><em>, </em><em>default 500</em>) – number of samples/bootstraps for calculating error bands</p></li>
-<li><p><strong>ax</strong> (<em>matplotlib AxesSubplot object</em><em>, </em><em>default None</em>) – </p></li>
-<li><p><strong>band_style</strong> (<em>None/str</em><em>, </em><em>default None</em>) – if not None, compute and display uncertainty band. Possible strings are
-“filled”, “dashed”, “dotted”, “dashdot”, “solid”</p></li>
-<li><p><strong>draw</strong> (<em>bool</em><em>, </em><em>default True</em>) – draw to a specified or pre-existing AxesSubplot object</p></li>
-<li><p><strong>color</strong> (<em>str</em><em>, </em><em>default &quot;red&quot;</em>) – color of fit line and error band</p></li>
-<li><p><strong>curve_fit_kwargs</strong> (<em>dict</em>) – dict of extra kwargs to pass to <cite>scipy.optimize.curve_fit</cite></p></li>
-<li><p><strong>extent</strong> (<em>2-tuple</em><em>, </em><em>default None</em>) – if 2-tuple, these are used with <cite>Hist1D.restrict()</cite> to
-fit only a subset of the x-axis (but still draw the full range)</p></li>
-<li><p><strong>label</strong> (<em>str</em><em>, </em><em>default r&quot;fit $pm$1$sigma$&quot;</em>) – legend entry label. Parameters will be appended unless this
-is empty.</p></li>
-<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>default True</em>) – if True and the histogram has a label, draw the legend</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>parameter names, values, errors (sqrt of diagonal of the cov. matrix)</p></li>
-<li><p>chi2, ndof of fit</p></li>
-<li><p>a Hist1D object containing the fit</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>dict of</p>
-</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">Hist1D</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1000</span><span class="p">),</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;30,0,1.5&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">fit_hist</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">:</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="c1"># or fit_hist(&quot;a+b*x&quot;, h)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s2">&quot;parnames&quot;</span><span class="p">],</span><span class="n">res</span><span class="p">[</span><span class="s2">&quot;parvalues&quot;</span><span class="p">],</span><span class="n">res</span><span class="p">[</span><span class="s2">&quot;parerrors&quot;</span><span class="p">])</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1279,6 +1291,7 @@ numpy arrays a bit faster</p>
   <ul>
 <li><a class="reference internal" href="#">yahist package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-yahist.fit">yahist.fit module</a></li>
 <li><a class="reference internal" href="#module-yahist.hist1d">yahist.hist1d module</a></li>
 <li><a class="reference internal" href="#module-yahist.hist2d">yahist.hist2d module</a></li>
 <li><a class="reference internal" href="#module-yahist.utils">yahist.utils module</a></li>

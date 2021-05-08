@@ -52,10 +52,11 @@
     <span class="n">clopper_pearson_error</span><span class="p">,</span>
     <span class="n">poisson_errors</span><span class="p">,</span>
     <span class="n">ignore_division_errors</span><span class="p">,</span>
-    <span class="n">fit_hist</span><span class="p">,</span>
     <span class="n">draw_gradient</span><span class="p">,</span>
     <span class="n">histogramdd_wrapper</span><span class="p">,</span>
 <span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">.fit</span> <span class="kn">import</span> <span class="n">fit_hist</span>
 
 
 <div class="viewcode-block" id="Hist1D"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D">[docs]</a><span class="k">class</span> <span class="nc">Hist1D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -111,8 +112,6 @@
             <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">__array__</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_numpy</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_empty</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_numpy</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">:</span>
             <span class="c1"># allows Hist1D constructed with another Hist1D to introduce new metadata</span>
@@ -137,6 +136,10 @@
             <span class="nb">range</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">low</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">high</span><span class="p">))</span>
             <span class="n">bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nbins</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">is_datelike</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">convert_dates</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s2">&quot;date_axes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
 
             <span class="c1"># if binning integers, binning choice is easy</span>
@@ -152,10 +155,6 @@
 
         <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">is_datelike</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-            <span class="n">obj</span> <span class="o">=</span> <span class="n">convert_dates</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="s2">&quot;date_axes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">is_datelike</span><span class="p">(</span><span class="n">bins</span><span class="p">):</span>
             <span class="n">bins</span> <span class="o">=</span> <span class="n">convert_dates</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
@@ -420,11 +419,7 @@
 
     <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="c1"># allows sum([h1,h2,...]) since start value is 0</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">other</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_empty&quot;</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">other</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s2">&quot;_empty&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">other</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">other</span>
@@ -492,8 +487,9 @@
             <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span> <span class="o">/</span> <span class="n">other</span><span class="o">.</span><span class="n">_counts</span>
             <span class="c1"># these are actually the positions for down and up, but we want the errors</span>
             <span class="c1"># wrt to the central value</span>
-            <span class="n">hnew</span><span class="o">.</span><span class="n">_errors_up</span> <span class="o">=</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_errors_up</span> <span class="o">-</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span>
-            <span class="n">hnew</span><span class="o">.</span><span class="n">_errors_down</span> <span class="o">=</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">-</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_errors_down</span>
+            <span class="n">hnew</span><span class="o">.</span><span class="n">_errors_up</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">hnew</span><span class="o">.</span><span class="n">_errors_up</span> <span class="o">-</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span><span class="p">)</span>
+            <span class="n">hnew</span><span class="o">.</span><span class="n">_errors_down</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">-</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_errors_down</span><span class="p">)</span>
+
             <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span>
                 <span class="n">hnew</span><span class="o">.</span><span class="n">_errors_down</span> <span class="o">+</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_errors_up</span>
             <span class="p">)</span>  <span class="c1"># nominal errors are avg of up and down</span>
@@ -865,7 +861,7 @@
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
         <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mf">0.08</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.99</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.94</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">buf</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;svg&quot;</span><span class="p">)</span>
@@ -1003,7 +999,7 @@
         <span class="k">return</span> <span class="n">hnew</span></div>
 
 <div class="viewcode-block" id="Hist1D.from_bincounts"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D.from_bincounts">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_bincounts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_bincounts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates histogram object from array of histogrammed counts,</span>
 <span class="sd">        edges/bins, and optionally errors.</span>
@@ -1017,12 +1013,14 @@
 <span class="sd">            uses `bins = np.arange(len(counts)+1)`.</span>
 <span class="sd">        errors : array, default None</span>
 <span class="sd">            Array of bin errors (optional)</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Parameters to be passed to `Hist1D`/`Hist2D` constructor.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Hist</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">hnew</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">hnew</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;Hist1D&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">bins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1031,9 +1029,9 @@
                 <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
 
         <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-        <span class="n">hnew</span><span class="o">.</span><span class="n">_edges</span> <span class="o">=</span> <span class="n">bins</span>
+        <span class="n">hnew</span><span class="o">.</span><span class="n">_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">errors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="n">errors</span>
+            <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">hnew</span><span class="o">.</span><span class="n">_errors</span> <span class="o">=</span> <span class="n">hnew</span><span class="o">.</span><span class="n">_counts</span> <span class="o">**</span> <span class="mf">0.5</span>
         <span class="k">return</span> <span class="n">hnew</span></div>
@@ -1071,7 +1069,7 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">which</span><span class="si">}</span><span class="s2"> is not a valid distribution in `scipy.stats`. Valid distributions are: </span><span class="si">{</span><span class="n">valid</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">size</span><span class="p">)</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
             <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="s2">&quot;multivariate&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">which</span>
@@ -1112,8 +1110,6 @@
 <span class="sd">            Show error bars</span>
 <span class="sd">        legend : bool, default True</span>
 <span class="sd">            if True and the histogram has a label, draw the legend</span>
-<span class="sd">        return_self : bool, default False</span>
-<span class="sd">            If true, return self (Hist1D object)</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Parameters to be passed to matplotlib</span>
 <span class="sd">            `hist` or `errorbar` function.</span>
@@ -1121,7 +1117,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Hist1D (self) if `return_self` is True, otherwise</span>
 <span class="sd">        matplotlib AxesSubplot object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1142,7 +1137,6 @@
         <span class="n">counts_fmt_func</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts_fmt_func&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:3g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
         <span class="n">counts_fontsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts_fontsize&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
         <span class="n">gradient</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;gradient&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-        <span class="n">return_self</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;return_self&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span>
         <span class="n">edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span>
         <span class="n">yerrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span>
@@ -1221,10 +1215,7 @@
         <span class="c1"># import matplotlib.ticker</span>
         <span class="c1"># ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())</span>
 
-        <span class="k">if</span> <span class="n">return_self</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">ax</span></div>
+        <span class="k">return</span> <span class="n">ax</span></div>
 
 <div class="viewcode-block" id="Hist1D.plot_plotly"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D.plot_plotly">[docs]</a>    <span class="k">def</span> <span class="nf">plot_plotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
