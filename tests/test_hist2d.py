@@ -226,5 +226,13 @@ def test_datetime():
         assert len(df) == h.integral
 
 
+def test_fill():
+    h = Hist2D(bins="10,0,10", label="test")
+    h.fill(([1, 2, 3, 4], [0, 1, 2, 3]))
+    assert h.lookup(1, 0) == 1.0
+    assert h.lookup(2, 1) == 1.0
+    assert h.lookup(0, 0) == 0.0
+
+
 if __name__ == "__main__":
     pytest.main(["--capture=no", __file__])

@@ -721,6 +721,33 @@ class Hist1D(object):
         ibins = np.searchsorted(cdf, np.random.rand(int(size)))
         return self.bin_centers[ibins]
 
+    def fill(self, obj, weights=None):
+        """
+        Fills a `Hist1D`/`Hist2D` in place.
+
+        Parameters
+        ----------
+        obj : 
+            Object to fill, with same definition
+            as class construction
+        weights : list/array of weights, default None
+            See class constructor
+
+        Example
+        ----------
+        >>> h = Hist1D(bins="10,0,10", label="test")
+        >>> h.fill([1,2,3,4])
+        >>> h.fill([0,1,2])
+        >>> h.median()
+        2.5
+        """
+        h = self + type(self)(obj, bins=self.edges, weights=weights)
+        self._counts = h._counts
+        self._edges = h._edges
+        self._errors = h._errors
+        self._errors_up = h._errors_up
+        self._errors_down = h._errors_down
+
     def svg_fast(
         self,
         height=250,

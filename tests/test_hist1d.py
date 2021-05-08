@@ -298,5 +298,17 @@ def test_datetime():
         assert len(df) == h.integral
 
 
+def test_fill():
+    h = Hist1D(bins="10,0,10", label="test")
+    h.fill([1, 2, 3, 4])
+    h.fill([0, 1, 2])
+    h.median()
+    assert h.lookup(0) == 1.0
+    assert h.lookup(1) == 2.0
+    assert h.lookup(3) == 1.0
+    assert h.lookup(5) == 0.0
+    assert h.metadata["label"] == "test"
+
+
 if __name__ == "__main__":
     pytest.main(["--capture=no", __file__])
