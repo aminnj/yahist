@@ -781,8 +781,6 @@ class Hist2D(Hist1D):
             Show count labels for each bin
         show_errors : bool, default False
             Show error bars
-        return_self : bool, default False
-            If true, return self (Hist2D object)
         **kwargs
             Parameters to be passed to matplotlib 
             `pcolorfast` function.
@@ -790,8 +788,7 @@ class Hist2D(Hist1D):
 
         Returns
         -------
-        Hist2D (self) if `return_self` is True, otherwise
-        (pcolorfast output, matplotlib AxesSubplot object)
+        2-tuple of (pcolorfast output, matplotlib AxesSubplot object)
         """
 
         if kwargs.pop("interactive", False):
@@ -799,6 +796,8 @@ class Hist2D(Hist1D):
 
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
+        import matplotlib.ticker
+        import matplotlib.dates
 
         if ax is None:
             ax = plt.gca()
@@ -807,6 +806,7 @@ class Hist2D(Hist1D):
 
         counts = self._counts
         xedges, yedges = self._edges
+        xcenters, ycenters = self.bin_centers
 
         show_counts = kwargs.pop("show_counts", kwargs.pop("counts", False))
         colorbar = kwargs.pop("colorbar", True)
@@ -825,22 +825,20 @@ class Hist2D(Hist1D):
             countsdraw = np.array(counts)
             countsdraw[countsdraw == 0] = np.nan
 
-        if equidistant:
-            c = ax.imshow(
-                countsdraw[::-1, ::1],
-                extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]],
-                interpolation="none",
-                aspect="auto",
-                **kwargs,
-            )
-            if "x" in equidistant:
-                ax.xaxis.set_ticks(np.linspace(xedges[0], xedges[-1], len(xedges)))
-                ax.xaxis.set_ticklabels(xedges)
-            if "y" in equidistant:
-                ax.yaxis.set_ticks(np.linspace(yedges[0], yedges[-1], len(yedges)))
-                ax.yaxis.set_ticklabels(yedges)
-        else:
-            c = ax.pcolorfast(xedges, yedges, countsdraw, **kwargs)
+        if "x" in equidistant:
+            xedges_old = xedges[:]
+            xedges = np.linspace(xedges[0], xedges[-1], len(xedges))
+            ax.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(xedges))
+            ax.xaxis.set_ticklabels(np.round(xedges_old, 12))
+            xcenters = 0.5 * (xedges[:-1] + xedges[1:])
+        if "y" in equidistant:
+            yedges_old = yedges[:]
+            yedges = np.linspace(yedges[0], yedges[-1], len(yedges))
+            ax.yaxis.set_major_locator(matplotlib.ticker.FixedLocator(yedges))
+            ax.yaxis.set_ticklabels(np.round(yedges_old, 12))
+            ycenters = 0.5 * (yedges[:-1] + yedges[1:])
+
+        c = ax.pcolorfast(xedges, yedges, countsdraw, **kwargs)
 
         if colorbar:
             cbar = fig.colorbar(c, ax=ax)
@@ -851,8 +849,6 @@ class Hist2D(Hist1D):
             ax.set_ylabel(ylabel)
 
         if "date_axes" in self.metadata:
-            import matplotlib.dates
-
             locator = matplotlib.dates.AutoDateLocator()
             formatter = matplotlib.dates.ConciseDateFormatter(locator)
             which_axes = self.metadata["date_axes"]
@@ -864,19 +860,13 @@ class Hist2D(Hist1D):
                 ax.yaxis.set_major_formatter(formatter)
 
         if show_counts:
-            xcenters, ycenters = self.bin_centers
-            if equidistant:
-                if "x" in equidistant:
-                    xcenters = np.linspace(xedges[0], xedges[-1], len(xedges))
-                    xcenters = 0.5 * (xcenters[:-1] + xcenters[1:])
-                if "y" in equidistant:
-                    ycenters = np.linspace(yedges[0], yedges[-1], len(yedges))
-                    ycenters = 0.5 * (ycenters[:-1] + ycenters[1:])
             xyz = np.c_[
                 np.tile(xcenters, len(ycenters)),
                 np.repeat(ycenters, len(xcenters)),
                 counts.flatten(),
-            ][counts.flatten() != 0]
+            ]
+            if hide_empty:
+                xyz = xyz[counts.flatten() != 0]
 
             colors = np.zeros((len(xyz), 3))
             r, g, b, a = c.to_rgba(xyz[:, 2]).T
@@ -894,10 +884,7 @@ class Hist2D(Hist1D):
                     wrap=True,
                 )
 
-        if return_self:
-            return self
-        else:
-            return c, ax
+        return (c, ax)
 
     def plot_plotly(self, **kwargs):
         import plotly.graph_objects as go
