@@ -191,6 +191,26 @@ def test_fromrandom():
     assert h.rebin(5).projection("x") == h.projection("x").rebin(5)
 
 
+def test_json():
+    h1 = Hist2D(([0.5], [0.5]), bins=np.arange(100), label="foo")
+
+    h2 = Hist2D.from_json(h1.to_json())
+    assert h1 == h2
+    assert h1.metadata == h2.metadata
+
+    h1.to_json(".tmphist2d.json")
+    h2 = Hist2D.from_json(".tmphist2d.json")
+    assert h1 == h2
+    assert h1.metadata == h2.metadata
+
+    h1.to_json(".tmphist2d.json.gz")
+    h2 = Hist2D.from_json(".tmphist2d.json.gz")
+    assert h1 == h2
+    assert h1.metadata == h2.metadata
+
+    assert os.path.getsize(".tmphist2d.json.gz") < os.path.getsize(".tmphist2d.json")
+
+
 def test_threads():
     N = int(1e5) + 1
     x = np.random.normal(0, 1, N)

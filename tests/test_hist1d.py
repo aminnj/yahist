@@ -253,16 +253,23 @@ def test_gaussian():
 
 
 def test_json():
-    h1 = Hist1D([0.5], bins=[0.0, 1], label="foo")
+    h1 = Hist1D([0.5], bins=np.arange(1000), label="foo")
 
-    h2 = h1.from_json(h1.to_json())
+    h2 = Hist1D.from_json(h1.to_json())
     assert h1 == h2
     assert h1.metadata == h2.metadata
 
-    h1.to_json(".tmphist.json")
-    h2 = h1.from_json(".tmphist.json")
+    h1.to_json(".tmphist1d.json")
+    h2 = Hist1D.from_json(".tmphist1d.json")
     assert h1 == h2
     assert h1.metadata == h2.metadata
+
+    h1.to_json(".tmphist1d.json.gz")
+    h2 = Hist1D.from_json(".tmphist1d.json.gz")
+    assert h1 == h2
+    assert h1.metadata == h2.metadata
+
+    assert os.path.getsize(".tmphist1d.json.gz") < os.path.getsize(".tmphist1d.json")
 
 
 def test_frombincounts():

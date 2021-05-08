@@ -941,7 +941,8 @@ class Hist1D(object):
         Parameters
         ----------
         obj : str, default None
-            if specified, writes json to path instead of returning string
+            If specified, writes json to path instead of returning string.
+            If the path ends with '.gz', compresses with gzip.
 
         Returns
         -------
@@ -957,7 +958,15 @@ class Hist1D(object):
         if obj is None:
             return s
         else:
-            with open(obj, "w") as fh:
+            opener = open
+            mode = "w"
+            if obj.endswith(".gz"):
+                import gzip
+
+                opener = gzip.open
+                mode = "wb"
+                s = s.encode()
+            with opener(obj, mode) as fh:
                 fh.write(s)
 
     @classmethod
@@ -977,7 +986,14 @@ class Hist1D(object):
         if obj.startswith("{"):
             obj = json.loads(obj)
         else:
-            with open(obj, "r") as fh:
+            opener = open
+            mode = "r"
+            if obj.endswith(".gz"):
+                import gzip
+
+                opener = gzip.open
+                mode = "rb"
+            with opener(obj, mode) as fh:
                 obj = json.load(fh)
         for k in obj:
             if is_listlike(obj[k]):
