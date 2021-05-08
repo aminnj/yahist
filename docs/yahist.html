@@ -278,6 +278,29 @@ Hist1D returns 1, Hist2D returns 2</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt id="yahist.hist1d.Hist1D.fill">
+<code class="sig-name descname">fill</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">weights</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.fill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.fill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills a <cite>Hist1D</cite>/<cite>Hist2D</cite> in place.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> – Object to fill, with same definition
+as class construction</p></li>
+<li><p><strong>weights</strong> (<em>list/array of weights</em><em>, </em><em>default None</em>) – See class constructor</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">Hist1D</span><span class="p">(</span><span class="n">bins</span><span class="o">=</span><span class="s2">&quot;10,0,10&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">fill</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">fill</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">median</span><span class="p">()</span>
+<span class="go">2.5</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
 <dt id="yahist.hist1d.Hist1D.fit">
 <code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fits a function to a histogram via <cite>scipy.optimize.curve_fit</cite>,
