@@ -885,11 +885,12 @@ class Hist2D(Hist1D):
 
         return (c, ax)
 
-    def plot_plotly(self, fig=None, cmap=None, logz=False, label=None, **kwargs):
+    def plot_plotly(self, fig=None, cmap=None, logz=False, label=None, hide_empty=True, **kwargs):
         import plotly.graph_objects as go
 
         z = np.array(self.counts)
-        z[z <= 0] = np.nan
+        if hide_empty:
+            z[z <= 0] = np.nan
 
         trace = go.Heatmap(
             x=self.edges[0],

@@ -1226,6 +1226,8 @@ class Hist1D(object):
         log=False,
         label=None,
         flipxy=False,
+        alpha=1,
+        stack=False,
         **kwargs,
     ):
         import plotly.graph_objects as go
@@ -1260,6 +1262,7 @@ class Hist1D(object):
         trace.marker.line.width = 0.0
         trace.x = self.bin_centers
         trace.y = self.counts
+        trace.opacity = alpha
         if flipxy:
             trace.x, trace.y = trace.y, trace.x
         if label is not None:
@@ -1274,6 +1277,7 @@ class Hist1D(object):
         fig.add_trace(trace)
         fig.update_layout(
             bargap=0,
+            barmode="stack" if stack else "overlay",
             height=300,
             width=400,
             template="simple_white",
