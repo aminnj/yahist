@@ -583,7 +583,7 @@ function, or <cite>errorbar</cite>.</p>
 <li><p><strong>errors</strong> – Alias for <cite>show_errors</cite></p></li>
 <li><p><strong>fmt</strong> (<em>str</em><em>, </em><em>default &quot;o&quot;</em>) – <cite>fmt</cite> kwarg used for matplotlib plotting</p></li>
 <li><p><strong>gradient</strong> (<em>bool</em><em>, </em><em>default False</em>) – fill a light gradient under histogram if <cite>histtype=”step”</cite></p></li>
-<li><p><strong>interactive</strong> (<em>bool</em><em>, </em><em>default False</em>) – Use plotly to make an interactive plot</p></li>
+<li><p><strong>interactive</strong> (<em>bool</em><em>, </em><em>default False</em>) – Use plotly to make an interactive plot. See <cite>Hist1D.plot_plotly()</cite>.</p></li>
 <li><p><strong>show_counts</strong> (<em>bool</em><em>, </em><em>default False</em>) – Show count labels for each bin</p></li>
 <li><p><strong>show_errors</strong> (<em>bool</em><em>, </em><em>default False</em>) – Show error bars</p></li>
 <li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>default True</em>) – if True and the histogram has a label, draw the legend</p></li>
@@ -602,7 +602,7 @@ function, or <cite>errorbar</cite>.</p>
 
 <dl class="py method">
 <dt id="yahist.hist1d.Hist1D.plot_plotly">
-<code class="sig-name descname">plot_plotly</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.plot_plotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.plot_plotly" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_plotly</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fig</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">errors</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">log</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">flipxy</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">stack</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.plot_plotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.plot_plotly" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -758,7 +758,8 @@ to a discrete pdf from this histogram.</p>
 <dd><p>Returns json-serialized version of this object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>obj</strong> (<em>str</em><em>, </em><em>default None</em>) – if specified, writes json to path instead of returning string</p>
+<dd class="field-odd"><p><strong>obj</strong> (<em>str</em><em>, </em><em>default None</em>) – If specified, writes json to path instead of returning string.
+If the path ends with ‘.gz’, compresses with gzip.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
@@ -886,6 +887,22 @@ If 0, autodetect (within <cite>boost_histogram</cite>)</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="yahist.hist2d.Hist2D.correlation">
+<code class="sig-name descname">correlation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.correlation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.correlation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the correlation factor between the x
+and y axes, matching the routine in
+<a class="reference external" href="https://root.cern.ch/doc/master/TH2_8cxx_source.html#l01044">https://root.cern.ch/doc/master/TH2_8cxx_source.html#l01044</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="yahist.hist2d.Hist2D.cumulative">
 <code class="sig-name descname">cumulative</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">forwardx</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">forwardy</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.cumulative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.cumulative" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turns Hist object into one with cumulative counts.</p>
@@ -992,7 +1009,7 @@ y-axis (“y”), or both (“xy”).</p></li>
 
 <dl class="py method">
 <dt id="yahist.hist2d.Hist2D.plot_plotly">
-<code class="sig-name descname">plot_plotly</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.plot_plotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.plot_plotly" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_plotly</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fig</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logz</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">hide_empty</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.plot_plotly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.plot_plotly" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1017,8 +1034,8 @@ if “y” or 1, return the y-profile (mean over x-axis)</p>
 <dl class="py method">
 <dt id="yahist.hist2d.Hist2D.projection">
 <code class="sig-name descname">projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">'x'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.projection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the x-projection of the 2d histogram by
-summing over the y-axis.</p>
+<dd><p>Returns the x/y-projection of the 2d histogram by
+summing over the y/x-axis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>axis</strong> (<em>str/int</em><em> (</em><em>default &quot;x&quot;</em><em>)</em>) – if “x” or 0, return the x-projection (summing over y-axis)

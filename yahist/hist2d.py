@@ -217,8 +217,8 @@ class Hist2D(Hist1D):
 
     def projection(self, axis="x"):
         """
-        Returns the x-projection of the 2d histogram by
-        summing over the y-axis.
+        Returns the x/y-projection of the 2d histogram by
+        summing over the y/x-axis.
 
         Parameters
         ----------
@@ -277,6 +277,31 @@ class Hist2D(Hist1D):
             )
         else:
             raise Exception("axis parameter must be 'x'/0 or 'y'/1")
+
+    def correlation(self):
+        """
+        Returns the correlation factor between the x
+        and y axes, matching the routine in
+        https://root.cern.ch/doc/master/TH2_8cxx_source.html#l01044
+
+        Returns
+        -------
+        float
+        """
+        xcenters, ycenters = self.bin_centers
+        x = np.tile(xcenters, len(ycenters))
+        y = np.repeat(ycenters, len(xcenters))
+        z = self.counts.flatten()
+
+        sumw = z.sum()
+        sumwx = (z * x).sum()
+        sumwy = (z * y).sum()
+        sumwxy = (z * x * y).sum()
+
+        covariance = sumwxy / sumw - sumwx / sumw * sumwy / sumw
+        stdx = self.projection(0).std()
+        stdy = self.projection(1).std()
+        return covariance / stdx / stdy
 
     def transpose(self):
         """
@@ -885,7 +910,9 @@ class Hist2D(Hist1D):
 
         return (c, ax)
 
-    def plot_plotly(self, fig=None, cmap=None, logz=False, label=None, hide_empty=True, **kwargs):
+    def plot_plotly(
+        self, fig=None, cmap=None, logz=False, label=None, hide_empty=True, **kwargs
+    ):
         import plotly.graph_objects as go
 
         z = np.array(self.counts)

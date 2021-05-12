@@ -8,8 +8,10 @@ np.set_printoptions(linewidth=120)
 import pytest
 
 
-def allclose(a, b, equal_nan=False):
-    return np.testing.assert_allclose(np.array(a), np.array(b), equal_nan=equal_nan)
+def allclose(a, b, equal_nan=False, **kwargs):
+    return np.testing.assert_allclose(
+        np.array(a), np.array(b), equal_nan=equal_nan, **kwargs
+    )
 
 
 def test_basic():
@@ -99,6 +101,28 @@ def test_profile_against_root():
     hp = h.profile("x")
     allclose(hp.counts[1:-1], [0.0, 0.4, 2.0])
     allclose(hp.errors[1:-1] ** 2, [2.66666667, 1.088, 0.0])
+
+
+def test_correlation_against_root():
+    # import ROOT
+    # h = ROOT.TH2F("h", "", 10, 0, 1, 10, 0, 1)
+    # for v in vals:
+    #     h.Fill(*v)
+    # print(h.GetCorrelationFactor())
+    xyw = np.array(
+        [
+            [0.15, 0.25, 1],
+            [0.15, 0.25, -2],
+            [0.35, 0.15, 1],
+            [0.25, 0.85, 1],
+            [0.85, 0.95, 2],
+            [0.85, 0.95, 1],
+            [0.85, 0.25, 20],
+        ]
+    )
+    x, y, w = xyw.T
+    h = Hist2D((x, y), weights=w, bins="10,0,1")
+    allclose(h.correlation(), -0.6345410470242283, rtol=1e-6, atol=1e-6)
 
 
 def test_projection():

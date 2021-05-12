@@ -980,7 +980,8 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        obj : str, default None</span>
-<span class="sd">            if specified, writes json to path instead of returning string</span>
+<span class="sd">            If specified, writes json to path instead of returning string.</span>
+<span class="sd">            If the path ends with &#39;.gz&#39;, compresses with gzip.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -996,7 +997,15 @@
         <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">s</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">opener</span> <span class="o">=</span> <span class="nb">open</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;w&quot;</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.gz&quot;</span><span class="p">):</span>
+                <span class="kn">import</span> <span class="nn">gzip</span>
+
+                <span class="n">opener</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span>
+                <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;wb&quot;</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+            <span class="k">with</span> <span class="n">opener</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
                 <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Hist1D.from_json"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D.from_json">[docs]</a>    <span class="nd">@classmethod</span>
@@ -1016,7 +1025,14 @@
         <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">):</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">opener</span> <span class="o">=</span> <span class="nb">open</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;r&quot;</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.gz&quot;</span><span class="p">):</span>
+                <span class="kn">import</span> <span class="nn">gzip</span>
+
+                <span class="n">opener</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span>
+                <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;rb&quot;</span>
+            <span class="k">with</span> <span class="n">opener</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
                 <span class="n">obj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">is_listlike</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="n">k</span><span class="p">]):</span>
@@ -1130,7 +1146,7 @@
 <span class="sd">        gradient : bool, default False</span>
 <span class="sd">            fill a light gradient under histogram if `histtype=&quot;step&quot;`</span>
 <span class="sd">        interactive : bool, default False</span>
-<span class="sd">            Use plotly to make an interactive plot</span>
+<span class="sd">            Use plotly to make an interactive plot. See `Hist1D.plot_plotly()`.</span>
 <span class="sd">        show_counts : bool, default False</span>
 <span class="sd">            Show count labels for each bin</span>
 <span class="sd">        show_errors : bool, default False</span>
@@ -1239,32 +1255,74 @@
                 <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">locator</span><span class="p">)</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
 
-        <span class="c1"># import matplotlib.ticker</span>
-        <span class="c1"># ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())</span>
-
         <span class="k">return</span> <span class="n">ax</span></div>
 
-<div class="viewcode-block" id="Hist1D.plot_plotly"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D.plot_plotly">[docs]</a>    <span class="k">def</span> <span class="nf">plot_plotly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Hist1D.plot_plotly"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D.plot_plotly">[docs]</a>    <span class="k">def</span> <span class="nf">plot_plotly</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">errors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">flipxy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">stack</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.colors</span>
 
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span>
-            <span class="n">go</span><span class="o">.</span><span class="n">Bar</span><span class="p">(</span>
-                <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_centers</span><span class="p">,</span>
-                <span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_widths</span><span class="p">,</span>
-                <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">,</span>
-                <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">0</span><span class="p">,)),</span>
-            <span class="p">),</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;C0&quot;</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">to_hex</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="n">yscale</span> <span class="o">=</span> <span class="s2">&quot;log&quot;</span> <span class="k">if</span> <span class="n">log</span> <span class="k">else</span> <span class="s2">&quot;linear&quot;</span>
+        <span class="n">rangemode</span> <span class="o">=</span> <span class="s2">&quot;nonnegative&quot;</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">counts</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">):</span>
+            <span class="n">rangemode</span> <span class="o">=</span> <span class="s2">&quot;normal&quot;</span>
+        <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">()</span>
+            <span class="n">trace</span><span class="o">.</span><span class="n">error_x</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_widths</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+            <span class="n">trace</span><span class="o">.</span><span class="n">error_y</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">array</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">errors</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">flipxy</span><span class="p">:</span>
+                <span class="n">trace</span><span class="o">.</span><span class="n">error_x</span><span class="p">,</span> <span class="n">trace</span><span class="o">.</span><span class="n">error_y</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">trace</span><span class="o">.</span><span class="n">error_y</span><span class="o">.</span><span class="n">to_plotly_json</span><span class="p">(),</span>
+                    <span class="n">trace</span><span class="o">.</span><span class="n">error_x</span><span class="o">.</span><span class="n">to_plotly_json</span><span class="p">(),</span>
+                <span class="p">)</span>
+            <span class="n">trace</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;markers&quot;</span>
+            <span class="n">trace</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Bar</span><span class="p">()</span>
+            <span class="n">trace</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_widths</span>
+            <span class="n">trace</span><span class="o">.</span><span class="n">orientation</span> <span class="o">=</span> <span class="s2">&quot;h&quot;</span> <span class="k">if</span> <span class="n">flipxy</span> <span class="k">else</span> <span class="s2">&quot;v&quot;</span>
+        <span class="n">trace</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="n">trace</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">trace</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_centers</span>
+        <span class="n">trace</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span>
+        <span class="n">trace</span><span class="o">.</span><span class="n">opacity</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="k">if</span> <span class="n">flipxy</span><span class="p">:</span>
+            <span class="n">trace</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">trace</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">trace</span><span class="o">.</span><span class="n">x</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">trace</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">trace</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">trace</span><span class="o">.</span><span class="n">showlegend</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
             <span class="n">bargap</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">barmode</span><span class="o">=</span><span class="s2">&quot;stack&quot;</span> <span class="k">if</span> <span class="n">stack</span> <span class="k">else</span> <span class="s2">&quot;overlay&quot;</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
             <span class="n">template</span><span class="o">=</span><span class="s2">&quot;simple_white&quot;</span><span class="p">,</span>
             <span class="n">font_family</span><span class="o">=</span><span class="s2">&quot;Arial&quot;</span><span class="p">,</span>
-            <span class="n">xaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">mirror</span><span class="o">=</span><span class="kc">True</span><span class="p">,),</span>
-            <span class="n">yaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">mirror</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;log&quot;</span> <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;linear&quot;</span><span class="p">),</span>
-            <span class="p">),</span>
+            <span class="n">xaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">mirror</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">yaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">mirror</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">yscale</span><span class="p">,</span> <span class="n">rangemode</span><span class="o">=</span><span class="n">rangemode</span><span class="p">),</span>
             <span class="n">margin</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">0</span><span class="p">,),</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span></div>
