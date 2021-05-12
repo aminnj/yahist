@@ -12,7 +12,6 @@ from .utils import (
     clopper_pearson_error,
     poisson_errors,
     ignore_division_errors,
-    draw_gradient,
     histogramdd_wrapper,
 )
 
@@ -849,7 +848,7 @@ class Hist1D(object):
             pathstr=pathstr,
             strokewidth=strokewidth,
             color=color,
-            fill=color if bottom else "url(#grad_{uid})".format(uid=uid)
+            fill=color if bottom else "url(#grad_{uid})".format(uid=uid),
         )
         return source
 
@@ -1107,38 +1106,53 @@ class Hist1D(object):
         h = cls(v, **kwargs)
         return h
 
-    def plot(self, ax=None, **kwargs):
+    def plot(
+        self,
+        ax=None,
+        histtype="step",
+        legend=True,
+        counts=False,
+        errors=False,
+        fmt="o",
+        label=None,
+        color=None,
+        counts_fmt_func="{:3g}".format,
+        counts_fontsize=10,
+        interactive=False,
+        **kwargs,
+    ):
         """
         Plot this histogram object using matplotlib's `hist`
-        function, or `errorbar`.
+        function, or `errorbar` (depending on the value of the `errors` argument).
 
         Parameters
         ----------
         ax : matplotlib AxesSubplot object, default None
             matplotlib AxesSubplot object. Created if `None`.
-        counts
-            Alias for `show_counts`
-        counts_fmt_func : function, default "{:3g}".format
-            Function used to format count labels
+        color : str, default None
+            If None, uses default matplotlib color cycler
+        counts, bool False
+            If True, show text labels for counts (and/or errors). See
+            `counts_fmt_func` and `counts_fontsize`.
+        counts_fmt_func : callable, default `"{:3g}".format`
+            Two-parameter function used to format count and error labels.
+            Thus, if a second placeholder is specified (e.g., `"{:3g} +- {:3g}".format`),
+            the bin error can be shown as well.
         counts_fontsize
             Font size of count labels
-        errors
-            Alias for `show_errors`
+        errors, bool False
+            If True, plot markers with error bars (`ax.errorbar()`) instead of `ax.hist()`.
         fmt : str, default "o"
             `fmt` kwarg used for matplotlib plotting
-        gradient : bool, default False
-            fill a light gradient under histogram if `histtype="step"`
+        label : str, default None
+            Label for legend entry
         interactive : bool, default False
             Use plotly to make an interactive plot. See `Hist1D.plot_plotly()`.
-        show_counts : bool, default False
-            Show count labels for each bin
-        show_errors : bool, default False
-            Show error bars
         legend : bool, default True
-            if True and the histogram has a label, draw the legend
+            If True and the histogram has a label, draw the legend
         **kwargs
             Parameters to be passed to matplotlib
-            `hist` or `errorbar` function.
+            or `errorbar` (if `errors=True`) `hist` (otherwise) function.
 
 
         Returns
@@ -1146,23 +1160,23 @@ class Hist1D(object):
         matplotlib AxesSubplot object
         """
 
-        if kwargs.pop("interactive", False):
-            return self.plot_plotly(**kwargs)
+        if interactive:
+            return self.plot_plotly(color=color, label=label, **kwargs,)
 
         import matplotlib.pyplot as plt
 
         if ax is None:
             ax = plt.gca()
 
-        kwargs["color"] = kwargs.get("color", self.metadata.get("color"))
-        kwargs["label"] = kwargs.get("label", self.metadata.get("label"))
-        kwargs["histtype"] = kwargs.get("histtype", "step")
-        legend = kwargs.pop("legend", True)
-        show_counts = kwargs.pop("show_counts", kwargs.pop("counts", False))
-        show_errors = kwargs.pop("show_errors", kwargs.pop("errors", False))
-        counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
-        counts_fontsize = kwargs.pop("counts_fontsize", 10)
-        gradient = kwargs.pop("gradient", False)
+        if (color is None) and (self.metadata.get("color") is not None):
+            color = self.metadata["color"]
+
+        if (label is None) and (self.metadata.get("label") is not None):
+            label = self.metadata["label"]
+
+        show_counts = counts or kwargs.pop("show_counts", False)
+        show_errors = errors or kwargs.pop("show_errors", False)
+
         counts = self._counts
         edges = self._edges
         yerrs = self._errors
@@ -1170,32 +1184,35 @@ class Hist1D(object):
         mask = ((counts != 0.0) | (yerrs != 0.0)) & np.isfinite(counts)
         centers = self.bin_centers
 
-        if gradient:
-            kwargs["histtype"] = "step"
-
         if show_errors:
-            kwargs["fmt"] = kwargs.get("fmt", "o")
-            kwargs.pop("histtype", None)
             yerr = yerrs[mask]
             if self.errors_up is not None:
                 yerr = self.errors_down[mask], self.errors_up[mask]
             patches = ax.errorbar(
-                centers[mask], counts[mask], xerr=xerrs[mask], yerr=yerr, **kwargs
+                centers[mask],
+                counts[mask],
+                xerr=xerrs[mask],
+                yerr=yerr,
+                fmt=fmt,
+                color=color,
+                label=label,
+                **kwargs,
             )
             # If there are points with values of 0, they are not drawn
             # and the xlims will be compressed, so we force the bounds
             ax.set_xlim(self._edges[0], self._edges[-1])
         else:
             _, _, patches = ax.hist(
-                centers[mask], edges, weights=counts[mask], **kwargs
+                centers[mask],
+                edges,
+                weights=counts[mask],
+                histtype=histtype,
+                color=color,
+                label=label,
+                **kwargs,
             )
 
-            if gradient:
-                draw_gradient(
-                    ax, patches, reverse=(kwargs.get("histtype", "") == "stepfilled")
-                )
-
-        if kwargs["label"] and legend:
+        if label and legend:
             ax.legend()
 
         if show_counts:
@@ -1213,15 +1230,16 @@ class Hist1D(object):
                 color = patch.get_edgecolor()
             xtodraw = centers[mask]
             ytexts = counts[mask]
+            yerrtexts = yerrs[mask]
             if show_errors:
                 ytodraw = counts[mask] + yerrs[mask]
             else:
-                ytodraw = ytexts
-            for x, y, ytext in zip(xtodraw, ytodraw, ytexts):
+                ytodraw = counts[mask]
+            for xpos, ypos, ytext, yerrtext in zip(xtodraw, ytodraw, ytexts, yerrtexts):
                 ax.text(
-                    x,
-                    y,
-                    counts_fmt_func(ytext),
+                    xpos,
+                    ypos,
+                    counts_fmt_func(ytext, yerrtext),
                     horizontalalignment="center",
                     verticalalignment="bottom",
                     fontsize=counts_fontsize,

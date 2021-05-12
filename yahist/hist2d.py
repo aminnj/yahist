@@ -779,7 +779,20 @@ class Hist2D(Hist1D):
         )
         return source
 
-    def plot(self, ax=None, fig=None, **kwargs):
+    def plot(
+        self,
+        ax=None,
+        fig=None,
+        colorbar=True,
+        hide_empty=True,
+        counts=False,
+        counts_fmt_func="{:3g}".format,
+        counts_fontsize=12,
+        logz=False,
+        equidistant="",
+        interactive=False,
+        **kwargs,
+    ):
         """
         Plot this histogram object using matplotlib's `hist`
         function, or `errorbar`.
@@ -791,26 +804,25 @@ class Hist2D(Hist1D):
         fig : matplotlib Figure object, default None
             matplotlib Figure object. Created if `None`.
         counts
-            Alias for `show_counts`
-        counts_fmt_func : function, default "{:3g}".format
-            Function used to format count labels
+            If True, show text labels for counts (and/or errors). See
+            `counts_fmt_func` and `counts_fontsize`.
+        counts_fmt_func : callable, default `"{:3g}".format`
+            Two-parameter function used to format count and error labels.
+            Thus, if a second placeholder is specified (e.g., `"{:3g}\n$\pm$ {:3g}".format`),
+            the bin error can be shown as well.
         counts_fontsize
             Font size of count labels
         colorbar : bool, default True
             Show colorbar
-        equidistant : str ("", "x", "y", "xy"), default ""
-            If not an empty string, make bins equally-spaced in the x-axis ("x"),
-            y-axis ("y"), or both ("xy").
+        equidistant : str, default ""
+            If not an empty string, make bins equally-spaced in the x-axis (`equidistant="x"`),
+            y-axis (`"y"`), or both (`"xy"`).
         hide_empty : bool, default True
             Don't draw empty bins (content==0)
         interactive : bool, default False
             Use plotly to make an interactive plot
         logz : bool, default False
             Use logscale for z-axis
-        show_counts : bool, default False
-            Show count labels for each bin
-        show_errors : bool, default False
-            Show error bars
         **kwargs
             Parameters to be passed to matplotlib 
             `pcolorfast` function.
@@ -821,8 +833,8 @@ class Hist2D(Hist1D):
         2-tuple of (pcolorfast output, matplotlib AxesSubplot object)
         """
 
-        if kwargs.pop("interactive", False):
-            return self.plot_plotly(**kwargs)
+        if interactive:
+            return self.plot_plotly(fig=fig, logz=logz, hide_empty=hide_empty, **kwargs)
 
         import matplotlib.pyplot as plt
         from matplotlib.colors import LogNorm
@@ -834,22 +846,15 @@ class Hist2D(Hist1D):
         if fig is None:
             fig = plt.gcf()
 
+        show_counts = counts or kwargs.pop("show_counts", False)
+        norm = None if not logz else LogNorm()
+
         counts = self._counts
+        errors = self._errors
         xedges, yedges = self._edges
         xcenters, ycenters = self.bin_centers
-
-        show_counts = kwargs.pop("show_counts", kwargs.pop("counts", False))
-        colorbar = kwargs.pop("colorbar", True)
-        hide_empty = kwargs.pop("hide_empty", True)
-        counts_fmt_func = kwargs.pop("counts_fmt_func", "{:3g}".format)
-        counts_fontsize = kwargs.pop("counts_fontsize", 12)
-        logz = kwargs.pop("logz", False)
-        equidistant = kwargs.pop("equidistant", "")
-
-        if logz:
-            kwargs["norm"] = LogNorm()
-
         countsdraw = counts
+
         if hide_empty:
             countsdraw = np.array(counts)
             countsdraw[countsdraw == 0] = np.nan
@@ -867,7 +872,7 @@ class Hist2D(Hist1D):
             ax.yaxis.set_ticklabels(np.round(yedges_old, 12))
             ycenters = 0.5 * (yedges[:-1] + yedges[1:])
 
-        c = ax.pcolorfast(xedges, yedges, countsdraw, **kwargs)
+        c = ax.pcolorfast(xedges, yedges, countsdraw, norm=norm, **kwargs)
 
         if colorbar:
             cbar = fig.colorbar(c, ax=ax)
@@ -889,23 +894,24 @@ class Hist2D(Hist1D):
                 ax.yaxis.set_major_formatter(formatter)
 
         if show_counts:
-            xyz = np.c_[
+            xyze = np.c_[
                 np.tile(xcenters, len(ycenters)),
                 np.repeat(ycenters, len(xcenters)),
                 counts.flatten(),
+                errors.flatten(),
             ]
             if hide_empty:
-                xyz = xyz[counts.flatten() != 0]
+                xyze = xyze[counts.flatten() != 0]
 
-            colors = np.zeros((len(xyz), 3))
-            r, g, b, a = c.to_rgba(xyz[:, 2]).T
+            colors = np.zeros((len(xyze), 3))
+            r, g, b, a = c.to_rgba(xyze[:, 2]).T
             colors[compute_darkness(r, g, b, a) > 0.45] = 1
 
-            for (x, y, z), color in zip(xyz, colors):
+            for (x, y, z, ze), color in zip(xyze, colors):
                 ax.text(
                     x,
                     y,
-                    counts_fmt_func(z),
+                    counts_fmt_func(z, ze),
                     color=color,
                     ha="center",
                     va="center",
