@@ -1161,7 +1161,7 @@ class Hist1D(object):
         """
 
         if interactive:
-            return self.plot_plotly(color=color, label=label, **kwargs,)
+            return self.plot_plotly(errors=errors, color=color, label=label, **kwargs,)
 
         import matplotlib.pyplot as plt
 
