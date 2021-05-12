@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import numpy as np
 import copy
-import base64
 
 from .utils import (
     is_listlike,
@@ -299,8 +298,8 @@ class Hist2D(Hist1D):
         sumwxy = (z * x * y).sum()
 
         covariance = sumwxy / sumw - sumwx / sumw * sumwy / sumw
-        stdx = self.projection(0).std()
-        stdy = self.projection(1).std()
+        stdx = self.projection("x").std()
+        stdy = self.projection("y").std()
         return covariance / stdx / stdy
 
     def transpose(self):
@@ -554,7 +553,7 @@ class Hist2D(Hist1D):
 
         return xy
 
-    def svg_fast(self, height=250, aspectratio=1.4, interactive=True):
+    def svg_fast(self, height=250, aspectratio=1.4, interactive=False):
         """
         Return HTML svg tag with bare-bones version of histogram
         (no ticks, labels).
@@ -565,7 +564,7 @@ class Hist2D(Hist1D):
             Height of plot in pixels
         aspectratio : float, default 1.4
             Aspect ratio of plot
-        interactive : bool, default True
+        interactive : bool, default False
             Whether to display bin contents on mouse hover.
 
         Returns
@@ -638,12 +637,14 @@ class Hist2D(Hist1D):
         source = template.format(content="\n".join(content))
         return source
 
-    def svg(self, **kwargs):
+    def svg(self, ticks=True, **kwargs):
         """
         Return HTML svg tag with Matplotlib-rendered svg.
 
         Parameters
         ----------
+        ticks : bool, default True
+            Show x/y ticks and labels
         **kwargs
             Parameters to be passed to `self.plot()` function.
 
@@ -653,10 +654,14 @@ class Hist2D(Hist1D):
         """
         from io import BytesIO
         import matplotlib.pyplot as plt
+        import base64
 
         fig, ax = plt.subplots(figsize=(4, 3))
         fig.subplots_adjust(left=0.18, bottom=0.16, right=0.95, top=0.94)
         self.plot(ax=ax, **kwargs)
+        if not ticks:
+            ax.set_xticks([])
+            ax.set_yticks([])
         buf = BytesIO()
         fig.savefig(buf, format="svg")
         plt.close(fig)

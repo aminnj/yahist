@@ -4,7 +4,6 @@ import sys
 import numpy as np
 import copy
 import json
-import base64
 
 from .utils import (
     is_listlike,
@@ -754,7 +753,7 @@ class Hist1D(object):
         aspectratio=1.4,
         padding=0.02,
         strokewidth=1,
-        color="#4285F4",
+        color=None,
         bottom=True,
         frame=True,
     ):
@@ -774,8 +773,9 @@ class Hist1D(object):
             Width of strokes
         bottom : bool, default True
             Draw line at the bottom
-        color : str, default "#4285F4",
+        color : str, default None",
             Stroke color and fill color (with 15% opacity)
+            If color is in the histogram metadata, it will take precedence. 
         frame : bool, default True
             Draw frame/border
 
@@ -783,6 +783,18 @@ class Hist1D(object):
         -------
         str
         """
+        import matplotlib.colors
+        import uuid
+
+        if color is None:
+            if self.metadata.get("color") is not None:
+                color = self.metadata["color"]
+            else:
+                color = "C0"
+        color = matplotlib.colors.to_hex(color)
+
+        uid = str(uuid.uuid4()).split("-")[0]
+
         width = height * aspectratio
 
         safecounts = np.array(self._counts)
@@ -819,16 +831,25 @@ class Hist1D(object):
             framestr = ""
         source = """
         <svg width="{width}" height="{height}" version="1.1" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+          <linearGradient id="grad_{uid}" x2="0" y2="1">
+            <stop offset="0%" stop-color="{color}"/>
+            <stop offset="30%" stop-color="{color}"/>
+            <stop offset="100%" stop-color="#ffffff00"/>
+          </linearGradient>
+          </defs>
           {framestr}
-          <polyline points="{pathstr}" stroke="{color}" fill="{color}" fill-opacity="0.15" stroke-width="{strokewidth}"/>
+          <polyline points="{pathstr}" stroke="{color}" fill="{fill}" fill-opacity="0.15" stroke-width="{strokewidth}"/>
         </svg>
         """.format(
+            uid=uid,
             width=width,
             framestr=framestr,
             height=height,
             pathstr=pathstr,
             strokewidth=strokewidth,
             color=color,
+            fill=color if bottom else "url(#grad_{uid})".format(uid=uid)
         )
         return source
 
@@ -847,6 +868,7 @@ class Hist1D(object):
         """
         from io import BytesIO
         import matplotlib.pyplot as plt
+        import base64
 
         fig, ax = plt.subplots(figsize=(4, 3))
         fig.subplots_adjust(bottom=0.15, right=0.95, top=0.94)
