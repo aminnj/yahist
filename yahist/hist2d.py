@@ -808,7 +808,7 @@ class Hist2D(Hist1D):
             `counts_formatter` and `counts_fontsize`.
         counts_formatter : callable, default `"{:3g}".format`
             Two-parameter function used to format count and error labels.
-            Thus, if a second placeholder is specified (e.g., `"{:3g}\n$\pm$ {:3g}".format`),
+            Thus, if a second placeholder is specified (e.g., `"{:3g}\\n$\pm$ {:3g}".format`),
             the bin error can be shown as well.
         counts_fontsize
             Font size of count labels
@@ -825,12 +825,12 @@ class Hist2D(Hist1D):
             Use logscale for z-axis
         **kwargs
             Parameters to be passed to matplotlib 
-            `pcolorfast` function.
+            `pcolorfast`/`pcolormesh` function.
 
 
         Returns
         -------
-        2-tuple of (pcolorfast output, matplotlib AxesSubplot object)
+        2-tuple of (`pcolorfast`/`pcolormesh` output, matplotlib `AxesSubplot` object)
         """
 
         if interactive:
@@ -863,26 +863,23 @@ class Hist2D(Hist1D):
         if equidistant:
             from scipy.interpolate import interp1d
 
-            plotter = ax.pcolor
-            if "x" in equidistant:
-                b1 = xedges
+            plotter = ax.pcolormesh
+            for char, b1, set_scale, set_ticks in [
+                ("x", xedges, ax.set_xscale, ax.set_xticks),
+                ("y", yedges, ax.set_yscale, ax.set_yticks),
+            ]:
+                if char not in equidistant:
+                    continue
                 b2 = np.linspace(b1[0], b1[-1], len(b1))
-                f1 = interp1d(b1, b2, kind="linear", fill_value="extrapolate")
-                f2 = interp1d(b2, b1, kind="linear", fill_value="extrapolate")
-                ax.set_xscale("function", functions=(f1, f2))
-                ax.set_xticks(b1)
-            if "y" in equidistant:
-                b1 = yedges
-                b2 = np.linspace(b1[0], b1[-1], len(b1))
-                f1 = interp1d(b1, b2, kind="linear", fill_value="extrapolate")
-                f2 = interp1d(b2, b1, kind="linear", fill_value="extrapolate")
-                ax.set_yscale("function", functions=(f1, f2))
-                ax.set_yticks(b1)
+                f_forw = interp1d(b1, b2, kind="linear", fill_value="extrapolate")
+                f_back = interp1d(b2, b1, kind="linear", fill_value="extrapolate")
+                set_scale("function", functions=(f_forw, f_back))
+                set_ticks(b1)
 
         c = plotter(xedges, yedges, countsdraw, norm=norm, **kwargs)
 
         if colorbar:
-            cbar = fig.colorbar(c, ax=ax)
+            _ = fig.colorbar(c, ax=ax)
 
         if "pandas_labels" in self.metadata:
             xlabel, ylabel = self.metadata["pandas_labels"]
