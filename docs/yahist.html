@@ -570,25 +570,30 @@ If <cite>density=True</cite>, also divide by bin widths.</p>
 
 <dl class="py method">
 <dt id="yahist.hist1d.Hist1D.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.plot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">ax=None</em>, <em class="sig-param">histtype='step'</em>, <em class="sig-param">legend=True</em>, <em class="sig-param">counts=False</em>, <em class="sig-param">errors=False</em>, <em class="sig-param">fmt='o'</em>, <em class="sig-param">label=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">counts_formatter=&lt;built-in method format of str object&gt;</em>, <em class="sig-param">counts_fontsize=10</em>, <em class="sig-param">interactive=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot this histogram object using matplotlib’s <cite>hist</cite>
-function, or <cite>errorbar</cite>.</p>
+function, or <cite>errorbar</cite> (depending on the value of the <cite>errors</cite> argument).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ax</strong> (<em>matplotlib AxesSubplot object</em><em>, </em><em>default None</em>) – matplotlib AxesSubplot object. Created if <cite>None</cite>.</p></li>
-<li><p><strong>counts</strong> – Alias for <cite>show_counts</cite></p></li>
-<li><p><strong>counts_fmt_func</strong> (<em>function</em><em>, </em><em>default &quot;{:3g}&quot;.format</em>) – Function used to format count labels</p></li>
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>default None</em>) – If None, uses default matplotlib color cycler</p></li>
+<li><p><strong>counts</strong> – If True, show text labels for counts (and/or errors). See
+<cite>counts_formatter</cite> and <cite>counts_fontsize</cite>.</p></li>
+<li><p><strong>False</strong> (<em>bool</em>) – If True, show text labels for counts (and/or errors). See
+<cite>counts_formatter</cite> and <cite>counts_fontsize</cite>.</p></li>
+<li><p><strong>counts_formatter</strong> (callable, default <cite>“{:3g}”.format</cite>) – Two-parameter function used to format count and error labels.
+Thus, if a second placeholder is specified (e.g., <cite>“{:3g} +- {:3g}”.format</cite>),
+the bin error can be shown as well.</p></li>
 <li><p><strong>counts_fontsize</strong> – Font size of count labels</p></li>
-<li><p><strong>errors</strong> – Alias for <cite>show_errors</cite></p></li>
+<li><p><strong>errors</strong> – If True, plot markers with error bars (<cite>ax.errorbar()</cite>) instead of <cite>ax.hist()</cite>.</p></li>
+<li><p><strong>False</strong> – If True, plot markers with error bars (<cite>ax.errorbar()</cite>) instead of <cite>ax.hist()</cite>.</p></li>
 <li><p><strong>fmt</strong> (<em>str</em><em>, </em><em>default &quot;o&quot;</em>) – <cite>fmt</cite> kwarg used for matplotlib plotting</p></li>
-<li><p><strong>gradient</strong> (<em>bool</em><em>, </em><em>default False</em>) – fill a light gradient under histogram if <cite>histtype=”step”</cite></p></li>
+<li><p><strong>label</strong> (<em>str</em><em>, </em><em>default None</em>) – Label for legend entry</p></li>
 <li><p><strong>interactive</strong> (<em>bool</em><em>, </em><em>default False</em>) – Use plotly to make an interactive plot. See <cite>Hist1D.plot_plotly()</cite>.</p></li>
-<li><p><strong>show_counts</strong> (<em>bool</em><em>, </em><em>default False</em>) – Show count labels for each bin</p></li>
-<li><p><strong>show_errors</strong> (<em>bool</em><em>, </em><em>default False</em>) – Show error bars</p></li>
-<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>default True</em>) – if True and the histogram has a label, draw the legend</p></li>
+<li><p><strong>legend</strong> (<em>bool</em><em>, </em><em>default True</em>) – If True and the histogram has a label, draw the legend</p></li>
 <li><p><strong>**kwargs</strong> – Parameters to be passed to matplotlib
-<cite>hist</cite> or <cite>errorbar</cite> function.</p></li>
+or <cite>errorbar</cite> (if <cite>errors=True</cite>) <cite>hist</cite> (otherwise) function.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -728,7 +733,7 @@ to a discrete pdf from this histogram.</p>
 
 <dl class="py method">
 <dt id="yahist.hist1d.Hist1D.svg_fast">
-<code class="sig-name descname">svg_fast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">height</span><span class="o">=</span><span class="default_value">250</span></em>, <em class="sig-param"><span class="n">aspectratio</span><span class="o">=</span><span class="default_value">1.4</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">0.02</span></em>, <em class="sig-param"><span class="n">strokewidth</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'#4285F4'</span></em>, <em class="sig-param"><span class="n">bottom</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">frame</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.svg_fast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.svg_fast" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">svg_fast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">height</span><span class="o">=</span><span class="default_value">250</span></em>, <em class="sig-param"><span class="n">aspectratio</span><span class="o">=</span><span class="default_value">1.4</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">0.02</span></em>, <em class="sig-param"><span class="n">strokewidth</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bottom</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">frame</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist1d.html#Hist1D.svg_fast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist1d.Hist1D.svg_fast" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return HTML svg tag with bare-bones version of histogram
 (no ticks, labels).</p>
 <dl class="field-list simple">
@@ -739,7 +744,8 @@ to a discrete pdf from this histogram.</p>
 <li><p><strong>aspectratio</strong> (<em>float</em><em>, </em><em>default 1.4</em>) – Aspect ratio of plot</p></li>
 <li><p><strong>strokewidth</strong> (<em>float</em><em>, </em><em>default 1</em>) – Width of strokes</p></li>
 <li><p><strong>bottom</strong> (<em>bool</em><em>, </em><em>default True</em>) – Draw line at the bottom</p></li>
-<li><p><strong>color</strong> (<em>str</em><em>, </em><em>default &quot;#4285F4&quot;</em><em>,</em>) – Stroke color and fill color (with 15% opacity)</p></li>
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>default None&quot;</em><em>,</em>) – Stroke color and fill color (with 15% opacity)
+If color is in the histogram metadata, it will take precedence.</p></li>
 <li><p><strong>frame</strong> (<em>bool</em><em>, </em><em>default True</em>) – Draw frame/border</p></li>
 </ul>
 </dd>
@@ -975,7 +981,7 @@ bin counts via <cite>np.digitize</cite></p>
 
 <dl class="py method">
 <dt id="yahist.hist2d.Hist2D.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fig</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.plot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">ax=None</em>, <em class="sig-param">fig=None</em>, <em class="sig-param">colorbar=True</em>, <em class="sig-param">hide_empty=True</em>, <em class="sig-param">counts=False</em>, <em class="sig-param">counts_formatter=&lt;built-in method format of str object&gt;</em>, <em class="sig-param">counts_fontsize=12</em>, <em class="sig-param">logz=False</em>, <em class="sig-param">equidistant=''</em>, <em class="sig-param">interactive=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot this histogram object using matplotlib’s <cite>hist</cite>
 function, or <cite>errorbar</cite>.</p>
 <dl class="field-list simple">
@@ -983,26 +989,27 @@ function, or <cite>errorbar</cite>.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ax</strong> (<em>matplotlib AxesSubplot object</em><em>, </em><em>default None</em>) – matplotlib AxesSubplot object. Created if <cite>None</cite>.</p></li>
 <li><p><strong>fig</strong> (<em>matplotlib Figure object</em><em>, </em><em>default None</em>) – matplotlib Figure object. Created if <cite>None</cite>.</p></li>
-<li><p><strong>counts</strong> – Alias for <cite>show_counts</cite></p></li>
-<li><p><strong>counts_fmt_func</strong> (<em>function</em><em>, </em><em>default &quot;{:3g}&quot;.format</em>) – Function used to format count labels</p></li>
+<li><p><strong>counts</strong> – If True, show text labels for counts (and/or errors). See
+<cite>counts_formatter</cite> and <cite>counts_fontsize</cite>.</p></li>
+<li><p><strong>counts_formatter</strong> (callable, default <cite>“{:3g}”.format</cite>) – Two-parameter function used to format count and error labels.
+Thus, if a second placeholder is specified (e.g., <cite>“{:3g}n$pm$ {:3g}”.format</cite>),
+the bin error can be shown as well.</p></li>
 <li><p><strong>counts_fontsize</strong> – Font size of count labels</p></li>
 <li><p><strong>colorbar</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show colorbar</p></li>
-<li><p><strong>equidistant</strong> (<em>str</em><em> (</em><em>&quot;&quot;</em><em>, </em><em>&quot;x&quot;</em><em>, </em><em>&quot;y&quot;</em><em>, </em><em>&quot;xy&quot;</em><em>)</em><em>, </em><em>default &quot;&quot;</em>) – If not an empty string, make bins equally-spaced in the x-axis (“x”),
-y-axis (“y”), or both (“xy”).</p></li>
+<li><p><strong>equidistant</strong> (<em>str</em><em>, </em><em>default &quot;&quot;</em>) – If not an empty string, make bins equally-spaced in the x-axis (<cite>equidistant=”x”</cite>),
+y-axis (<cite>“y”</cite>), or both (<cite>“xy”</cite>).</p></li>
 <li><p><strong>hide_empty</strong> (<em>bool</em><em>, </em><em>default True</em>) – Don’t draw empty bins (content==0)</p></li>
 <li><p><strong>interactive</strong> (<em>bool</em><em>, </em><em>default False</em>) – Use plotly to make an interactive plot</p></li>
 <li><p><strong>logz</strong> (<em>bool</em><em>, </em><em>default False</em>) – Use logscale for z-axis</p></li>
-<li><p><strong>show_counts</strong> (<em>bool</em><em>, </em><em>default False</em>) – Show count labels for each bin</p></li>
-<li><p><strong>show_errors</strong> (<em>bool</em><em>, </em><em>default False</em>) – Show error bars</p></li>
 <li><p><strong>**kwargs</strong> – Parameters to be passed to matplotlib
-<cite>pcolorfast</cite> function.</p></li>
+<cite>pcolorfast</cite>/<cite>pcolormesh</cite> function.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>2-tuple of (pcolorfast output, matplotlib AxesSubplot object)</p>
+<dd class="field-odd"><p>2-tuple of (<cite>pcolorfast</cite>/<cite>pcolormesh</cite> output, matplotlib <cite>AxesSubplot</cite> object)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1143,11 +1150,14 @@ convolution with three kernels used by
 
 <dl class="py method">
 <dt id="yahist.hist2d.Hist2D.svg">
-<code class="sig-name descname">svg</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.svg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.svg" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">svg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ticks</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.svg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.svg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return HTML svg tag with Matplotlib-rendered svg.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> – Parameters to be passed to <cite>self.plot()</cite> function.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ticks</strong> (<em>bool</em><em>, </em><em>default True</em>) – Show x/y ticks and labels</p></li>
+<li><p><strong>**kwargs</strong> – Parameters to be passed to <cite>self.plot()</cite> function.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
@@ -1160,7 +1170,7 @@ convolution with three kernels used by
 
 <dl class="py method">
 <dt id="yahist.hist2d.Hist2D.svg_fast">
-<code class="sig-name descname">svg_fast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">height</span><span class="o">=</span><span class="default_value">250</span></em>, <em class="sig-param"><span class="n">aspectratio</span><span class="o">=</span><span class="default_value">1.4</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.svg_fast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.svg_fast" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">svg_fast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">height</span><span class="o">=</span><span class="default_value">250</span></em>, <em class="sig-param"><span class="n">aspectratio</span><span class="o">=</span><span class="default_value">1.4</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/hist2d.html#Hist2D.svg_fast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.hist2d.Hist2D.svg_fast" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return HTML svg tag with bare-bones version of histogram
 (no ticks, labels).</p>
 <dl class="field-list simple">
@@ -1168,7 +1178,7 @@ convolution with three kernels used by
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>height</strong> (<em>int</em><em>, </em><em>default 250</em>) – Height of plot in pixels</p></li>
 <li><p><strong>aspectratio</strong> (<em>float</em><em>, </em><em>default 1.4</em>) – Aspect ratio of plot</p></li>
-<li><p><strong>interactive</strong> (<em>bool</em><em>, </em><em>default True</em>) – Whether to display bin contents on mouse hover.</p></li>
+<li><p><strong>interactive</strong> (<em>bool</em><em>, </em><em>default False</em>) – Whether to display bin contents on mouse hover.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1235,22 +1245,6 @@ otherwise both ROOT and scipy will return inf/nan.</p>
 <dt id="yahist.utils.draw_error_band">
 <code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">draw_error_band</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">h</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#draw_error_band"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.draw_error_band" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="py function">
-<dt id="yahist.utils.draw_gradient">
-<code class="sig-prename descclassname">yahist.utils.</code><code class="sig-name descname">draw_gradient</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">patches</span></em>, <em class="sig-param"><span class="n">reverse</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/yahist/utils.html#draw_gradient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#yahist.utils.draw_gradient" title="Permalink to this definition">¶</a></dt>
-<dd><p>Draws gradient under a step patch (from <cite>histtype=”step”</cite>)
-onto specified <cite>ax</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> (<em>matplotlib AxesSubplot object</em>) – </p></li>
-<li><p><strong>patches</strong> (<em>matplotlib Patch objects</em>) – </p></li>
-<li><p><strong>reverse</strong> (<em>bool</em><em>, </em><em>default False</em>) – flip the gradient</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
 
 <dl class="py function">
 <dt id="yahist.utils.has_uniform_spacing">

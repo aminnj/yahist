@@ -43,7 +43,6 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">base64</span>
 
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">is_listlike</span><span class="p">,</span>
@@ -52,7 +51,6 @@
     <span class="n">clopper_pearson_error</span><span class="p">,</span>
     <span class="n">poisson_errors</span><span class="p">,</span>
     <span class="n">ignore_division_errors</span><span class="p">,</span>
-    <span class="n">draw_gradient</span><span class="p">,</span>
     <span class="n">histogramdd_wrapper</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -793,7 +791,7 @@
         <span class="n">aspectratio</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span>
         <span class="n">padding</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
         <span class="n">strokewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#4285F4&quot;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">bottom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">frame</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">):</span>
@@ -813,8 +811,9 @@
 <span class="sd">            Width of strokes</span>
 <span class="sd">        bottom : bool, default True</span>
 <span class="sd">            Draw line at the bottom</span>
-<span class="sd">        color : str, default &quot;#4285F4&quot;,</span>
+<span class="sd">        color : str, default None&quot;,</span>
 <span class="sd">            Stroke color and fill color (with 15% opacity)</span>
+<span class="sd">            If color is in the histogram metadata, it will take precedence. </span>
 <span class="sd">        frame : bool, default True</span>
 <span class="sd">            Draw frame/border</span>
 
@@ -822,6 +821,18 @@
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.colors</span>
+        <span class="kn">import</span> <span class="nn">uuid</span>
+
+        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;C0&quot;</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">to_hex</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+
+        <span class="n">uid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
         <span class="n">width</span> <span class="o">=</span> <span class="n">height</span> <span class="o">*</span> <span class="n">aspectratio</span>
 
         <span class="n">safecounts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_counts</span><span class="p">)</span>
@@ -858,16 +869,25 @@
             <span class="n">framestr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="n">source</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        &lt;svg width=&quot;</span><span class="si">{width}</span><span class="s2">&quot; height=&quot;</span><span class="si">{height}</span><span class="s2">&quot; version=&quot;1.1&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;&gt;</span>
+<span class="s2">          &lt;defs&gt;</span>
+<span class="s2">          &lt;linearGradient id=&quot;grad_</span><span class="si">{uid}</span><span class="s2">&quot; x2=&quot;0&quot; y2=&quot;1&quot;&gt;</span>
+<span class="s2">            &lt;stop offset=&quot;0%&quot; stop-color=&quot;</span><span class="si">{color}</span><span class="s2">&quot;/&gt;</span>
+<span class="s2">            &lt;stop offset=&quot;30%&quot; stop-color=&quot;</span><span class="si">{color}</span><span class="s2">&quot;/&gt;</span>
+<span class="s2">            &lt;stop offset=&quot;100%&quot; stop-color=&quot;#ffffff00&quot;/&gt;</span>
+<span class="s2">          &lt;/linearGradient&gt;</span>
+<span class="s2">          &lt;/defs&gt;</span>
 <span class="s2">          </span><span class="si">{framestr}</span><span class="s2"></span>
-<span class="s2">          &lt;polyline points=&quot;</span><span class="si">{pathstr}</span><span class="s2">&quot; stroke=&quot;</span><span class="si">{color}</span><span class="s2">&quot; fill=&quot;</span><span class="si">{color}</span><span class="s2">&quot; fill-opacity=&quot;0.15&quot; stroke-width=&quot;</span><span class="si">{strokewidth}</span><span class="s2">&quot;/&gt;</span>
+<span class="s2">          &lt;polyline points=&quot;</span><span class="si">{pathstr}</span><span class="s2">&quot; stroke=&quot;</span><span class="si">{color}</span><span class="s2">&quot; fill=&quot;</span><span class="si">{fill}</span><span class="s2">&quot; fill-opacity=&quot;0.15&quot; stroke-width=&quot;</span><span class="si">{strokewidth}</span><span class="s2">&quot;/&gt;</span>
 <span class="s2">        &lt;/svg&gt;</span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">uid</span><span class="o">=</span><span class="n">uid</span><span class="p">,</span>
             <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
             <span class="n">framestr</span><span class="o">=</span><span class="n">framestr</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
             <span class="n">pathstr</span><span class="o">=</span><span class="n">pathstr</span><span class="p">,</span>
             <span class="n">strokewidth</span><span class="o">=</span><span class="n">strokewidth</span><span class="p">,</span>
             <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">fill</span><span class="o">=</span><span class="n">color</span> <span class="k">if</span> <span class="n">bottom</span> <span class="k">else</span> <span class="s2">&quot;url(#grad_</span><span class="si">{uid}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">uid</span><span class="o">=</span><span class="n">uid</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">source</span></div>
 
@@ -886,6 +906,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="kn">import</span> <span class="nn">base64</span>
 
         <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.94</span><span class="p">)</span>
@@ -1124,38 +1145,53 @@
         <span class="n">h</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">h</span></div>
 
-<div class="viewcode-block" id="Hist1D.plot"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Hist1D.plot"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.Hist1D.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">histtype</span><span class="o">=</span><span class="s2">&quot;step&quot;</span><span class="p">,</span>
+        <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">counts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">errors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">counts_formatter</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{:3g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+        <span class="n">counts_fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">interactive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot this histogram object using matplotlib&#39;s `hist`</span>
-<span class="sd">        function, or `errorbar`.</span>
+<span class="sd">        function, or `errorbar` (depending on the value of the `errors` argument).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        ax : matplotlib AxesSubplot object, default None</span>
 <span class="sd">            matplotlib AxesSubplot object. Created if `None`.</span>
-<span class="sd">        counts</span>
-<span class="sd">            Alias for `show_counts`</span>
-<span class="sd">        counts_fmt_func : function, default &quot;{:3g}&quot;.format</span>
-<span class="sd">            Function used to format count labels</span>
+<span class="sd">        color : str, default None</span>
+<span class="sd">            If None, uses default matplotlib color cycler</span>
+<span class="sd">        counts, bool False</span>
+<span class="sd">            If True, show text labels for counts (and/or errors). See</span>
+<span class="sd">            `counts_formatter` and `counts_fontsize`.</span>
+<span class="sd">        counts_formatter : callable, default `&quot;{:3g}&quot;.format`</span>
+<span class="sd">            Two-parameter function used to format count and error labels.</span>
+<span class="sd">            Thus, if a second placeholder is specified (e.g., `&quot;{:3g} +- {:3g}&quot;.format`),</span>
+<span class="sd">            the bin error can be shown as well.</span>
 <span class="sd">        counts_fontsize</span>
 <span class="sd">            Font size of count labels</span>
-<span class="sd">        errors</span>
-<span class="sd">            Alias for `show_errors`</span>
+<span class="sd">        errors, bool False</span>
+<span class="sd">            If True, plot markers with error bars (`ax.errorbar()`) instead of `ax.hist()`.</span>
 <span class="sd">        fmt : str, default &quot;o&quot;</span>
 <span class="sd">            `fmt` kwarg used for matplotlib plotting</span>
-<span class="sd">        gradient : bool, default False</span>
-<span class="sd">            fill a light gradient under histogram if `histtype=&quot;step&quot;`</span>
+<span class="sd">        label : str, default None</span>
+<span class="sd">            Label for legend entry</span>
 <span class="sd">        interactive : bool, default False</span>
 <span class="sd">            Use plotly to make an interactive plot. See `Hist1D.plot_plotly()`.</span>
-<span class="sd">        show_counts : bool, default False</span>
-<span class="sd">            Show count labels for each bin</span>
-<span class="sd">        show_errors : bool, default False</span>
-<span class="sd">            Show error bars</span>
 <span class="sd">        legend : bool, default True</span>
-<span class="sd">            if True and the histogram has a label, draw the legend</span>
+<span class="sd">            If True and the histogram has a label, draw the legend</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Parameters to be passed to matplotlib</span>
-<span class="sd">            `hist` or `errorbar` function.</span>
+<span class="sd">            or `errorbar` (if `errors=True`) `hist` (otherwise) function.</span>
 
 
 <span class="sd">        Returns</span>
@@ -1163,23 +1199,23 @@
 <span class="sd">        matplotlib AxesSubplot object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;interactive&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_plotly</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_plotly</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,)</span>
 
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
         <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
 
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">))</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">))</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;histtype&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;histtype&quot;</span><span class="p">,</span> <span class="s2">&quot;step&quot;</span><span class="p">)</span>
-        <span class="n">legend</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;legend&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">show_counts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_counts&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-        <span class="n">show_errors</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_errors&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;errors&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-        <span class="n">counts_fmt_func</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts_fmt_func&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:3g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
-        <span class="n">counts_fontsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts_fontsize&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-        <span class="n">gradient</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;gradient&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;color&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+
+        <span class="n">show_counts</span> <span class="o">=</span> <span class="n">counts</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_counts&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">show_errors</span> <span class="o">=</span> <span class="n">errors</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_errors&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
         <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span>
         <span class="n">edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span>
         <span class="n">yerrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span>
@@ -1187,32 +1223,35 @@
         <span class="n">mask</span> <span class="o">=</span> <span class="p">((</span><span class="n">counts</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">yerrs</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">))</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
         <span class="n">centers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_centers</span>
 
-        <span class="k">if</span> <span class="n">gradient</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;histtype&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;step&quot;</span>
-
         <span class="k">if</span> <span class="n">show_errors</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;fmt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fmt&quot;</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">)</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;histtype&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="n">yerr</span> <span class="o">=</span> <span class="n">yerrs</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">errors_up</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">yerr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">errors_down</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">errors_up</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
             <span class="n">patches</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
-                <span class="n">centers</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">counts</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">xerr</span><span class="o">=</span><span class="n">xerrs</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">yerr</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+                <span class="n">centers</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+                <span class="n">counts</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+                <span class="n">xerr</span><span class="o">=</span><span class="n">xerrs</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+                <span class="n">yerr</span><span class="o">=</span><span class="n">yerr</span><span class="p">,</span>
+                <span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="c1"># If there are points with values of 0, they are not drawn</span>
             <span class="c1"># and the xlims will be compressed, so we force the bounds</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">patches</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span>
-                <span class="n">centers</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">edges</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">counts</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span>
+                <span class="n">centers</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+                <span class="n">edges</span><span class="p">,</span>
+                <span class="n">weights</span><span class="o">=</span><span class="n">counts</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+                <span class="n">histtype</span><span class="o">=</span><span class="n">histtype</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
             <span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">gradient</span><span class="p">:</span>
-                <span class="n">draw_gradient</span><span class="p">(</span>
-                    <span class="n">ax</span><span class="p">,</span> <span class="n">patches</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;histtype&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;stepfilled&quot;</span><span class="p">)</span>
-                <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">legend</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">and</span> <span class="n">legend</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">show_counts</span><span class="p">:</span>
@@ -1230,15 +1269,16 @@
                 <span class="n">color</span> <span class="o">=</span> <span class="n">patch</span><span class="o">.</span><span class="n">get_edgecolor</span><span class="p">()</span>
             <span class="n">xtodraw</span> <span class="o">=</span> <span class="n">centers</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
             <span class="n">ytexts</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+            <span class="n">yerrtexts</span> <span class="o">=</span> <span class="n">yerrs</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">show_errors</span><span class="p">:</span>
                 <span class="n">ytodraw</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">+</span> <span class="n">yerrs</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">ytodraw</span> <span class="o">=</span> <span class="n">ytexts</span>
-            <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ytext</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xtodraw</span><span class="p">,</span> <span class="n">ytodraw</span><span class="p">,</span> <span class="n">ytexts</span><span class="p">):</span>
+                <span class="n">ytodraw</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">xpos</span><span class="p">,</span> <span class="n">ypos</span><span class="p">,</span> <span class="n">ytext</span><span class="p">,</span> <span class="n">yerrtext</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xtodraw</span><span class="p">,</span> <span class="n">ytodraw</span><span class="p">,</span> <span class="n">ytexts</span><span class="p">,</span> <span class="n">yerrtexts</span><span class="p">):</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
-                    <span class="n">x</span><span class="p">,</span>
-                    <span class="n">y</span><span class="p">,</span>
-                    <span class="n">counts_fmt_func</span><span class="p">(</span><span class="n">ytext</span><span class="p">),</span>
+                    <span class="n">xpos</span><span class="p">,</span>
+                    <span class="n">ypos</span><span class="p">,</span>
+                    <span class="n">counts_formatter</span><span class="p">(</span><span class="n">ytext</span><span class="p">,</span> <span class="n">yerrtext</span><span class="p">),</span>
                     <span class="n">horizontalalignment</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
                     <span class="n">verticalalignment</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span>
                     <span class="n">fontsize</span><span class="o">=</span><span class="n">counts_fontsize</span><span class="p">,</span>

@@ -67,7 +67,7 @@
 
 <div class="viewcode-block" id="has_uniform_spacing"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.has_uniform_spacing">[docs]</a><span class="k">def</span> <span class="nf">has_uniform_spacing</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
     <span class="n">offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ediff1d</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">offsets</span> <span class="o">-</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">offsets</span> <span class="o">-</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="histogramdd_wrapper"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.histogramdd_wrapper">[docs]</a><span class="k">def</span> <span class="nf">histogramdd_wrapper</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">range_</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">overflow</span><span class="p">,</span> <span class="n">threads</span><span class="p">):</span>
@@ -231,40 +231,6 @@
             <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">g</span></div>
-
-
-<div class="viewcode-block" id="draw_gradient"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.draw_gradient">[docs]</a><span class="k">def</span> <span class="nf">draw_gradient</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">patches</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Draws gradient under a step patch (from `histtype=&quot;step&quot;`)</span>
-<span class="sd">    onto specified `ax`.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    ax : matplotlib AxesSubplot object</span>
-<span class="sd">    patches : matplotlib Patch objects</span>
-<span class="sd">    reverse : bool, default False</span>
-<span class="sd">        flip the gradient</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">mcolors</span>
-
-    <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
-    <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
-    <span class="n">patch</span> <span class="o">=</span> <span class="n">patches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-    <span class="n">color</span> <span class="o">=</span> <span class="n">patch</span><span class="o">.</span><span class="n">get_edgecolor</span><span class="p">()</span>
-    <span class="n">zorder</span> <span class="o">=</span> <span class="n">patch</span><span class="o">.</span><span class="n">get_zorder</span><span class="p">()</span>
-    <span class="n">alpha</span> <span class="o">=</span> <span class="n">patch</span><span class="o">.</span><span class="n">get_alpha</span><span class="p">()</span> <span class="ow">or</span> <span class="mf">1.0</span>
-
-    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-    <span class="n">rgb</span> <span class="o">=</span> <span class="n">mcolors</span><span class="o">.</span><span class="n">colorConverter</span><span class="o">.</span><span class="n">to_rgb</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
-    <span class="n">z</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">rgb</span>
-    <span class="n">z</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.20</span> <span class="o">*</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="mi">100</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">reverse</span><span class="p">:</span>
-        <span class="n">z</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
-        <span class="n">z</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">],</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="n">zorder</span>
-    <span class="p">)</span>
-    <span class="n">im</span><span class="o">.</span><span class="n">set_clip_path</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="plot_stack"><a class="viewcode-back" href="../../yahist.html#yahist.hist1d.plot_stack">[docs]</a><span class="k">def</span> <span class="nf">plot_stack</span><span class="p">(</span><span class="n">hists</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>

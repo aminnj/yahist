@@ -41,7 +41,6 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">base64</span>
 
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">is_listlike</span><span class="p">,</span>
@@ -338,8 +337,8 @@
         <span class="n">sumwxy</span> <span class="o">=</span> <span class="p">(</span><span class="n">z</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
         <span class="n">covariance</span> <span class="o">=</span> <span class="n">sumwxy</span> <span class="o">/</span> <span class="n">sumw</span> <span class="o">-</span> <span class="n">sumwx</span> <span class="o">/</span> <span class="n">sumw</span> <span class="o">*</span> <span class="n">sumwy</span> <span class="o">/</span> <span class="n">sumw</span>
-        <span class="n">stdx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
-        <span class="n">stdy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+        <span class="n">stdx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+        <span class="n">stdy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">covariance</span> <span class="o">/</span> <span class="n">stdx</span> <span class="o">/</span> <span class="n">stdy</span></div>
 
 <div class="viewcode-block" id="Hist2D.transpose"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.transpose">[docs]</a>    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -593,7 +592,7 @@
 
         <span class="k">return</span> <span class="n">xy</span></div>
 
-<div class="viewcode-block" id="Hist2D.svg_fast"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.svg_fast">[docs]</a>    <span class="k">def</span> <span class="nf">svg_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">aspectratio</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Hist2D.svg_fast"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.svg_fast">[docs]</a>    <span class="k">def</span> <span class="nf">svg_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">aspectratio</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return HTML svg tag with bare-bones version of histogram</span>
 <span class="sd">        (no ticks, labels).</span>
@@ -604,7 +603,7 @@
 <span class="sd">            Height of plot in pixels</span>
 <span class="sd">        aspectratio : float, default 1.4</span>
 <span class="sd">            Aspect ratio of plot</span>
-<span class="sd">        interactive : bool, default True</span>
+<span class="sd">        interactive : bool, default False</span>
 <span class="sd">            Whether to display bin contents on mouse hover.</span>
 
 <span class="sd">        Returns</span>
@@ -677,12 +676,14 @@
         <span class="n">source</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">content</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">source</span></div>
 
-<div class="viewcode-block" id="Hist2D.svg"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.svg">[docs]</a>    <span class="k">def</span> <span class="nf">svg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Hist2D.svg"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.svg">[docs]</a>    <span class="k">def</span> <span class="nf">svg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return HTML svg tag with Matplotlib-rendered svg.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        ticks : bool, default True</span>
+<span class="sd">            Show x/y ticks and labels</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Parameters to be passed to `self.plot()` function.</span>
 
@@ -692,10 +693,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="kn">import</span> <span class="nn">base64</span>
 
         <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mf">0.18</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.16</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.94</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ticks</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
         <span class="n">buf</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;svg&quot;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
@@ -813,7 +818,20 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">source</span>
 
-<div class="viewcode-block" id="Hist2D.plot"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Hist2D.plot"><a class="viewcode-back" href="../../yahist.html#yahist.hist2d.Hist2D.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">hide_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">counts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">counts_formatter</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{:3g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+        <span class="n">counts_fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">logz</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">equidistant</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">interactive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot this histogram object using matplotlib&#39;s `hist`</span>
 <span class="sd">        function, or `errorbar`.</span>
@@ -825,38 +843,37 @@
 <span class="sd">        fig : matplotlib Figure object, default None</span>
 <span class="sd">            matplotlib Figure object. Created if `None`.</span>
 <span class="sd">        counts</span>
-<span class="sd">            Alias for `show_counts`</span>
-<span class="sd">        counts_fmt_func : function, default &quot;{:3g}&quot;.format</span>
-<span class="sd">            Function used to format count labels</span>
+<span class="sd">            If True, show text labels for counts (and/or errors). See</span>
+<span class="sd">            `counts_formatter` and `counts_fontsize`.</span>
+<span class="sd">        counts_formatter : callable, default `&quot;{:3g}&quot;.format`</span>
+<span class="sd">            Two-parameter function used to format count and error labels.</span>
+<span class="sd">            Thus, if a second placeholder is specified (e.g., `&quot;{:3g}\\n$\pm$ {:3g}&quot;.format`),</span>
+<span class="sd">            the bin error can be shown as well.</span>
 <span class="sd">        counts_fontsize</span>
 <span class="sd">            Font size of count labels</span>
 <span class="sd">        colorbar : bool, default True</span>
 <span class="sd">            Show colorbar</span>
-<span class="sd">        equidistant : str (&quot;&quot;, &quot;x&quot;, &quot;y&quot;, &quot;xy&quot;), default &quot;&quot;</span>
-<span class="sd">            If not an empty string, make bins equally-spaced in the x-axis (&quot;x&quot;),</span>
-<span class="sd">            y-axis (&quot;y&quot;), or both (&quot;xy&quot;).</span>
+<span class="sd">        equidistant : str, default &quot;&quot;</span>
+<span class="sd">            If not an empty string, make bins equally-spaced in the x-axis (`equidistant=&quot;x&quot;`),</span>
+<span class="sd">            y-axis (`&quot;y&quot;`), or both (`&quot;xy&quot;`).</span>
 <span class="sd">        hide_empty : bool, default True</span>
 <span class="sd">            Don&#39;t draw empty bins (content==0)</span>
 <span class="sd">        interactive : bool, default False</span>
 <span class="sd">            Use plotly to make an interactive plot</span>
 <span class="sd">        logz : bool, default False</span>
 <span class="sd">            Use logscale for z-axis</span>
-<span class="sd">        show_counts : bool, default False</span>
-<span class="sd">            Show count labels for each bin</span>
-<span class="sd">        show_errors : bool, default False</span>
-<span class="sd">            Show error bars</span>
 <span class="sd">        **kwargs</span>
 <span class="sd">            Parameters to be passed to matplotlib </span>
-<span class="sd">            `pcolorfast` function.</span>
+<span class="sd">            `pcolorfast`/`pcolormesh` function.</span>
 
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        2-tuple of (pcolorfast output, matplotlib AxesSubplot object)</span>
+<span class="sd">        2-tuple of (`pcolorfast`/`pcolormesh` output, matplotlib `AxesSubplot` object)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;interactive&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_plotly</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_plotly</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">logz</span><span class="o">=</span><span class="n">logz</span><span class="p">,</span> <span class="n">hide_empty</span><span class="o">=</span><span class="n">hide_empty</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">LogNorm</span>
@@ -868,43 +885,40 @@
         <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
 
+        <span class="n">show_counts</span> <span class="o">=</span> <span class="n">counts</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_counts&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">logz</span> <span class="k">else</span> <span class="n">LogNorm</span><span class="p">()</span>
+
         <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_counts</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errors</span>
         <span class="n">xedges</span><span class="p">,</span> <span class="n">yedges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span>
         <span class="n">xcenters</span><span class="p">,</span> <span class="n">ycenters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_centers</span>
-
-        <span class="n">show_counts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;show_counts&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-        <span class="n">colorbar</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;colorbar&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">hide_empty</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;hide_empty&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">counts_fmt_func</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts_fmt_func&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{:3g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
-        <span class="n">counts_fontsize</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;counts_fontsize&quot;</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
-        <span class="n">logz</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;logz&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-        <span class="n">equidistant</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;equidistant&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">logz</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;norm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">LogNorm</span><span class="p">()</span>
-
         <span class="n">countsdraw</span> <span class="o">=</span> <span class="n">counts</span>
+
         <span class="k">if</span> <span class="n">hide_empty</span><span class="p">:</span>
             <span class="n">countsdraw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
             <span class="n">countsdraw</span><span class="p">[</span><span class="n">countsdraw</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
-        <span class="k">if</span> <span class="s2">&quot;x&quot;</span> <span class="ow">in</span> <span class="n">equidistant</span><span class="p">:</span>
-            <span class="n">xedges_old</span> <span class="o">=</span> <span class="n">xedges</span><span class="p">[:]</span>
-            <span class="n">xedges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xedges</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xedges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">xedges</span><span class="p">))</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">ticker</span><span class="o">.</span><span class="n">FixedLocator</span><span class="p">(</span><span class="n">xedges</span><span class="p">))</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticklabels</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">xedges_old</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
-            <span class="n">xcenters</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">xedges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">xedges</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-        <span class="k">if</span> <span class="s2">&quot;y&quot;</span> <span class="ow">in</span> <span class="n">equidistant</span><span class="p">:</span>
-            <span class="n">yedges_old</span> <span class="o">=</span> <span class="n">yedges</span><span class="p">[:]</span>
-            <span class="n">yedges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">yedges</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">yedges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">yedges</span><span class="p">))</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">ticker</span><span class="o">.</span><span class="n">FixedLocator</span><span class="p">(</span><span class="n">yedges</span><span class="p">))</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticklabels</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">yedges_old</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
-            <span class="n">ycenters</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">yedges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">yedges</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">plotter</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolorfast</span>
+        <span class="k">if</span> <span class="n">equidistant</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
 
-        <span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolorfast</span><span class="p">(</span><span class="n">xedges</span><span class="p">,</span> <span class="n">yedges</span><span class="p">,</span> <span class="n">countsdraw</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">plotter</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span>
+            <span class="k">for</span> <span class="n">char</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">set_scale</span><span class="p">,</span> <span class="n">set_ticks</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">xedges</span><span class="p">,</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">,</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">yedges</span><span class="p">,</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">,</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">),</span>
+            <span class="p">]:</span>
+                <span class="k">if</span> <span class="n">char</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">equidistant</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">b2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">b1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">b1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">b1</span><span class="p">))</span>
+                <span class="n">f_forw</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s2">&quot;extrapolate&quot;</span><span class="p">)</span>
+                <span class="n">f_back</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">b2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s2">&quot;extrapolate&quot;</span><span class="p">)</span>
+                <span class="n">set_scale</span><span class="p">(</span><span class="s2">&quot;function&quot;</span><span class="p">,</span> <span class="n">functions</span><span class="o">=</span><span class="p">(</span><span class="n">f_forw</span><span class="p">,</span> <span class="n">f_back</span><span class="p">))</span>
+                <span class="n">set_ticks</span><span class="p">(</span><span class="n">b1</span><span class="p">)</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="n">plotter</span><span class="p">(</span><span class="n">xedges</span><span class="p">,</span> <span class="n">yedges</span><span class="p">,</span> <span class="n">countsdraw</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">colorbar</span><span class="p">:</span>
-            <span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="s2">&quot;pandas_labels&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">:</span>
             <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;pandas_labels&quot;</span><span class="p">]</span>
@@ -923,23 +937,24 @@
                 <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">show_counts</span><span class="p">:</span>
-            <span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span>
+            <span class="n">xyze</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">c_</span><span class="p">[</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">xcenters</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ycenters</span><span class="p">)),</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">ycenters</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">xcenters</span><span class="p">)),</span>
                 <span class="n">counts</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
             <span class="p">]</span>
             <span class="k">if</span> <span class="n">hide_empty</span><span class="p">:</span>
-                <span class="n">xyz</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">[</span><span class="n">counts</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="n">xyze</span> <span class="o">=</span> <span class="n">xyze</span><span class="p">[</span><span class="n">counts</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
 
-            <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">xyz</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
-            <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">to_rgba</span><span class="p">(</span><span class="n">xyz</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">xyze</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">to_rgba</span><span class="p">(</span><span class="n">xyze</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
             <span class="n">colors</span><span class="p">[</span><span class="n">compute_darkness</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.45</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
-            <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">),</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">colors</span><span class="p">):</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">ze</span><span class="p">),</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xyze</span><span class="p">,</span> <span class="n">colors</span><span class="p">):</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
                     <span class="n">x</span><span class="p">,</span>
                     <span class="n">y</span><span class="p">,</span>
-                    <span class="n">counts_fmt_func</span><span class="p">(</span><span class="n">z</span><span class="p">),</span>
+                    <span class="n">counts_formatter</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">ze</span><span class="p">),</span>
                     <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
                     <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
                     <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
