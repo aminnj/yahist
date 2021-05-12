@@ -1116,7 +1116,7 @@ class Hist1D(object):
         fmt="o",
         label=None,
         color=None,
-        counts_fmt_func="{:3g}".format,
+        counts_formatter="{:3g}".format,
         counts_fontsize=10,
         interactive=False,
         **kwargs,
@@ -1133,8 +1133,8 @@ class Hist1D(object):
             If None, uses default matplotlib color cycler
         counts, bool False
             If True, show text labels for counts (and/or errors). See
-            `counts_fmt_func` and `counts_fontsize`.
-        counts_fmt_func : callable, default `"{:3g}".format`
+            `counts_formatter` and `counts_fontsize`.
+        counts_formatter : callable, default `"{:3g}".format`
             Two-parameter function used to format count and error labels.
             Thus, if a second placeholder is specified (e.g., `"{:3g} +- {:3g}".format`),
             the bin error can be shown as well.
@@ -1239,7 +1239,7 @@ class Hist1D(object):
                 ax.text(
                     xpos,
                     ypos,
-                    counts_fmt_func(ytext, yerrtext),
+                    counts_formatter(ytext, yerrtext),
                     horizontalalignment="center",
                     verticalalignment="bottom",
                     fontsize=counts_fontsize,

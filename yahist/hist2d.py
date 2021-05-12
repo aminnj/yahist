@@ -786,7 +786,7 @@ class Hist2D(Hist1D):
         colorbar=True,
         hide_empty=True,
         counts=False,
-        counts_fmt_func="{:3g}".format,
+        counts_formatter="{:3g}".format,
         counts_fontsize=12,
         logz=False,
         equidistant="",
@@ -805,8 +805,8 @@ class Hist2D(Hist1D):
             matplotlib Figure object. Created if `None`.
         counts
             If True, show text labels for counts (and/or errors). See
-            `counts_fmt_func` and `counts_fontsize`.
-        counts_fmt_func : callable, default `"{:3g}".format`
+            `counts_formatter` and `counts_fontsize`.
+        counts_formatter : callable, default `"{:3g}".format`
             Two-parameter function used to format count and error labels.
             Thus, if a second placeholder is specified (e.g., `"{:3g}\n$\pm$ {:3g}".format`),
             the bin error can be shown as well.
@@ -911,7 +911,7 @@ class Hist2D(Hist1D):
                 ax.text(
                     x,
                     y,
-                    counts_fmt_func(z, ze),
+                    counts_formatter(z, ze),
                     color=color,
                     ha="center",
                     va="center",
