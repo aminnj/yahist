@@ -24,11 +24,14 @@ def test_is_listlike():
 def test_has_uniform_spacing():
     assert utils.has_uniform_spacing([1, 2, 3, 4])
     assert utils.has_uniform_spacing(np.arange(10))
+    assert utils.has_uniform_spacing(np.arange(10) - 5)
     assert not utils.has_uniform_spacing([1, 2, 3, 5])
+    assert not utils.has_uniform_spacing([-4, -1, 1, 4, 5])
+    assert not utils.has_uniform_spacing([-6, 0, 1, 5, 6])
 
     a = np.linspace(0, 10, 100)
     assert utils.has_uniform_spacing(a)
-    a[-1] += 0.1
+    a[-1] += 0.01
     assert not utils.has_uniform_spacing(a)
 
 

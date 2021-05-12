@@ -28,7 +28,7 @@ def convert_dates(obj):
 
 def has_uniform_spacing(obj, epsilon=1e-6):
     offsets = np.ediff1d(obj)
-    return np.all(offsets - offsets[0] < epsilon)
+    return np.all(np.abs(offsets - offsets[0]) < epsilon)
 
 
 def histogramdd_wrapper(a, bins, range_, weights, overflow, threads):
@@ -192,40 +192,6 @@ def ignore_division_errors(f):
             return f(*args, **kw)
 
     return g
-
-
-def draw_gradient(ax, patches, reverse=False):
-    """
-    Draws gradient under a step patch (from `histtype="step"`)
-    onto specified `ax`.
-
-    Parameters
-    ----------
-    ax : matplotlib AxesSubplot object
-    patches : matplotlib Patch objects
-    reverse : bool, default False
-        flip the gradient
-    """
-    import matplotlib.colors as mcolors
-
-    xmin, xmax = ax.get_xlim()
-    ymin, ymax = ax.get_ylim()
-    patch = patches[0]
-
-    color = patch.get_edgecolor()
-    zorder = patch.get_zorder()
-    alpha = patch.get_alpha() or 1.0
-
-    z = np.empty((100, 1, 4), dtype=float)
-    rgb = mcolors.colorConverter.to_rgb(color)
-    z[:, :, :3] = rgb
-    z[:, :, -1] = np.linspace(0.20 * alpha, alpha, 100)[:, None]
-    if reverse:
-        z[:, :, -1] = z[:, :, -1][::-1]
-    im = ax.imshow(
-        z, aspect="auto", extent=[xmin, xmax, ymin, ymax], origin="lower", zorder=zorder
-    )
-    im.set_clip_path(patch)
 
 
 def plot_stack(hists, **kwargs):
