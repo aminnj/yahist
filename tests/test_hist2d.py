@@ -64,6 +64,18 @@ def test_weight_inputs():
     assert h.integral == 4
 
 
+def test_nonuniform_binning():
+    binsx = np.array([-4, -1, 1, 4, 5])
+    binsy = np.array([-6, 0, 1, 5, 6])
+    h = Hist2D(([0], [0]), bins=[binsx, binsy])
+    allclose(binsx, h.edges[0])
+    allclose(binsy, h.edges[1])
+
+    h = Hist2D(([0], [0]), bins=binsx)
+    allclose(binsx, h.edges[0])
+    allclose(binsx, h.edges[1])
+
+
 def test_profile():
     xs = np.array([0.5, 1.5])
     ys = np.array([1.5, 0.5])
