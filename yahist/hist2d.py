@@ -859,20 +859,27 @@ class Hist2D(Hist1D):
             countsdraw = np.array(counts)
             countsdraw[countsdraw == 0] = np.nan
 
-        if "x" in equidistant:
-            xedges_old = xedges[:]
-            xedges = np.linspace(xedges[0], xedges[-1], len(xedges))
-            ax.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(xedges))
-            ax.xaxis.set_ticklabels(np.round(xedges_old, 12))
-            xcenters = 0.5 * (xedges[:-1] + xedges[1:])
-        if "y" in equidistant:
-            yedges_old = yedges[:]
-            yedges = np.linspace(yedges[0], yedges[-1], len(yedges))
-            ax.yaxis.set_major_locator(matplotlib.ticker.FixedLocator(yedges))
-            ax.yaxis.set_ticklabels(np.round(yedges_old, 12))
-            ycenters = 0.5 * (yedges[:-1] + yedges[1:])
+        plotter = ax.pcolorfast
+        if equidistant:
+            from scipy.interpolate import interp1d
 
-        c = ax.pcolorfast(xedges, yedges, countsdraw, norm=norm, **kwargs)
+            plotter = ax.pcolor
+            if "x" in equidistant:
+                b1 = xedges
+                b2 = np.linspace(b1[0], b1[-1], len(b1))
+                f1 = interp1d(b1, b2, kind="linear", fill_value="extrapolate")
+                f2 = interp1d(b2, b1, kind="linear", fill_value="extrapolate")
+                ax.set_xscale("function", functions=(f1, f2))
+                ax.set_xticks(b1)
+            if "y" in equidistant:
+                b1 = yedges
+                b2 = np.linspace(b1[0], b1[-1], len(b1))
+                f1 = interp1d(b1, b2, kind="linear", fill_value="extrapolate")
+                f2 = interp1d(b2, b1, kind="linear", fill_value="extrapolate")
+                ax.set_yscale("function", functions=(f1, f2))
+                ax.set_yticks(b1)
+
+        c = plotter(xedges, yedges, countsdraw, norm=norm, **kwargs)
 
         if colorbar:
             cbar = fig.colorbar(c, ax=ax)
