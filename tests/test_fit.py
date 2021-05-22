@@ -27,6 +27,18 @@ def test_linear_fit():
     assert result["ndof"] == 3
 
 
+def test_return_func():
+    h = Hist1D.from_random("uniform")
+    fit = h.fit("a+b*x")
+    func = fit["func"]
+    hfit = fit["hfit"]
+
+    xs = h.bin_centers
+    ys = func(xs)
+
+    allclose(ys, hfit.counts)
+
+
 def test_extent():
     h_full = Hist1D.from_random(
         "uniform", params=[-1, 1], size=1e3, bins="100,-1,1"
