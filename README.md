@@ -23,7 +23,7 @@ from yahist import Hist1D
 
 v = np.random.normal(0, 1, 1000)
 h = Hist1D(v, bins=100, label="data").rebin(2).normalize()
-h.plot(errors=True, color="k")
+h.plot(errors=True, color="k", ms=3)
 h.fit("peak * np.exp(-(x-mu)**2 / (2*sigma**2))")
 ```
 <img src="examples/plot1.png" height="300" width="450"/>
@@ -35,7 +35,7 @@ df = pd.DataFrame(np.random.normal(0, 1, size=(10000, 2)), columns=["A", "B"])
 
 h = Hist2D(df, bins="30,-3,3", threads=4)
 h.plot(logz=True, cmap="cividis")
-h.profile("x").plot(color="r")
+h.profile("x").plot(errors=True, color="r", marker=".", label="x-profile")
 ```
 <img src="examples/plot2.png" height="300" width="450"/>
 

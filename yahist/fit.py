@@ -1,7 +1,44 @@
 import re
 import numpy as np
+import matplotlib
+
+import matplotlib.patches
+import matplotlib.lines
+import matplotlib.legend
 
 from .utils import is_listlike
+
+
+class BandObject(matplotlib.patches.Rectangle):
+    pass
+
+
+class BandObjectHandler(object):
+    def legend_artist(self, legend, orig_handle, fontsize, handlebox):
+        color = orig_handle.get_facecolor()
+        x0, y0 = handlebox.xdescent, handlebox.ydescent
+        width, height = handlebox.width, handlebox.height
+        patch = matplotlib.patches.Rectangle(
+            [x0, y0],
+            width,
+            height,
+            facecolor=color,
+            edgecolor="none",
+            lw=0.0,
+            alpha=0.25,
+            transform=handlebox.get_transform(),
+        )
+        handlebox.add_artist(patch)
+        patch = matplotlib.lines.Line2D(
+            [x0 + width * 0.03, x0 + width - width * 0.03],
+            [y0 + height * 0.5],
+            color=color,
+            linewidth=1,
+            linestyle="-",
+            transform=handlebox.get_transform(),
+        )
+        handlebox.add_artist(patch)
+        return patch
 
 
 def expr_to_lambda(expr):
@@ -173,6 +210,8 @@ def fit_hist(
         - parameter names, values, errors (sqrt of diagonal of the cov. matrix)
         - chi2, ndof of fit
         - a Hist1D object containing the fit
+        - a callable function "func" corresponding to the input function
+          but with fitted parameters
 
     Example
     -------
@@ -287,6 +326,7 @@ def fit_hist(
         chi2=chi2,
         ndof=ndof,
         hfit=hfit,
+        func=lambda x: func(x, *parvalues),
     )
 
     if draw:
@@ -295,7 +335,7 @@ def fit_hist(
             for name, x in params.items():
                 label += "\n    "
                 label += rf"{name} = {x['value']:.3g} $\pm$ {x['error']:.3g}"
-        ax.plot(xdata_fine, fit_ydata_fine, color=color, zorder=3, label=label)
+        ax.plot(xdata_fine, fit_ydata_fine, color=color, zorder=3)
         if band_style == "filled":
             ax.fill_between(
                 xdata_fine,
@@ -305,15 +345,18 @@ def fit_hist(
                 alpha=0.25,
                 zorder=3,
             )
+            matplotlib.legend.Legend.update_default_handler_map(
+                {BandObject: BandObjectHandler()}
+            )
+            ax.add_patch(
+                BandObject((0, 0), 0, 0, label=label, color=color, visible=False)
+            )
+
         elif band_style in ["dashed", "dashdot", "dotted", "solid"]:
             for mult in [-1, 1]:
                 ys = fit_ydata_fine + mult * sampled_stds_fine
                 ax.plot(xdata_fine, ys, color=color, zorder=3, linestyle=band_style)
         if legend:
-            # Because of this issue, we cannot iteratively append
-            # a combined patch (2-tuple of the ax.plot and ax.fill_between patches)
-            # to the legend, as ax.get_legend_handles_labels() will drop a previous patch
-            # https://stackoverflow.com/questions/56333115/matplotlib-iterate-to-combine-legend-handles-and-labels
             ax.legend()
 
     return res

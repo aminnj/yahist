@@ -794,8 +794,8 @@ class Hist2D(Hist1D):
         **kwargs,
     ):
         """
-        Plot this histogram object using matplotlib's `hist`
-        function, or `errorbar`.
+        Plot this histogram object using matplotlib's `pcolorfast`/`pcolormesh`
+        functions.
 
         Parameters
         ----------
