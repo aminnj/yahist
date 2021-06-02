@@ -789,6 +789,7 @@ class Hist2D(Hist1D):
         counts_formatter="{:3g}".format,
         counts_fontsize=12,
         logz=False,
+        zrange=(None, None),
         equidistant="",
         interactive=False,
         **kwargs,
@@ -823,6 +824,8 @@ class Hist2D(Hist1D):
             Use plotly to make an interactive plot
         logz : bool, default False
             Use logscale for z-axis
+        zrange : tuple, default (None, None)
+            Specifies the `vmin` and `vmax` z-axis limits
         **kwargs
             Parameters to be passed to matplotlib 
             `pcolorfast`/`pcolormesh` function.
@@ -847,7 +850,7 @@ class Hist2D(Hist1D):
             fig = plt.gcf()
 
         show_counts = counts or kwargs.pop("show_counts", False)
-        norm = None if not logz else LogNorm()
+        norm = None if not logz else LogNorm(vmin=zrange[0], vmax=zrange[1])
 
         counts = self._counts
         errors = self._errors
@@ -876,7 +879,15 @@ class Hist2D(Hist1D):
                 set_scale("function", functions=(f_forw, f_back))
                 set_ticks(b1)
 
-        c = plotter(xedges, yedges, countsdraw, norm=norm, **kwargs)
+        c = plotter(
+            xedges,
+            yedges,
+            countsdraw,
+            norm=norm,
+            vmin=zrange[0],
+            vmax=zrange[1],
+            **kwargs,
+        )
 
         if colorbar:
             _ = fig.colorbar(c, ax=ax)
