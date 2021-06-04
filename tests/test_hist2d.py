@@ -192,6 +192,7 @@ def test_smooth():
 
 
 def test_sample():
+    np.random.seed(0)
     h1 = Hist2D.from_random(size=1e5)
     h2 = Hist2D(h1.sample(1e5), bins=h1.edges)
     result = (h1.projection() / h2.projection()).fit("a+b*x")
@@ -245,6 +246,10 @@ def test_json():
     assert h1.metadata == h2.metadata
 
     assert os.path.getsize(".tmphist2d.json.gz") < os.path.getsize(".tmphist2d.json")
+
+    h1 = Hist2D(bins="2,0,2,5,0,5")
+    h2 = Hist2D.from_json(h1.to_json())
+    assert h1 == h2
 
 
 def test_threads():
