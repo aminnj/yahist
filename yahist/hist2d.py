@@ -937,7 +937,14 @@ class Hist2D(Hist1D):
         return (c, ax)
 
     def plot_plotly(
-        self, fig=None, cmap=None, logz=False, label=None, hide_empty=True, **kwargs
+        self,
+        fig=None,
+        cmap=None,
+        logz=False,
+        label=None,
+        hide_empty=True,
+        threedim=False,
+        **kwargs,
     ):
         import plotly.graph_objects as go
 
@@ -945,14 +952,17 @@ class Hist2D(Hist1D):
         if hide_empty:
             z[z <= 0] = np.nan
 
-        trace = go.Heatmap(
-            x=self.edges[0],
-            y=self.edges[1],
-            z=z,
-            hoverongaps=False,
-            colorscale=cmap,
-            colorbar=dict(thicknessmode="fraction", thickness=0.04, len=1.08),
-        )
+        if threedim:
+            trace = go.Surface()
+            trace.z = np.pad(z, ((0, 1), (0, 1)), mode="edge")
+        else:
+            trace = go.Heatmap()
+            trace.z = z
+            trace.hoverongaps = False
+        trace.x = self.edges[0]
+        trace.y = self.edges[1]
+        trace.colorscale = cmap
+        trace.colorbar = dict(thicknessmode="fraction", thickness=0.04, len=1.08)
         if logz:
             trace.z = np.log10(z)
             trace.colorbar.tickprefix = "10<sup>"
