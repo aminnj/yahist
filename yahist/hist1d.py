@@ -583,29 +583,36 @@ class Hist1D(object):
         hnew._metadata = self._metadata.copy()
         return hnew
 
-    def restrict(self, low=None, high=None):
+    def restrict(self, low=None, high=None, overflow=False):
         """
         Restricts to a contiguous subset of bins with
         bin center values within [low, high]. If `low`/`high`
         is `None`, there is no lower/upper bound
-
         Parameters
         ----------
         low : float (default None)
             Lower x center to keep
         high : float (default None)
             Highest x center to keep
-
+        overflow : bool (default False)
+            If `True`, adds the excluded bin contents
+            into the remaining edge bins.
         Returns
         -------
         Hist1D
         """
         centers = self.bin_centers
         sel = np.ones(self.nbins) > 0.5
+        count_low, count_high = 0.0, 0.0
+        error2_low, error2_high = 0.0, 0.0
         if low is not None:
             sel &= centers >= low
+            count_low = self.counts[centers < low].sum()
+            error2_low = (self.errors[centers < low] ** 2).sum()
         if high is not None:
             sel &= centers <= high
+            count_high = self.counts[centers > high].sum()
+            error2_high = (self.errors[centers > high] ** 2).sum()
         h = self.copy()
         selextra = np.concatenate([sel, [False]])
         selextra[np.argwhere(selextra)[-1][0] + 1] = True
@@ -616,6 +623,11 @@ class Hist1D(object):
             h._errors_up = h._errors_up[sel]
         if h._errors_down is not None:
             h._errors_down = h._errors_down[sel]
+        if overflow:
+            h._counts[0] += count_low
+            h._counts[-1] += count_high
+            h._errors[0] = (h._errors[0] ** 2.0 + error2_low) ** 0.5
+            h._errors[-1] = (h._errors[-1] ** 2.0 + error2_high) ** 0.5
         return h
 
     def to_poisson_errors(self, alpha=1 - 0.6827):

@@ -210,6 +210,15 @@ def test_restrict():
     assert h.restrict(None, 5).nbins == 5
     assert h.restrict(5, None).nbins == 5
 
+    h = Hist1D.from_random(bins="30,-5,5")
+    for low, high in [
+            (-2, None),
+            (None, 2),
+            (-2, 2),
+            ]:
+        allclose(h.restrict(low, high, overflow=True).integral, h.integral)
+        allclose(h.restrict(low, high, overflow=True).integral_error, h.integral_error)
+
 
 def test_cumulative():
     h1 = Hist1D([0.5, 1.5, 2.5, 3.5], bins=[0, 1, 2, 3, 4])

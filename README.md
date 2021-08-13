@@ -1,6 +1,7 @@
 ## Yet another histogram
 
 ![Python application](https://github.com/aminnj/yahist/workflows/Python%20application/badge.svg)
+[![PyPI](https://img.shields.io/pypi/v/yahist.svg)](https://pypi.python.org/pypi/yahist/)
 [![Documentation Status](https://readthedocs.org/projects/pip/badge/?version=latest)](https://aminnj.github.io/yahist/)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aminnj/yahist/master?filepath=examples%2Fbasic.ipynb)
 
