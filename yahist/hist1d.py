@@ -1198,12 +1198,14 @@ class Hist1D(object):
         counts = self._counts
         edges = self._edges
         yerrs = self._errors
-        if errors_binwidth:
-            xerrs = 0.5 * self.bin_widths
-        else:
-            xerrs = 0.0 * self.bin_widths
+        xerrs = 0.5 * self.bin_widths
         mask = ((counts != 0.0) | (yerrs != 0.0)) & np.isfinite(counts)
         centers = self.bin_centers
+
+        if errors_binwidth:
+            xerr = xerrs[mask]
+        else:
+            xerr = None
 
         if show_errors:
             yerr = yerrs[mask]
@@ -1212,7 +1214,7 @@ class Hist1D(object):
             patches = ax.errorbar(
                 centers[mask],
                 counts[mask],
-                xerr=xerrs[mask],
+                xerr=xerr,
                 yerr=yerr,
                 fmt=fmt,
                 color=color,
