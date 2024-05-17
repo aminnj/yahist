@@ -1128,6 +1128,7 @@ class Hist1D(object):
         legend=True,
         counts=False,
         errors=False,
+        errors_binwidth=True,
         fmt="o",
         label=None,
         color=None,
@@ -1157,6 +1158,8 @@ class Hist1D(object):
             Font size of count labels
         errors, bool False
             If True, plot markers with error bars (`ax.errorbar()`) instead of `ax.hist()`.
+        errors_binwidth, bool True
+            If True, the bin width is plotted as the x error if `errors=True`.
         fmt : str, default "o"
             `fmt` kwarg used for matplotlib plotting
         label : str, default None
@@ -1195,7 +1198,10 @@ class Hist1D(object):
         counts = self._counts
         edges = self._edges
         yerrs = self._errors
-        xerrs = 0.5 * self.bin_widths
+        if errors_binwidth:
+            xerrs = 0.5 * self.bin_widths
+        else:
+            xerrs = 0.0 * self.bin_widths
         mask = ((counts != 0.0) | (yerrs != 0.0)) & np.isfinite(counts)
         centers = self.bin_centers
 
