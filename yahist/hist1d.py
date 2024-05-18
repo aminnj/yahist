@@ -1030,10 +1030,10 @@ class Hist1D(object):
                 obj = json.load(fh)
         for k in obj:
             if is_listlike(obj[k]):
-                v = np.array(obj[k])
-                if (k in ["_edges"]) and (v.dtype == "O"):
-                    v = [np.array(x) for x in obj[k]]
-                obj[k] = v
+                if (k in ["_edges"]) and "Hist2D" in str(cls):
+                    v = tuple([np.array(x) for x in obj[k]])
+                else:
+                    v = np.array(obj[k])
         hnew = cls()
         hnew.__dict__.update(obj)
         return hnew
